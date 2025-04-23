@@ -963,9 +963,9 @@
         <span class="material-icons">menu</span>
       </button>
       <div class="nav-links" id="navLinks">
-        <a href="student_dashboard_.html" class="active">Dashboard</a>
-        <a href="upload_pdf.html">Assignments</a>
-        <a href="view_grades.html">My Grades</a>
+        <a href="../student_dashboard_.html" class="active">Dashboard</a>
+        <a href="../upload_pdf.html">Assignments</a>
+        <a href="../view_grades.html">My Grades</a>
         <!-- <a href="student_messages.html">Messages</a> -->
         <!-- <a href="student_resources.html">Resources</a> -->
         <div class="user-dropdown" id="userDropdown">
@@ -1000,7 +1000,7 @@
   <!-- Navbar for teacher -->
   <nav class="navbar" id="teacherNavbar" style="display: none;">
     <div class="container navbar-container">
-      <a href="index.html" class="logo-container">
+      <a href="../index.html" class="logo-container">
         <img src="../img/Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
         <h1 class="logo">Grade<span>Ant</span></h1>
       </a>
@@ -1008,11 +1008,11 @@
         <span class="material-icons">menu</span>
       </button>
       <div class="nav-links" id="teacherNavLinks">
-        <a href="teacher_dashboard.html" class="active">Dashboard</a>
-        <a href="upload_pdf.html">Assignments</a>
+        <a href="../dashboards/teacher_dashboard.html" class="active">Dashboard</a>
+        <a href="../upload_pdf.html">Assignments</a>
         <!-- <a href="teacher_gradebook.html">Gradebook</a> -->
         <!-- <a href="teacher_analytics.html">Analytics</a> -->
-        <a href="view_grades.html">Students Grades</a>
+        <a href="../view_grades.html">Students Grades</a>
         <!-- <a href="teacher_gradebook.html">Gradebook</a> -->
         <!-- <a href="teacher_analytics.html">Analytics</a> -->
         <!-- <a href="teacher_messages.html">Messages</a> -->
@@ -1053,7 +1053,7 @@
             <p>Here's an overview of your academic progress</p>
           </div>
           <div>
-            <button onclick="location.href='view_assignment.html'"class="btn btn-primary" id="viewAssignmentsBtn">
+            <button onclick="location.href='../upload_pdf.html'"class="btn btn-primary" id="viewAssignmentsBtn">
               <i class="material-icons">assignment</i> View Assignments
             </button>
           </div>
@@ -1100,7 +1100,7 @@
             <div class="option-content">
               <h3>Submit Assignment</h3>
               <p>Upload your completed assignments for grading and receive feedback.</p>
-              <button class="btn btn-primary" onclick="location.href='Frontend/upload_pdf.html'">Submit Work</button>
+              <button class="btn btn-primary" onclick="location.href='../upload_pdf.html'">Submit Work</button>
             </div>
           </div>
           
@@ -1111,7 +1111,7 @@
             <div class="option-content">
               <h3>View Feedback & Grades</h3>
               <p>Access teacher comments, review graded assignments, and track your progress.</p>
-              <button class="btn btn-primary" onclick="location.href='Frontend/view_grades.html'">View Grades</button>
+              <button class="btn btn-primary" onclick="location.href='../view_grades.html'">View Grades</button>
             </div>
           </div>
           
@@ -1122,7 +1122,7 @@
             <div class="option-content">
               <h3>Study Resources</h3>
               <p>Access study materials, practice questions, and additional learning resources.</p>
-              <button class="btn btn-primary" onclick="location.href='Frontend/study_resources.html'">Browse Resources</button>
+              <button class="btn btn-primary" onclick="location.href='../study_resources.html'">Browse Resources</button>
             </div>
           </div>
           
@@ -1455,7 +1455,7 @@
           
           // Add event listeners for buttons
           document.getElementById('viewAssignmentsBtn').addEventListener('click', function() {
-            window.location.href = 'upload_pdf.html';
+            window.location.href = '../upload_pdf.html';
           });
           
           // More initialization code as needed

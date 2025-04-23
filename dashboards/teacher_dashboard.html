@@ -324,7 +324,7 @@
   <!-- Navbar for student -->
   <nav class="navbar" id="studentNavbar">
     <div class="container navbar-container">
-      <a href="index.html" class="logo-container">
+      <a href="../index.html" class="logo-container">
         <img src="../img/Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
         <h1 class="logo">Grade<span>Ant</span></h1>
       </a>
@@ -332,14 +332,14 @@
         <span class="material-icons">menu</span>
       </button>
       <div class="nav-links" id="navLinks">
-        <a href="student_dashboard.html" class="active">Dashboard</a>
-        <a href="upload_pdf.html">Assignments</a>
-        <a href="view_grades.html">My Grades</a>
+        <a href="../dashboards/student_dashboard.html" class="active">Dashboard</a>
+        <a href="../upload_pdf.html">Assignments</a>
+        <a href="../view_grades.html">My Grades</a>
         <!-- <a href="student_messages.html">Messages</a> -->
         <!-- <a href="student_resources.html">Resources</a> -->
         <div class="user-dropdown" id="userDropdown">
           <div class="user-dropdown-toggle" id="userDropdownToggle">
-            <img src="../img/student-avatar.jpg" alt="Student Avatar" class="avatar">
+            <img src="../img/student.jpg" alt="Student Avatar" class="avatar">
             <div class="user-info">
               <span class="user-name" id="userName">Alex Johnson</span>
               <span class="user-role">Student</span>
@@ -347,11 +347,11 @@
             <span class="material-icons">arrow_drop_down</span>
           </div>
           <div class="dropdown-menu" id="userDropdownMenu">
-            <a href="student_profile.html">
+            <a href="../student_profile.html">
               <span class="material-icons">person</span>
               My Profile
             </a>
-            <a href="student_settings.html">
+            <a href="../student_settings.html">
               <span class="material-icons">settings</span>
               Settings
             </a>
@@ -369,7 +369,7 @@
   <!-- Navbar for teacher -->
   <nav class="navbar" id="teacherNavbar" style="display: none;">
     <div class="container navbar-container">
-      <a href="index.html" class="logo-container">
+      <a href="../index.html" class="logo-container">
         <img src="../img/Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
         <h1 class="logo">Grade<span>Ant</span></h1>
       </a>
@@ -377,12 +377,12 @@
         <span class="material-icons">menu</span>
       </button>
       <div class="nav-links" id="teacherNavLinks">
-        <a href="teacher_dashboard.html" class="active">Dashboard</a>
+        <a href="../dashboards/teacher_dashboard.html" class="active">Dashboard</a>
         <!-- <a href="teacher_classes.html">My Classes</a> -->
-        <a href="upload_pdf.html">Assignments</a>
+        <a href="../upload_pdf.html">Assignments</a>
         <!-- <a href="teacher_gradebook.html">Gradebook</a> -->
         <!-- <a href="teacher_analytics.html">Analytics</a> -->
-        <a href="view_grades.html">Students Grades</a>
+        <a href="../view_grades.html">Students Grades</a>
         <!-- <a href="teacher_messages.html">Messages</a> -->
         <div class="user-dropdown" id="teacherUserDropdown">
           <div class="user-dropdown-toggle" id="teacherUserDropdownToggle">
@@ -1160,7 +1160,7 @@ hr {
         <p>Here's an overview of your grading activities</p>
       </div>
       <div>
-        <button class="btn btn-primary" id="newAssignmentBtn">
+        <button onclick="location.href='../upload_pdf.html'" href="../upload_pdf.html" class="btn btn-primary" id="newAssignmentBtn">
           <i class="material-icons">add</i> New Assignment
         </button>
       </div>
@@ -1202,16 +1202,16 @@ hr {
     <div class="quick-actions">
       <h2>Quick Actions</h2>
       <div class="action-buttons">
-        <button onclick="location.href='Frontend/upload_pdf.html'"class="action-button">
+        <button onclick="location.href='../upload_pdf.html'"class="action-button">
           <i class="material-icons">upload</i> Upload Assignment
         </button>
-        <button onclick="location.href='Frontend/view_grades.html'" class="action-button">
+        <button onclick="location.href='../view_grades.html'" class="action-button">
           <i class="material-icons">assessment</i> View Grades
         </button>
-        <button onclick="location.href='Frontend/students.html'" class="action-button">
+        <button onclick="location.href='../students.html'" class="action-button">
           <i class="material-icons">group</i> Manage Students
         </button>
-        <button onclick="location.href='Frontend/Settings.html'"class="action-button">
+        <button onclick="location.href='../Settings.html'"class="action-button">
           <i class="material-icons">settings</i> Settings
         </button>
       </div>
@@ -1226,7 +1226,7 @@ hr {
         <div class="option-content">
           <h3>Upload Assignment / Question Paper</h3>
           <p>Upload your assignments or question papers for automated grading and analysis.</p>
-          <button class="btn btn-primary" onclick="location.href='Frontend/upload_pdf.html'">Go to Upload</button>
+          <button class="btn btn-primary" onclick="location.href='../upload_pdf.html'">Go to Upload</button>
         </div>
       </div>
       
@@ -1237,7 +1237,7 @@ hr {
         <div class="option-content">
           <h3>View Grades</h3>
           <p>Access all your graded assignments, view statistics and download reports.</p>
-          <button class="btn btn-primary" onclick="location.href='Frontend/view_grades.html'">Go to Grades</button>
+          <button class="btn btn-primary" onclick="location.href='../view_grades.html'">Go to Grades</button>
         </div>
       </div>
       
@@ -1248,7 +1248,7 @@ hr {
         <div class="option-content">
           <h3>Analytics Dashboard</h3>
           <p>Get detailed insights into student performance with advanced analytics.</p>
-          <button class="btn btn-primary" onclick="location.href='Frontend/analytics.html'">View Analytics</button>
+          <button class="btn btn-primary" onclick="location.href='../analytics.html'">View Analytics</button>
         </div>
       </div>
       
@@ -1394,7 +1394,7 @@ hr {
       
       // Add event listeners for quick action buttons
       document.getElementById('newAssignmentBtn').addEventListener('click', function() {
-        window.location.href = 'upload_pdf.html';
+        window.location.href = '../upload_pdf.html';
       });
       
       // More initialization code as needed
