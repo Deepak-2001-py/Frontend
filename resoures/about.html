@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | About Us</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container navbar-container">
+      <a href="index.html" class="logo-container">
+        <img src="..\img\Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
+        <h1 class="logo">Grade<span>Ant</span></h1>
+      </a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="nav-links" id="navLinks">
+        <!-- <a href="dashboard.html">Dashboard</a> -->
+        <a href="about.html" class="active">About</a>
+        <a href="blog.html">Blog</a>
+        <a href="contact.html">Contact</a>
+        <div class="auth-buttons">
+          <a href="..\auth\login.html" class="btn btn-secondary">Login</a>
+          <a href="..\auth\signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- About Hero Section -->
+  <section class="page-hero about-hero">
+    <div class="container">
+      <h1>About GradeAnt</h1>
+      <p>Our mission is to empower educators with intelligent tools that save time and improve student outcomes.</p>
+    </div>
+  </section>
+
+  <!-- Our Story Section -->
+  <section class="our-story">
+    <div class="container">
+      <div class="story-content">
+        <h2>Our Story</h2>
+        <p>GradeAnt began in 2023 when a group of educators and technologists came together with a shared vision: to solve one of education's most persistent challenges - the grading bottleneck.</p>
+        <p>After spending countless late nights grading papers, our founders realized there had to be a better way. They set out to build an AI-powered grading assistant that could understand nuanced responses while maintaining the human touch that makes feedback valuable.</p>
+        <p>Today, GradeAnt helps thousands of educators across the globe reclaim their time while providing more consistent, thoughtful feedback to their students.</p>
+      </div>
+      <div class="story-image">
+        <img src="..\img\group.jpg" alt="GradeAnt Team">
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team-section">
+    <div class="container">
+      <h2 class="section-title">Meet Our Team</h2>
+      <div class="team-grid">
+        <div class="team-member">
+          <img src="..\img\deepak.jpg" alt="Team Member">
+          <h3>Deepak</h3>
+          <p class="member-title">AI Engineer</p>
+          <p>AI/ML Engineer for EdTech and AI.</p>
+        </div>
+        <div class="team-member">
+          <img src="..\img\narayan.jpg" alt="Team Member">
+          <h3>Narayan</h3>
+          <p class="member-title">AI Engineer</p>
+          <p>AI researcher specializing in natural language processing and education.</p>
+        </div>
+        <div class="team-member">
+          <img src="..\img\shradha.jpg" alt="Team Member">
+          <h3>Shradha</h3>
+          <p class="member-title">Head of Product</p>
+          <p>Educational technologist with over 15 years of experience in EdTech.</p>
+        </div>
+        <div class="team-member">
+          <img src="..\img\tariq.jpg" alt="Team Member">
+          <h3>Tariq</h3>
+          <p class="member-title">Head of Pedagogy</p>
+          <p>Former principal and curriculum specialist focused on assessment strategies.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Values Section -->
+  <section class="values-section">
+    <div class="container">
+      <h2 class="section-title">Our Values</h2>
+      <div class="values-grid">
+        <div class="value-card">
+          <div class="value-icon">🎯</div>
+          <h3>Educator-First</h3>
+          <p>We build everything with teachers in mind, prioritizing their needs and workflows.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">💡</div>
+          <h3>Innovation</h3>
+          <p>We constantly push the boundaries of what's possible in educational technology.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🤝</div>
+          <h3>Partnership</h3>
+          <p>We see ourselves as partners in education, not just a tool provider.</p>
+        </div>
+        <div class="value-card">
+          <div class="value-icon">🔒</div>
+          <h3>Trust & Privacy</h3>
+          <p>We maintain the highest standards for data security and student privacy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <h2 class="logo">Grade<span>Ant</span></h2>
+          <p>Making grading smarter and faster.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>Product</h3>
+            <a href="..\quick_links\features.html">Features</a>
+            <!-- <a href="pricing.html">Pricing</a> -->
+            <a href="..\quick_links\demo.html">Demo</a>
+          </div>
+          <div class="footer-column">
+            <h3>Company</h3>
+            <a href="about.html">About</a>
+            <a href="blog.html">Blog</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <div class="footer-column">
+            <h3>Legal</h3>
+            <a href="..\legal\terms.html">Terms</a>
+            <a href="..\legal\privacy.html">Privacy</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 GradeAnt. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('active');
+    });
+  </script>
+</body>
+</html>

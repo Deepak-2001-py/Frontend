@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | Sign Up</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Additional styles for role selection */
+    .role-selector {
+      display: flex;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+    }
+    
+    .role-option {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background-color: #f5f5f5;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .role-option.active {
+      background-color: #4a6cf7;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .role-option:first-child {
+      border-right: 1px solid #ddd;
+    }
+
+    .student-fields, .teacher-fields {
+      display: none;
+    }
+
+    .student-fields.active, .teacher-fields.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="auth-page">
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container navbar-container">
+      <a href="index.html" class="logo-container">
+        <img src="../img/Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
+        <h1 class="logo">Grade<span>Ant</span></h1>
+      </a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="nav-links" id="navLinks">
+        <!-- <a href="dashboard.html">Dashboard</a> -->
+        <a href="..\resoures\about.html">About</a>
+        <a href="..\resoures\blog.html">Blog</a>
+        <a href="..\resoures\contact.html">Contact</a>
+        <div class="auth-buttons">
+          <a href="login.html" class="btn btn-secondary">Login</a>
+          <a href="signup_.html" class="btn btn-primary active">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sign Up Section -->
+  <section class="auth-section">
+    <div class="container">
+      <div class="auth-container">
+        <div class="auth-form-container">
+          <h1>Create Your Account</h1>
+          <p class="auth-subtitle">Join thousands of users on GradeAnt</p>
+          
+          <form class="auth-form" id="signupForm">
+            <!-- Role Selection -->
+            <div class="form-group">
+              <label>I am a:</label>
+              <div class="role-selector">
+                <div class="role-option active" data-role="student">Student</div>
+                <div class="role-option" data-role="teacher">Teacher</div>
+              </div>
+              <input type="hidden" id="userRole" name="userRole" value="student">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+
+            <!-- Student specific fields -->
+            <div class="student-fields active">
+              <div class="form-group">
+                <label for="studentId">Student ID</label>
+                <input type="text" id="studentId" name="studentId">
+              </div>
+              <div class="form-group">
+                <label for="gradeLevel">Grade/Year Level</label>
+                <input type="text" id="gradeLevel" name="gradeLevel">
+              </div>
+            </div>
+
+            <!-- Teacher specific fields -->
+            <div class="teacher-fields">
+              <div class="form-group">
+                <label for="institution">Institution</label>
+                <input type="text" id="institution" name="institution">
+              </div>
+              <div class="form-group">
+                <label for="department">Department</label>
+                <input type="text" id="department" name="department">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required>
+              <p class="password-hint">Must be at least 8 characters with a number and special character</p>
+            </div>
+            <div class="form-group terms-checkbox">
+              <label class="checkbox-container">
+                <input type="checkbox" name="terms" required>
+                <span class="checkmark"></span>
+                I agree to the <a href="../lagal/terms.html">Terms of Service</a> and <a href="../lagal/privacy.html">Privacy Policy</a>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+          </form>
+          
+          <div class="auth-divider">
+            <span>OR</span>
+          </div>
+          
+          <div class="social-login">
+            <button class="btn btn-google">
+              <img src="../img/google.png" alt="Google">
+              Sign up with Google
+            </button>
+            <button class="btn btn-microsoft">
+              <img src="../img/microsoft.png" alt="Microsoft">
+              Sign up with Microsoft
+            </button>
+          </div>
+          
+          <p class="auth-switch">
+            Already have an account? <a href="login.html">Log in</a>
+          </p>
+        </div>
+        
+        <div class="auth-image">
+          <img src="../img/Sign_up.png" alt="Sign Up Illustration">
+          <div class="feature-highlights">
+            <h3 id="roleFeatures">Why students love GradeAnt</h3>
+            <ul id="roleBenefits">
+              <li><span class="check-icon">✓</span> Track your progress across subjects</li>
+              <li><span class="check-icon">✓</span> Get detailed feedback on assignments</li>
+              <li><span class="check-icon">✓</span> Access study resources and tips</li>
+              <li><span class="check-icon">✓</span> Collaborate with classmates on projects</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const API_BASE_URL = 'https://rus9nultj9.execute-api.eu-north-1.amazonaws.com/dev'; // replace with your actual API if changed
+  
+    // Mobile menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', function () {
+      document.getElementById('navLinks').classList.toggle('active');
+    });
+    
+    // Role selection toggle
+    const roleOptions = document.querySelectorAll('.role-option');
+    roleOptions.forEach(option => {
+      option.addEventListener('click', function() {
+        // Update active class
+        roleOptions.forEach(opt => opt.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update hidden input
+        const role = this.dataset.role;
+        document.getElementById('userRole').value = role;
+        
+        // Toggle form fields visibility
+        const studentFields = document.querySelector('.student-fields');
+        const teacherFields = document.querySelector('.teacher-fields');
+        
+        if (role === 'student') {
+          studentFields.classList.add('active');
+          teacherFields.classList.remove('active');
+          // Update benefits text
+          document.getElementById('roleFeatures').textContent = 'Why students love GradeAnt';
+          document.getElementById('roleBenefits').innerHTML = `
+            <li><span class="check-icon">✓</span> Track your progress across subjects</li>
+            <li><span class="check-icon">✓</span> Get detailed feedback on assignments</li>
+            <li><span class="check-icon">✓</span> Access study resources and tips</li>
+            <li><span class="check-icon">✓</span> Collaborate with classmates on projects</li>
+          `;
+        } else {
+          studentFields.classList.remove('active');
+          teacherFields.classList.add('active');
+          // Update benefits text
+          document.getElementById('roleFeatures').textContent = 'Why educators love GradeAnt';
+          document.getElementById('roleBenefits').innerHTML = `
+            <li><span class="check-icon">✓</span> Save up to 70% of grading time</li>
+            <li><span class="check-icon">✓</span> Provide consistent, detailed feedback</li>
+            <li><span class="check-icon">✓</span> Track student progress with analytics</li>
+            <li><span class="check-icon">✓</span> Seamless integration with your LMS</li>
+          `;
+        }
+      });
+    });
+  
+    // Form submission
+    document.getElementById('signupForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+  
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const userRole = document.getElementById('userRole').value;
+      const termsChecked = document.querySelector('input[name="terms"]').checked;
+  
+      if (!firstName || !lastName || !email || !password ||!userRole ||!termsChecked) {
+        alert('Please fill in all required fields and accept the terms.');
+        return;
+      }
+  
+      const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$/;
+      if (!passwordRegex.test(password)) {
+        alert('Password must be at least 8 characters long, include a number and a special character.');
+        return;
+      }
+  
+      const fullName = `${firstName} ${lastName}`;
+      
+      // Role-specific data
+      let roleSpecificData = {};
+      
+      if (userRole === 'student') {
+        roleSpecificData = {
+          studentId: document.getElementById('studentId').value.trim(),
+          gradeLevel: document.getElementById('gradeLevel').value.trim()
+        };
+      } else {
+        roleSpecificData = {
+          institution: document.getElementById('institution').value.trim(),
+          department: document.getElementById('department').value.trim()
+        };
+      }
+  
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Origin': window.location.origin
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            name: fullName,
+            role: userRole,
+            ...roleSpecificData
+          })
+        });
+  
+        const data = await response.json();
+  
+        if (!response.ok) {
+          throw new Error(data.message || 'Signup failed');
+        }
+  
+        // Store token, user ID, and role
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userId', data.user_id);
+        localStorage.setItem('userRole', userRole);
+  
+        alert('Signup successful! Redirecting...');
+        
+        // Redirect based on role
+        if (userRole === 'teacher') {
+          window.location.href = '../dashboards/teacher_dashboard.html';
+        } else {
+          window.location.href = '../dashboards/student_dashboard_.html';
+        }
+      } catch (err) {
+        console.error('Signup error:', err);
+        alert(err.message || 'Error signing up. Please try again.');
+      }
+    });
+  </script>
+  
+</body>
+</html>

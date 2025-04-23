@@ -1,0 +1,81 @@
+<style>
+  /* CTA Section Styling */
+.cta-section {
+  background: linear-gradient(135deg, #F5A623,#4A90E2);
+  padding: 60px 20px;
+  text-align: center;
+  color: #fff;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cta-title {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.cta-description {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: #f0f0f0;
+}
+
+.btn.cta-button {
+  background-color: #ffffff;
+  color: #4e54c8;
+  padding: 14px 32px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn.cta-button:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 600px) {
+  .cta-title {
+    font-size: 2rem;
+  }
+  .cta-description {
+    font-size: 1rem;
+  }
+}
+
+</style>
+<!-- CTA Section -->
+<section class="cta-section" id="getstarted">
+    <div class="container">
+      <h2 class="cta-title">Ready to Transform Your Grading Experience?</h2>
+      <p class="cta-description">Join thousands of educators who have reclaimed their time while providing better feedback to students.</p>
+      <button onclick="location.href='../auth/login.html'" class="btn cta-button pulse" id="getStartedButton">
+        Get Started Today <span>→</span>
+      </button>
+    </div>
+  </section>
+  <!-- <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const getStartedBtn = document.getElementById('getStartedButton');
+    
+      getStartedBtn.addEventListener('click', () => {
+        const correctKey = '1234'; // Replace with a real secret management method
+        const enteredKey = prompt('Please enter your access key:');
+    
+        if (enteredKey === null) return;
+    
+        if (enteredKey === correctKey) {
+          window.location.href = 'login_.html';
+        } else {
+          alert('Incorrect key. Access denied.');
+        }
+      });
+    });
+    
+  </script> -->
