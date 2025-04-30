@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grade-Ant Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Reset & Font */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      text-align: center;
+      max-width: 1000px;
+      margin: auto;
+    }
+    h1 {
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .option {
+      background: #fff;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      width: 320px;
+      margin-bottom: 20px;
+    }
+    .option:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    }
+    .option img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .option-content {
+      padding: 20px;
+    }
+    .option-content h3 {
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      color: #333;
+    }
+    .option-content button {
+      padding: 12px 25px;
+      font-size: 1rem;
+      background-color: #5563DE;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .option-content button:hover {
+      background-color: #3f4fb7;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Grade-Ant Dashboard</h1>
+    <div class="options">
+      <div class="option">
+        <img src="img\Screenshot 2025-04-03 164627.png" alt="Upload Assignment / Question Paper" />
+        <div class="option-content">
+          <h3>Upload Assignment / Question Paper</h3>
+          <button onclick="location.href='upload_pdf.html'">Go to Upload</button>
+        </div>
+      </div>
+      <div class="option">
+        <img src="img\ChatGPT Image Apr 3, 2025, 04_52_22 PM.png" alt="View Grades" />
+        <div class="option-content">
+          <h3>View Grades</h3>
+          <button onclick="location.href='view_grades.html'">Go to Grades</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
