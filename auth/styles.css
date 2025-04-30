@@ -78,7 +78,7 @@
   
   .btn-secondary {
     background-color: transparent;
-    color: var(--primary-color);
+    color: blue;
     border: 1px solid var(--primary-color);
   }
   
@@ -1353,7 +1353,7 @@ a {
   
   .btn-primary:hover {
     background-color: var(--primary-hover);
-    color: white;
+    color: var(--light-gray);
   }
   
   .btn-secondary {
@@ -1363,7 +1363,8 @@ a {
   }
   
   .btn-secondary:hover {
-    background-color: var(--light-gray);
+    background-color: var(--orange-hover);
+    color: var(--light-gray);
   }
   
   .btn-block {
@@ -1372,7 +1373,7 @@ a {
   }
   
   .btn.active {
-    background-color: var(--primary-color);
+    background-color: white;
     color: white;
   }
   
