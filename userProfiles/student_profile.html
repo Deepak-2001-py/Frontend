@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile | GradeAnt</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="../component-loader.js"></script>
+  <style>
+    /* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #f4f7fa;
+  color: #333;
+  min-height: 100vh;
+}
+
+/* Container */
+.container {
+  max-width: 960px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Page Title */
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 2.4rem;
+  color: #222;
+}
+
+/* Profile Card */
+.profile-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease-in-out;
+}
+
+.profile-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Header: Avatar + Name */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+.profile-avatar img {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #007bff;
+}
+
+.profile-title h2 {
+  font-size: 1.8rem;
+  color: #007bff;
+  margin-bottom: 4px;
+}
+
+.profile-title p {
+  font-size: 1rem;
+  color: #777;
+}
+
+/* Detail Sections */
+.profile-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  background: #f9fbfd;
+  border-left: 5px solid #007bff;
+  border-radius: 12px;
+  padding: 16px;
+  gap: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s;
+}
+
+.detail-item:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.detail-item .material-icons {
+  font-size: 28px;
+  color: #007bff;
+  margin-top: 2px;
+}
+
+.detail-item h3 {
+  margin-bottom: 4px;
+  font-size: 1rem;
+  color: #444;
+}
+
+.detail-item p {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/* Buttons */
+.profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.btn span.material-icons {
+  font-size: 20px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background-color: #4e555b;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn {
+    justify-content: center;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <!-- Navigation will be included here -->
+  <div id="nav"></div>
+
+  <main class="profile-container">
+    <div class="container">
+      <h1>Student Profile</h1>
+      
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <img id="profileAvatar" src="../img/student.jpg" alt="Student Avatar">
+          </div>
+          <div class="profile-title">
+            <h2 id="profileName">Loading...</h2>
+            <p id="profileRole">Student</p>
+          </div>
+        </div>
+
+        <div class="profile-details">
+          <div class="detail-item">
+            <span class="material-icons">email</span>
+            <div>
+              <h3>Email Address</h3>
+              <p id="profileEmail">Loading...</p>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="material-icons">badge</span>
+            <div>
+              <h3>Student ID</h3>
+              <p id="profileUserId">Loading...</p>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="material-icons">school</span>
+            <div>
+              <h3>Grade Level</h3>
+              <p id="gradeLevel">Not specified</p>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="material-icons">calendar_today</span>
+            <div>
+              <h3>Last Login</h3>
+              <p id="profileLastLogin">Loading...</p>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="material-icons">assignment</span>
+            <div>
+              <h3>Assignments Submitted</h3>
+              <p id="assignmentsSubmitted">0</p>
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <span class="material-icons">grade</span>
+            <div>
+              <h3>Average Grade</h3>
+              <p id="averageGrade">N/A</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button id="editProfileBtn" class="btn btn-primary">
+            <span class="material-icons">edit</span>
+            Edit Profile
+          </button>
+          <button id="changePasswordBtn" class="btn btn-secondary">
+            <span class="material-icons">lock</span>
+            Change Password
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Load navigation 
+    document.addEventListener('DOMContentLoaded', function() {
+      // Fetch or include the navigation component
+      fetch('../nav.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('navPlaceholder').innerHTML = data;
+          
+          // Execute the navigation script if needed
+          const script = document.createElement('script');
+          script.text = `
+            (function() {
+              // Any navigation initialization code can go here
+              console.log("Navigation loaded");
+            })();
+          `;
+          document.body.appendChild(script);
+        })
+        .catch(error => {
+          console.error('Error loading navigation:', error);
+        });
+    });
+  </script>
+
+  <script src="../userProfiles/user_profile.js"></script>
+</body>
+</html>

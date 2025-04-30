@@ -5,39 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="GradeAnt: AI-Powered Homework Grader for students and teachers" />
   <title>GradeAnt: AI-Powered Homework Grader</title>
-
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
-  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32x32.png" />
-  <link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
-
+  <link rel="icon" type="image/x-icon" href="../img/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png" />
+  <link rel="apple-touch-icon" href="../img/apple-touch-icon.png" />
   <!-- Styles -->
-  <link rel="stylesheet" href="css\asthetic_style.css" />
+  <link rel="stylesheet" href="..\css\asthetic_style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="../component-loader.js"></script>
+  <link rel="stylesheet" href="../student_grade.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-container">
-      <div class="brand">
-        <img src="img/favicon-32x32.png" alt="GradeAnt Logo" class="logo" />
-        <h1>GradeAnt</h1>
-      </div>
-      <p class="tagline">AI-Powered Homework Grader</p>
-    </div>
-  </header>
-  
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <div id="nav"></div>
   <main class="main-content">
     <div class="container">
-      <nav class="primary-nav" aria-label="Primary Navigation">
-        <ul class="nav-tabs" role="tablist">
-          <li role="presentation">
-            <button class="tab-btn" id="grades-tab-btn" data-tab="grades-section" role="tab" aria-controls="grades-section">
-              <i class="fas fa-chart-bar"></i> View Grades
-            </button>
-          </li>
-        </ul>
-      </nav>
-
       <section id="grades-section" class="tab-content" role="tabpanel">
         <div class="card">
           <div class="card-header">
@@ -58,29 +40,33 @@
                 </li>
               </ul>
             </nav>
-
-            <div id="student-view" class="sub-tab-content active">
-              <h3>View Your Assignment Grades</h3>
+            <div id="student-view" class="student-grade-container">
+              <h3>Check Your Assignment Results</h3>
               <form id="student-grade-form" class="form">
                 <div class="form-row">
                   <div class="form-group">
-                    <label for="student-id">Student ID</label>
+                    <label for="student-id">Student ID Number</label>
                     <input type="text" id="student-id" class="form-control" placeholder="Enter your student ID" required />
+                    <small class="form-text">Your unique student identifier</small>
                   </div>
                   <div class="form-group">
-                    <label for="assignment-id-student">Assignment ID</label>
-                    <input type="text" id="assignment-id-student" class="form-control" placeholder="Enter assignment ID" required />
+                    <label for="assignment-id-student">Assignment Code</label>
+                    <input type="text" id="assignment-id-student" class="form-control" placeholder="Enter assignment code" required />
+                    <small class="form-text">Find this code on your assignment sheet</small>
                   </div>
                 </div>
                 <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">View Grades</button>
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Retrieve Results
+                  </button>
+                  <button type="reset" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Clear
+                  </button>
                 </div>
               </form>
-
               <div class="loader-container" id="student-loader-container">
                 <div class="loader" id="student-loader"></div>
-              </div>
-
+              </div>           
               <div class="result-container" id="student-result">
                 <h4>Your Assignment Summary</h4>
                 <table id="summary-table" class="summary-table">
@@ -96,12 +82,10 @@
                   </thead>
                   <tbody id="summary-body"></tbody>
                 </table>
-
                 <h4>Question Breakdown</h4>
                 <div id="questions-container"></div>
               </div>
             </div>
-
             <div id="teacher-view" class="sub-tab-content" style="display: none;">
               <h3>All Student Grades</h3>
               <form id="teacher-grade-form" class="form">
@@ -117,7 +101,10 @@
                 </div>
                 <div class="form-actions">
                   <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-download"></i> Fetch All Grades
+                    <i class="fas fa-search"></i> Retrieve Results
+                  </button>
+                  <button type="reset" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Clear
                   </button>
                 </div>
               </form>
@@ -145,14 +132,11 @@
       </section>
     </div>
   </main>
-
   <footer class="site-footer">
     <div class="container">
       <p>&copy; 2025 GradeAnt. All rights reserved.</p>
     </div>
   </footer>
-
-  <script src="javascript\view_grades.js"></script>
-  
+  <script src="..\javascript\view_grades.js"></script>
 </body>
 </html>
