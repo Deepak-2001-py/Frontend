@@ -15,10 +15,11 @@
   <link rel="stylesheet" href="..\css\asthetic_style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="../component-loader.js"></script>
+  <link rel="stylesheet" href="..\teacher\teacher_grade.csss" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-  <link rel="stylesheet" href="..\teacher\teacher_grade.csss" />
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
   <!-- Navigation will be loaded here -->
   <div id="nav"></div>
   <main class="main-content">
@@ -34,12 +35,12 @@
                 <ul class="nav-tabs" role="tablist">
                   <li role="presentation">
                     <button class="tab-btn active" id="student-view-btn" data-tab="student-view" aria-selected="true">
-                      <i class="fas fa-user-graduate"></i> Student View
+                      <i class="fas fa-user-graduate"></i> Single Student's Assignment Info View
                     </button>
                   </li>
                   <li role="presentation">
                     <button class="tab-btn" id="teacher-view-btn" data-tab="teacher-view" aria-selected="false">
-                      <i class="fas fa-chalkboard-teacher"></i> Teacher View
+                      <i class="fas fa-chalkboard-teacher"></i> All Student Summary View
                     </button>
                   </li>
                 </ul>
@@ -91,6 +92,7 @@
                   <h4>Question Breakdown</h4>
                   <div id="questions-container"></div>
                 </div>
+                <button class="print-button" onclick="window.print()">Print Section</button>
               </div>
   
               <div id="teacher-view" class="sub-tab-content" style="display: none;">
@@ -133,6 +135,7 @@
                     <tbody id="students-list"></tbody>
                   </table>
                 </div>
+                <button class="print-button" onclick="window.print()">Print Section</button>
               </div>
             </div>
           </div>
@@ -148,6 +151,7 @@
     </footer>
 
   <script src="..\javascript\view_grades.js"></script>
+  <script >setupNavLinkHighlighting();</script>
   
 </body>
 </html>

@@ -92,6 +92,10 @@
                 <h4>Question Breakdown</h4>
                 <div id="questions-container"></div>
               </div>
+              <!-- <button class="print-button" onclick="printSection('student-view')">
+                🖨️ Print Student Section
+              </button> -->
+              <button class="print-button" onclick="window.print()">Print Section</button>
             </div>
 
             <div id="teacher-view" class="sub-tab-content" style="display: none;">
@@ -131,6 +135,10 @@
                   <tbody id="students-list"></tbody>
                 </table>
               </div>
+              <!-- <button class="print-button" onclick="printSection('teacher-view')">
+                🖨️ Print Teacher Section
+              </button> -->
+              <button class="print-button" onclick="window.print()">Print Section</button>
             </div>
           </div>
         </div>
@@ -145,6 +153,50 @@
   </footer>
 
   <script src="javascript\view_grades.js"></script>
+  <script>
+    function printSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+    
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Section</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+              }
+              h3, h4 {
+                color: #0072ff;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 10px;
+              }
+              table, th, td {
+                border: 1px solid #ccc;
+              }
+              th, td {
+                padding: 8px;
+                text-align: left;
+              }
+            </style>
+          </head>
+          <body>
+            ${section.innerHTML}
+          </body>
+        </html>`
+        );
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+    
+  </script>
   
 </body>
 </html>

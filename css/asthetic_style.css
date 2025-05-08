@@ -98,6 +98,7 @@
     animation: fadeOut 0.5s ease-out forwards;
 }
 
+
 @keyframes fadeOut {
     from {
         opacity: 1;
@@ -791,3 +792,23 @@ i {
         overflow-x: auto;
     }
 }
+
+.print-button {
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
+  }
+  
+  .print-button:hover {
+    background: linear-gradient(45deg, #0072ff, #00c6ff);
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 114, 255, 0.4);
+  }
+  

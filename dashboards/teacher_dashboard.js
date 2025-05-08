@@ -202,5 +202,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Redirect to login page
     window.location.href = '../auth/login.html';
   });
+  
+  function setNavAndGo(navId, url) {
+    sessionStorage.setItem('activeNavLink', navId); // store nav ID
+    location.href = url; // go to the target page
+  }
+
+  
+  
 });
 

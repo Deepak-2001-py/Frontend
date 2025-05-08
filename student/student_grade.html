@@ -33,11 +33,11 @@
                     <i class="fas fa-user-graduate"></i> Student View
                   </button>
                 </li>
-                <li role="presentation">
+                <!-- <li role="presentation">
                   <button class="tab-btn" id="teacher-view-btn" data-tab="teacher-view" aria-selected="false">
                     <i class="fas fa-chalkboard-teacher"></i> Teacher View
                   </button>
-                </li>
+                </li> -->
               </ul>
             </nav>
             <div id="student-view" class="student-grade-container">
@@ -85,48 +85,9 @@
                 <h4>Question Breakdown</h4>
                 <div id="questions-container"></div>
               </div>
+              <button class="print-button" onclick="window.print()">Print Section</button>
             </div>
-            <div id="teacher-view" class="sub-tab-content" style="display: none;">
-              <h3>All Student Grades</h3>
-              <form id="teacher-grade-form" class="form">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="qp-id">Question Paper ID</label>
-                    <input type="text" id="qp-id" class="form-control" placeholder="Enter question paper ID" required />
-                  </div>
-                  <div class="form-group">
-                    <label for="assignment-id-teacher">Assignment ID</label>
-                    <input type="text" id="assignment-id-teacher" class="form-control" placeholder="Enter assignment ID" required />
-                  </div>
-                </div>
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Retrieve Results
-                  </button>
-                  <button type="reset" class="btn btn-secondary">
-                    <i class="fas fa-redo"></i> Clear
-                  </button>
-                </div>
-              </form>
-              <div class="loader-container">
-                <div class="loader" id="teacher-loader"></div>
-              </div>
-              <div class="result-container" id="teacher-result">
-                <h4>Student Grades Summary</h4>
-                <table id="students-table" class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Evaluation ID</th>
-                      <th>Student ID</th>
-                      <th>QP-ID</th>
-                      <th>Total Marks</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody id="students-list"></tbody>
-                </table>
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
@@ -137,6 +98,8 @@
       <p>&copy; 2025 GradeAnt. All rights reserved.</p>
     </div>
   </footer>
-  <script src="..\javascript\view_grades.js"></script>
+  <script src="..\javascript\student_grade.js"></script>
 </body>
 </html>
+
+

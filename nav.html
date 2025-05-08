@@ -1120,34 +1120,20 @@
       // Get current path
       const path = window.location.pathname.toLowerCase();
       
-      // Define navigation mappings with broader patterns and account for folder structure
-     // const navMappings = {
-       // student: [
-         // { patterns: ['dashboards/student_dashboard_', 'dashboard', 'index.html', '/'], id: 'student-nav-dashboard' },
-         // { patterns: ['upload', 'assignment'], id: 'student-nav-upload' },
-         // { patterns: ['grade', 'view_grade'], id: 'student-nav-grades' }
-        //],
-       // teacher: [
-         // { patterns: ['dashboards/teacher_dashboard', 'dashboard', 'index.html', '/'], id: 'teacher-nav-dashboard' },
-          //{ patterns: ['upload', 'assignment'], id: 'teacher-nav-upload' },
-         // { patterns: ['grade', 'view_grade'], id: 'teacher-nav-grades' }
-       // ]
-      //};
+      // Define navigation mappings with patterns matching the actual file structure
+      const navMappings = {
+        student: [
+          { patterns: ['dashboards/student_dashboard_', 'dashboard', 'index.html', '/'], id: 'student-nav-dashboard' },
+          { patterns: ['student_upload.html', 'student_upload'], id: 'student-nav-upload' },
+          { patterns: ['student_grade.html', 'student_grade'], id: 'student-nav-grades' }
+        ],
+        teacher: [
+          { patterns: ['dashboards/teacher_dashboard', 'dashboard', 'index.html', '/'], id: 'teacher-nav-dashboard' },
+          { patterns: ['teacher_upload.html', 'teacher_upload'], id: 'teacher-nav-upload' },
+          { patterns: ['teacher_view_grade.html', 'teacher_view_grade'], id: 'teacher-nav-grades' }
+        ]
+      };
       
-        // Define navigation mappings with patterns matching the actual file structure
-  const navMappings = {
-    student: [
-      { patterns: ['dashboards/student_dashboard_', 'dashboard', 'index.html', '/'], id: 'student-nav-dashboard' },
-      { patterns: ['student_upload.html', 'student_upload'], id: 'student-nav-upload' },
-      { patterns: ['student_grade.html', 'student_grade'], id: 'student-nav-grades' }
-    ],
-    teacher: [
-      { patterns: ['dashboards/teacher_dashboard', 'dashboard', 'index.html', '/'], id: 'teacher-nav-dashboard' },
-      { patterns: ['teacher_upload.html', 'teacher_upload'], id: 'teacher-nav-upload' },
-      { patterns: ['teacher_view_grade.html', 'teacher_grade', 'view_grade'], id: 'teacher-nav-grades' }
-    ]
-
-  };
       // Get user type from storage
       const userType = localStorage.getItem('userType') || sessionStorage.getItem('userType') || 'student';
   

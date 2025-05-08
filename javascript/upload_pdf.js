@@ -544,7 +544,7 @@ if (uploadTypeSelect) {
             tryUpload();
         });
     }
-
+    setupNavLinkHighlighting();
     function updateTotalProgress(completed, failed, total) {
         const percentComplete = Math.round(((completed + failed) / total) * 100);
         progressBar.style.width = percentComplete + '%';
