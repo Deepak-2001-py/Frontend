@@ -796,42 +796,81 @@
   padding: 0 1.5rem 1.5rem;
   color: var(--text-light);
 }
-
 .values-section {
-  padding: 5rem 0;
+  padding: 6rem 0;
+  background-color: #f7f9fc;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 .values-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2.5rem;
+  animation: fadeIn 1s ease-in;
 }
 
 .value-card {
-  padding: 2rem;
-  border-radius: 8px;
-  background-color: var(--background-color);
-  box-shadow: var(--shadow);
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
+  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   text-align: center;
-  transition: transform 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  will-change: transform, box-shadow;
+}
+
+.value-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 200%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+  transform: skewX(-25deg);
+  transition: 0.7s ease;
+}
+
+.value-card:hover::before {
+  left: 100%;
 }
 
 .value-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
 }
 
 .value-icon {
-  font-size: 3rem;
+  font-size: 3.5rem;
   margin-bottom: 1.5rem;
+  color: #0077ff;
+  animation: popIn 0.6s ease-out;
 }
 
 .value-card h3 {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
 }
 
 .value-card p {
-  color: var(--text-light);
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* Blog Page Styles */
