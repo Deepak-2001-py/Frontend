@@ -172,7 +172,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('userDropdownMenu').classList.remove('show');
     document.getElementById('teacherUserDropdownMenu').classList.remove('show');
   });
-  
+    function setNavAndGo(navId, url) {
+    sessionStorage.setItem('activeNavLink', navId); // store nav ID
+    location.href = url; // go to the target page
+  }
   // Logout functionality for student
   document.getElementById('logoutBtn').addEventListener('click', function(e) {
     e.preventDefault();
@@ -203,10 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.location.href = '../auth/login.html';
   });
   
-  function setNavAndGo(navId, url) {
-    sessionStorage.setItem('activeNavLink', navId); // store nav ID
-    location.href = url; // go to the target page
-  }
+
 
   
   

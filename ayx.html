@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt Dashboard</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="../dashboards/teacher_dashboard.css" />
+  <script src="../component-loader.js"></script>
+</head>
+<body>
+  <!-- Navigation will be loaded here -->
+  <div id="nav"></div>
+  
+  <!-- Main Dashboard Content -->
+  <section class="dashboard-container container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-text">
+        <h1>Welcome, <span id="userName">Teacher</span>!</h1>
+        <p>Here's an overview of your grading activities</p>
+      </div>
+      <div>
+        <button onclick="location.href='../teacher/teacher_upload.html'" class="btn btn-primary" id="newAssignmentBtn">
+          <i class="material-icons">add</i> New Assignment
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <h3>Assignments Graded</h3>
+        <div class="stat-value">24</div>
+        <div class="stat-change positive">
+          <i class="material-icons">arrow_upward</i> 8% from last month
+        </div>
+      </div>
+      <div class="stat-card">
+        <h3>Papers Processed</h3>
+        <div class="stat-value">547</div>
+        <div class="stat-change positive">
+          <i class="material-icons">arrow_upward</i> 12% from last month
+        </div>
+      </div>
+      <div class="stat-card">
+        <h3>Average Score</h3>
+        <div class="stat-value">78%</div>
+        <div class="stat-change positive">
+          <i class="material-icons">arrow_upward</i> 3% from last month
+        </div>
+      </div>
+      <div class="stat-card">
+        <h3>Time Saved</h3>
+        <div class="stat-value">42hrs</div>
+        <div class="stat-change positive">
+          <i class="material-icons">arrow_upward</i> 15% from last month
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Options -->
+    <div class="dashboard-options">
+      <div class="option-card">
+        <div class="option-image">
+          <img src="../img/Screenshot 2025-04-03 164627.png" alt="Upload Assignment">
+        </div>
+        <div class="option-content">
+          <h3>Upload Assignment / Question Paper</h3>
+          <p>Upload your assignments or question papers for automated grading and analysis.</p>
+          <button class="btn btn-primary" onclick="navigateTo('../teacher/teacher_upload.html', 'teacher-nav-upload')">Go to Upload</button>
+        </div>
+      </div>
+      
+      <div class="option-card">
+        <div class="option-image">
+          <img src="../img/ChatGPT Image Apr 3, 2025, 04_52_22 PM.png" alt="View Grades">
+        </div>
+        <div class="option-content">
+          <h3>View Grades</h3>
+          <p>Access all your graded assignments, view statistics and download reports.</p>
+          <button class="btn btn-primary" onclick="navigateTo('../teacher/teacher_view_grade.html', 'teacher-nav-grade')">Go to Grades</button>
+        </div>
+      </div>
+      
+      <div class="option-card">
+        <div class="option-image">
+          <img src="../img/analytic_dashboard.png" alt="Analytics Dashboard">
+        </div>
+        <div class="option-content">
+          <h3>Analytics Dashboard</h3>
+          <p>Get detailed insights into student performance with advanced analytics.</p>
+          <button class="btn btn-primary" onclick="location.href='../analytics.html'">View Analytics</button>
+        </div>
+      </div>
+      
+      <div class="option-card">
+        <div class="option-image">
+          <img src="../img/student_magement_dashboard.png" alt="Manage Students">
+        </div>
+        <div class="option-content">
+          <h3>Student Management</h3>
+          <p>Add, update, and organize student information in your classes.</p>
+          <button class="btn btn-primary" onclick="location.href='../students.html'">Manage Students</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+    <div class="spinner"></div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="../dashboards/teacher_dashboard.js"></script>
+  <script>
+    // Navigation function to replace setNavAndGo
+    function navigateTo(url, navId) {
+      // If the component-loader.js sets a function to update navigation
+      if (typeof setActiveNavItem === 'function') {
+        setActiveNavItem(navId);
+      }
+      location.href = url;
+    }
+    
+    // Initialize navigation when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // If there's a component loader that handles navigation
+      if (typeof loadComponent === 'function') {
+        loadComponent('nav', '../components/navigation.html');
+      }
+    });
+  </script>
+</body>
+</html>
