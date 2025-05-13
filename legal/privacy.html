@@ -1,2 +1,742 @@
-<h1>About privacy</h1>
-<p>Our mission is to empower educators with intelligent tools that save time and improve student outcomes.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | Privacy Policy</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+    --primary-color: #ff7b00;         /* Elegant Royal Blue */
+    --secondary-color: #4A90E2;       /* Modern Mint Green */
+    --accent-color: #F5A623;          /* Warm Golden Orange */
+      --text-color: #333;
+      --light-text: #666;
+      --background-color: #f9f9f9;
+      --card-bg: #fff;
+      --border-color: #e0e0e0;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    
+    .navbar {
+      background-color: var(--card-bg);
+      box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+    
+    .navbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+    
+    .logo-image {
+      width: 40px;
+      height: 40px;
+      margin-right: 10px;
+      border-radius: 50%;
+    }
+    
+    .logo {
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+    
+    .logo span {
+      color: var(--primary-color);
+    }
+    
+    .nav-links {
+      display: flex;
+      align-items: center;
+    }
+    
+    .nav-links a {
+      color: var(--text-color);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    .nav-links a:hover {
+      color: var(--primary-color);
+    }
+    
+    .auth-buttons {
+      display: flex;
+      margin-left: 1.5rem;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      margin-right: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+    
+    .btn-secondary:hover {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-secondary.active {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+    
+    .policy-container {
+      max-width: 1000px;
+      margin: 120px auto 50px;
+      padding: 2rem;
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    
+    .policy-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    
+    .policy-header h1 {
+      color: var(--primary-color);
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .policy-header .effective-date {
+      color: var(--light-text);
+      font-style: italic;
+      margin-bottom: 1.5rem;
+    }
+    
+    .policy-divider {
+      width: 80px;
+      height: 4px;
+      background-color: var(--accent-color);
+      margin: 0 auto 1.5rem;
+      border-radius: 2px;
+    }
+    
+    .policy-intro {
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    .policy-section {
+      margin-bottom: 2.5rem;
+      position: relative;
+      padding-left: 1rem;
+      border-left: 3px solid var(--accent-color);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .policy-section:hover {
+      border-left-color: var(--primary-color);
+      transition: var(--transition);
+    }
+    
+    .policy-section h2 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .policy-section h2 i {
+      margin-right: 0.75rem;
+      font-size: 1.25rem;
+    }
+    
+    .policy-section p {
+      margin-bottom: 1rem;
+    }
+    
+    .policy-section ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .policy-section ul li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .policy-section strong {
+      color: var(--primary-color);
+    }
+    
+    .contact-info {
+      background-color: rgba(76, 175, 80, 0.1);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      border: 1px solid var(--accent-color);
+    }
+    
+    .back-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: var(--primary-color);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+      z-index: 100;
+    }
+    
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .back-to-top:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    .toc {
+      background-color: rgba(76, 175, 80, 0.05);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-color);
+    }
+    
+    .toc h3 {
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    .toc-list {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    
+    .toc-list li {
+      margin-bottom: 0.5rem;
+    }
+    
+    .toc-list a {
+      color: var(--text-color);
+      text-decoration: none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+    }
+    
+    .toc-list a:hover {
+      color: var(--primary-color);
+      transform: translateX(5px);
+    }
+    
+    .toc-list a i {
+      margin-right: 0.5rem;
+      font-size: 0.8rem;
+    }
+    
+    footer {
+      background-color: var(--card-bg);
+      padding: 1.5rem;
+      text-align: center;
+      margin-top: 2rem;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    footer p {
+      color: var(--light-text);
+    }
+    
+    @media (max-width: 768px) {
+      .navbar-container {
+        padding: 1rem;
+      }
+      
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .nav-links {
+        position: absolute;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background-color: var(--card-bg);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+        box-shadow: var(--shadow);
+        display: none;
+      }
+      
+      .nav-links.active {
+        display: flex;
+      }
+      
+      .nav-links a {
+        margin: 0.5rem 0;
+        width: 100%;
+      }
+      
+      .auth-buttons {
+        margin: 0.5rem 0;
+        width: 100%;
+        flex-direction: column;
+      }
+      
+      .btn {
+        display: block;
+        text-align: center;
+        margin: 0.5rem 0;
+      }
+      
+      .policy-container {
+        margin: 100px 1rem 2rem;
+        padding: 1.5rem;
+      }
+      
+      .policy-header h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .highlight-box {
+      background-color: rgba(139, 195, 74, 0.1);
+      border-left: 4px solid var(--accent-color);
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--primary-color);
+      cursor: help;
+    }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    #toc-toggle {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+    }
+
+    #toc-toggle i {
+      margin-right: 0.5rem;
+    }
+
+    #toc-toggle:hover {
+      background-color: var(--secondary-color);
+    }
+
+    #toc-content {
+      transition: var(--transition);
+      max-height: 0;
+      overflow: hidden;
+    }
+
+    #toc-content.show {
+      max-height: 500px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="../index.html" class="logo-container">
+        <img src="../img/Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
+        <h1 class="logo">Grade<span>Ant</span></h1>
+      </a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="nav-links" id="navLinks">
+        <a href="../index.html">Home</a>
+        <a href="../resoures/about.html">About</a>
+        <a href="../resoures/contact.html">Contact</a>
+        <div class="auth-buttons">
+          <a href="../auth/login.html" class="btn btn-primary">Login</a>
+          <a href="../auth/signup.html" class="btn btn-secondary active">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="policy-container">
+    <div class="policy-header">
+      <h1>Privacy Policy</h1>
+      <p class="effective-date">Effective Date: 12/05/2025</p>
+      <div class="policy-divider"></div>
+    </div>
+
+    <div class="policy-intro">
+      <p>Grade-Ant ("Grade-Ant", "we", "us", or "our"), affiliated with Missouri S&T, is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website www.grade-ant.com and our AI-powered homework grading services (collectively, the "Service").</p>
+      <p>Please read this Privacy Policy carefully. By using the Service, you agree to the terms of this Privacy Policy. If you do not agree, please do not access the Service.</p>
+    </div>
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <button id="toc-toggle"><i class="fas fa-list"></i> Table of Contents</button>
+      <div id="toc-content">
+        <ul class="toc-list">
+          <li><a href="#section1"><i class="fas fa-angle-right"></i> 1. Information We Collect</a></li>
+          <li><a href="#section2"><i class="fas fa-angle-right"></i> 2. How We Use Your Information</a></li>
+          <li><a href="#section3"><i class="fas fa-angle-right"></i> 3. How We Share Your Information</a></li>
+          <li><a href="#section4"><i class="fas fa-angle-right"></i> 4. Data Security</a></li>
+          <li><a href="#section5"><i class="fas fa-angle-right"></i> 5. Data Retention</a></li>
+          <li><a href="#section6"><i class="fas fa-angle-right"></i> 6. Your Rights and Choices</a></li>
+          <li><a href="#section7"><i class="fas fa-angle-right"></i> 7. Children's Privacy</a></li>
+          <li><a href="#section8"><i class="fas fa-angle-right"></i> 8. International Data Transfers</a></li>
+          <li><a href="#section9"><i class="fas fa-angle-right"></i> 9. Changes to this Privacy Policy</a></li>
+          <li><a href="#section10"><i class="fas fa-angle-right"></i> 10. Contact Information</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Section 1 -->
+    <div id="section1" class="policy-section">
+      <h2><i class="fas fa-file-alt"></i> 1. Information We Collect</h2>
+      <p>We may collect the following types of information:</p>
+      
+      <strong>Personal Information:</strong>
+      <ul>
+        <li><strong>Account Information:</strong> When you register, we collect your name, email address, password, and your affiliated university.</li>
+        <li><strong>Homework Content:</strong> We collect the actual homework files (PDFs) you upload for grading ("User Content"). This may contain personal information depending on what you include in your submissions.</li>
+        <li><strong>Grading Results:</strong> We collect the AI-generated feedback and preliminary grades associated with your submissions.</li>
+      </ul>
+      
+      <strong>Usage Data:</strong>
+      <ul>
+        <li>We might collect information about how you access and use the Service, such as your IP address, browser type, device information, operating system, pages visited, features used, access times, and timestamps.</li>
+      </ul>
+      
+      <strong>Cookies and Tracking Technologies:</strong>
+      <ul>
+        <li>We use cookies (small text files stored on your device) and similar tracking technologies to operate and improve the Service, understand usage, and manage sessions. This may include essential cookies (for functionality) and analytics cookies. You can typically control cookie preferences through your browser settings.</li>
+      </ul>
+    </div>
+
+    <!-- Section 2 -->
+    <div id="section2" class="policy-section">
+      <h2><i class="fas fa-tasks"></i> 2. How We Use Your Information</h2>
+      <p>We use the information we collect for the following purposes:</p>
+      
+      <ul>
+        <li><strong>To Provide and Manage the Service:</strong> To operate the AI grading functionality, create and manage your account, process your submissions, and display results.</li>
+        
+        <li><strong>To Communicate With You:</strong> To send service-related notifications (e.g., updates, security alerts), respond to support requests, and provide information about the Service. We currently do not send marketing emails.</li>
+        
+        <li><strong>For Research Purposes:</strong> To use anonymized or aggregated User Content (homework submissions and results) for educational research, aiming to understand learning patterns and improve pedagogical methods, consistent with ethical guidelines (e.g., IRB standards). We take steps like removing direct identifiers (names) from submitted documents used for research. We do not currently use your specific homework submissions to train our primary AI grading models, though research findings may inform future model improvements. You may have the option to opt-out of this research use during account creation.</li>
+        
+        <li><strong>To Improve the Service:</strong> To analyze usage patterns (using aggregated Usage Data) to understand how the Service is used, identify areas for improvement, and enhance user experience.</li>
+        
+        <li><strong>For Security and Compliance:</strong> To maintain the security and integrity of the Service, prevent fraud and abuse, and comply with applicable legal obligations.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><i class="fas fa-lightbulb"></i> <strong>Important:</strong> We do not use your homework submissions to train our primary AI grading models without your consent. You can opt-out of research use during account creation.</p>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <div id="section3" class="policy-section">
+      <h2><i class="fas fa-share-alt"></i> 3. How We Share Your Information</h2>
+      <p>We do not sell your personal information. We may share your information in the following circumstances:</p>
+      
+      <ul>
+        <li><strong>With Educational Personnel:</strong> Your homework submissions and the corresponding AI-generated grades/feedback will be accessible to authorized personnel (e.g., teachers, TAs) associated with your course or institution who use the Grade-Ant platform.</li>
+        
+        <li><strong>Service Providers:</strong> We share information with third-party vendors who perform services on our behalf, such as:
+          <ul>
+            <li>Cloud Hosting Providers (e.g., Amazon Web Services - AWS) for data storage and processing.</li>
+            <li>Analytics Providers (e.g., Google Analytics - using aggregated/anonymized data where feasible) to help us understand Service usage.</li>
+            <li>Email Service Providers (for service-related communications).</li>
+          </ul>
+        </li>
+        
+        <li><strong>Third-Party AI Service Providers</strong> (e.g., models like Google Gemini, OpenAI GPT): Portions of your submitted content may be processed by these external APIs as part of the grading pipeline. We aim to use providers with strong privacy commitments, but their handling of data is subject to their respective privacy policies.</li>
+        
+        <li><strong>For Research:</strong> Anonymized or aggregated data may be shared with research partners or published as part of research findings, consistent with IRB guidelines and ethical practices.</li>
+        
+        <li><strong>Legal Requirements:</strong> We may disclose your information if required by law, subpoena, or other legal process, or if we believe in good faith that disclosure is necessary to protect our rights, protect your safety or the safety of others, investigate fraud, or respond to a government request.</li>
+        
+        <li><strong>Business Transfers:</strong> In the event of a merger, acquisition, or asset sale involving Grade-Ant, your information may be transferred as part of the transaction, subject to the commitments made in this Privacy Policy.</li>
+      </ul>
+    </div>
+
+    <!-- Section 4 -->
+    <div id="section4" class="policy-section">
+      <h2><i class="fas fa-shield-alt"></i> 4. Data Security</h2>
+      <p>We implement reasonable administrative, technical, and physical security measures designed to protect your personal information from unauthorized access, use, alteration, or disclosure. These measures include encryption of data in transit and at rest where feasible, access controls, and efforts to anonymize personal information (like names) within submitted answer sheets before use in research datasets.</p>
+      
+      <div class="highlight-box">
+        <p><i class="fas fa-exclamation-triangle"></i> However, no internet transmission or electronic storage is 100% secure, so we cannot guarantee absolute security.</p>
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <div id="section5" class="policy-section">
+      <h2><i class="fas fa-clock"></i> 5. Data Retention</h2>
+      <ul>
+        <li><strong>Account Data:</strong> We retain your account information for as long as your account is active or as needed to provide you the Service. We will delete inactive account data approximately 6 months after the last recorded use.</li>
+        
+        <li><strong>Homework Submissions and Results:</strong> We retain submitted homework and grading results for approximately 1 year to allow access by you and your institution and for potential research purposes as described above. After this period, it may be deleted or fully anonymized.</li>
+      </ul>
+      
+      <p>We may retain certain information longer if required by law or for legitimate business purposes like resolving disputes or enforcing our agreements.</p>
+    </div>
+
+    <!-- Section 6 -->
+    <div id="section6" class="policy-section">
+      <h2><i class="fas fa-user-shield"></i> 6. Your Rights and Choices</h2>
+      <p>Depending on your location and applicable law, you may have certain rights regarding your personal information:</p>
+      
+      <ul>
+        <li><strong>Access, Correction, Deletion:</strong> You can access and update your basic account information (name, email, university) through your user profile settings. You may request deletion of your account by contacting us.</li>
+        
+        <li><strong>Homework Submissions:</strong> Once submitted, homework cannot typically be deleted by the user, but it may potentially be replaced with an updated version before a deadline, subject to course rules. Deletion requests for specific submissions would need to be handled administratively, potentially requiring institutional approval.</li>
+        
+        <li><strong>Opt-Out of Research Use:</strong> You may have the option during account creation to opt-out of having your anonymized data used for research purposes. If you wish to change this preference later, please contact us.</li>
+        
+        <li><strong>Marketing Communications:</strong> We currently do not send marketing emails. If we do in the future, you will have the option to opt-out.</li>
+      </ul>
+      
+      <p><strong>Exercising Rights:</strong> To exercise applicable rights, please contact us at <span class="tooltip">xyz@grade-ant.com<span class="tooltip-text">Click to copy email address</span></span>. We may need to verify your identity before processing your request.</p>
+    </div>
+
+    <!-- Section 7 -->
+    <div id="section7" class="policy-section">
+      <h2><i class="fas fa-child"></i> 7. Children's Privacy</h2>
+      <p>The Service is not intended for individuals under the age of 16. We do not knowingly collect personal information from children under 16. If we become aware that we have inadvertently collected personal information from a child under 16 without appropriate consent, we will take steps to delete such information.</p>
+    </div>
+
+    <!-- Section 8 -->
+    <div id="section8" class="policy-section">
+      <h2><i class="fas fa-globe"></i> 8. International Data Transfers</h2>
+      <p>Your information will be processed and stored on servers located in the United States. If you are accessing the Service from outside the U.S., please be aware that your information will be transferred to, stored, and processed in the U.S., where data protection laws may differ from those in your jurisdiction. By using the Service, you consent to this transfer.</p>
+    </div>
+
+    <!-- Section 9 -->
+    <div id="section9" class="policy-section">
+      <h2><i class="fas fa-sync-alt"></i> 9. Changes to this Privacy Policy</h2>
+      <p>We may update this Privacy Policy from time to time. We will notify you of any significant changes by sending an email to the address associated with your account or by posting a prominent notice on the Service prior to the change becoming effective. We encourage you to review this Privacy Policy periodically.</p>
+    </div>
+
+    <!-- Section 10 -->
+    <div id="section10" class="policy-section">
+      <h2><i class="fas fa-envelope"></i> 10. Contact Information</h2>
+      <p>If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at:</p>
+      
+      <div class="contact-info">
+        <p><i class="fas fa-envelope"></i> Email: <strong>xyz@grade-ant.com</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Top Button -->
+  <a href="#" class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></a>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Grade-Ant. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+    
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+      });
+    }
+    
+    // Back to top button
+    const backToTopButton = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.add('visible');
+      } else {
+        backToTopButton.classList.remove('visible');
+      }
+    });
+    
+    backToTopButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Table of contents toggle
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocContent = document.getElementById('toc-content');
+    
+    tocToggle.addEventListener('click', () => {
+      tocContent.classList.toggle('show');
+      tocToggle.innerHTML = tocContent.classList.contains('show') 
+        ? '<i class="fas fa-minus"></i> Hide Table of Contents' 
+        : '<i class="fas fa-list"></i> Table of Contents';
+    });
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+    
+    // Animation on scroll
+    const sections = document.querySelectorAll('.policy-section');
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, observerOptions);
+    
+    sections.forEach(section => {
+      section.style.opacity = '0';
+      section.style.transform = 'translateY(20px)';
+      section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      observer.observe(section);
+    });
+    
+    // Email tooltip copy functionality
+    const tooltips = document.querySelectorAll('.tooltip');
+    
+    tooltips.forEach(tooltip => {
+      tooltip.addEventListener('click', function() {
+        const text = this.textContent.split('\n')[0];
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = this.querySelector('.tooltip-text').textContent;
+          this.querySelector('.tooltip-text').textContent = 'Copied!';
+          
+          setTimeout(() => {
+            this.querySelector('.tooltip-text').textContent = originalText;
+          }, 2000);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
