@@ -23,7 +23,7 @@
         <p>Here's an overview of your grading activities</p>
       </div>
       <div>
-        <button onclick="location.href='../teacher/teacher_upload.html'" href="../teacher/teacher_upload.html" class="btn btn-primary" id="newAssignmentBtn">
+        <button id="newAssignmentBtn" class="btn btn-primary">
           <i class="material-icons">add</i> New Assignment
         </button>
       </div>
@@ -32,7 +32,6 @@
     <!-- Stats Cards -->
     <div class="dashboard-stats">
       <div class="stat-card">
-        <h3>Upcoming...</h3> 
         <h3>Assignments Graded</h3>
         <div class="stat-value">24</div>
         <div class="stat-change positive">
@@ -40,7 +39,6 @@
         </div>
       </div>
       <div class="stat-card">
-        <h3>Upcoming...</h3> 
         <h3>Papers Processed</h3>
         <div class="stat-value">547</div>
         <div class="stat-change positive">
@@ -48,7 +46,6 @@
         </div>
       </div>
       <div class="stat-card">
-        <h3>Upcoming...</h3> 
         <h3>Average Score</h3>
         <div class="stat-value">78%</div>
         <div class="stat-change positive">
@@ -56,7 +53,6 @@
         </div>
       </div>
       <div class="stat-card">
-        <h3>Upcoming...</h3> 
         <h3>Time Saved</h3>
         <div class="stat-value">42hrs</div>
         <div class="stat-change positive">
@@ -64,25 +60,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 
-    <div class="quick-actions">
-      <h2>Quick Actions</h2>
-      <div class="action-buttons">
-        <button onclick="location.href='../teacher/teacher_upload.html'"class="action-button">
-          <i class="material-icons">upload</i> Upload Assignment
-        </button>
-        <button onclick="location.href='../teacher/teacher_view_grade.html'" class="action-button">
-          <i class="material-icons">assessment</i> View Grades
-        </button>
-        <button onclick="location.href='../students.html'" class="action-button">
-          <i class="material-icons">group</i> Manage Students
-        </button>
-        <button onclick="location.href='../Settings.html'"class="action-button">
-          <i class="material-icons">settings</i> Settings
-        </button>
-      </div>
-    </div> -->
 
     <!-- Main Options -->
     <div class="dashboard-options">
@@ -93,8 +70,7 @@
         <div class="option-content">
           <h3>Upload Assignment / Question Paper</h3>
           <p>Upload your assignments or question papers for automated grading and analysis.</p>
-          <button class="btn btn-primary"
-           onclick="setNavAndGo('teacher-nav-upload', '../teacher/teacher_upload.html')">Go to Upload</button>
+          <button class="btn btn-primary" data-nav="teacher-nav-upload" data-url="../teacher/teacher_upload.html">Go to Upload</button>
         </div>
       </div>
       
@@ -105,36 +81,33 @@
         <div class="option-content">
           <h3>View Grades</h3>
           <p>Access all your graded assignments, view statistics and download reports.</p>
-          <button class="btn btn-primary" 
-          onclick="setNavAndGo('teacher-nav-grade', '../teacher/teacher_view_grade.html')">Go to Grades</button>
+          <button class="btn btn-primary" data-nav="teacher-nav-grades" data-url="../teacher/teacher_view_grade.html">Go to Grades</button>
         </div>
       </div>
       
       <div class="option-card">
         <div class="option-image">
-          <img src="..\img\analytic_dashboard.png" alt="Analytics Dashboard">
+          <img src="../img/analytic_dashboard.png" alt="Analytics Dashboard">
         </div>
         <div class="option-content">
-          <h3>Upcoming...</h3> 
           <h3>Analytics Dashboard</h3>
           <p>Get detailed insights into student performance with advanced analytics.</p>
-          <button class="btn btn-primary" onclick="location.href='../analytics.html'">View Analytics</button>
+          <button class="btn btn-primary btn-upcoming">View Analytics</button>
         </div>
       </div>
       
       <div class="option-card">
         <div class="option-image">
-          <img src="..\img\student_magement_dashboard.png" alt="Manage Students">
+          <img src="../img/student_magement_dashboard.png" alt="Manage Students">
         </div>
         <div class="option-content">
-          <h3>Upcoming...</h3> 
           <h3>Student Management</h3>
           <p>Add, update, and organize student information in your classes.</p>
-          <button class="btn btn-primary" onclick="location.href='../students.html'">Manage Students</button>
+          <button class="btn btn-primary btn-upcoming">Manage Students</button>
         </div>
       </div>
     </div>
-  </section>
+  </section> 
 
   <!-- Loading Spinner -->
   <div class="loading-spinner" id="loadingSpinner" style="display: none;">
