@@ -643,52 +643,78 @@
   </div>
 </div>
 
-<a href="#" class="back-to-top" id="backToTop" title="Back to Top">↑</a>
+  <!-- Back to Top Button -->
+  <a href="#" class="back-to-top" id="backToTop"><i class="fas fa-arrow-up"></i></a>
 
-<footer>
-  <p>© 2025 Grade-Ant. All Rights Reserved. Affiliated with Missouri S&T.</p>
-</footer>
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 Grade-Ant. All rights reserved.</p>
+  </footer>
 
-<script>
-  // Mobile menu toggle
-  document.getElementById('mobileMenuBtn').addEventListener('click', function() {
-    document.getElementById('navLinks').classList.toggle('active');
-  });
-
-  // Table of Contents toggle
-  document.getElementById('toc-toggle').addEventListener('click', function() {
-    document.getElementById('toc-content').classList.toggle('show');
-  });
-
-  // Back to top button visibility
-  window.addEventListener('scroll', function() {
-    if (window.pageYOffset > 300) {
-      document.getElementById('backToTop').classList.add('visible');
-    } else {
-      document.getElementById('backToTop').classList.remove('visible');
+  <script>
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+    
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+      });
     }
-  });
-
-  // Smooth scroll for anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-      e.preventDefault();
-      const targetId = this.getAttribute('href');
-      if (targetId === '#') return;
-      
-      const targetElement = document.querySelector(targetId);
-      if (targetElement) {
-        window.scrollTo({
-          top: targetElement.offsetTop - 80,
-          behavior: 'smooth'
-        });
+    
+    // Back to top button
+    const backToTopButton = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.add('visible');
+      } else {
+        backToTopButton.classList.remove('visible');
       }
     });
-  });
-
-  // Add animation on scroll
-  document.addEventListener('DOMContentLoaded', function() {
+    
+    backToTopButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Table of contents toggle
+    const tocToggle = document.getElementById('toc-toggle');
+    const tocContent = document.getElementById('toc-content');
+    
+    tocToggle.addEventListener('click', () => {
+      tocContent.classList.toggle('show');
+      tocToggle.innerHTML = tocContent.classList.contains('show') 
+        ? '<i class="fas fa-minus"></i> Hide Table of Contents' 
+        : '<i class="fas fa-list"></i> Table of Contents';
+    });
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 100,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+    
+    // Animation on scroll
     const sections = document.querySelectorAll('.policy-section');
+    
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -697,7 +723,7 @@
           entry.target.style.transform = 'translateY(0)';
         }
       });
-    }, { threshold: 0.1 });
+    }, observerOptions);
     
     sections.forEach(section => {
       section.style.opacity = '0';
@@ -705,6 +731,23 @@
       section.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
       observer.observe(section);
     });
-  });
-</script>
+    
+    // Email tooltip copy functionality
+    const tooltips = document.querySelectorAll('.tooltip');
+    
+    tooltips.forEach(tooltip => {
+      tooltip.addEventListener('click', function() {
+        const text = this.textContent.split('\n')[0];
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = this.querySelector('.tooltip-text').textContent;
+          this.querySelector('.tooltip-text').textContent = 'Copied!';
+          
+          setTimeout(() => {
+            this.querySelector('.tooltip-text').textContent = originalText;
+          }, 2000);
+        });
+      });
+    });
+  </script>
+  </body>
 </html>
