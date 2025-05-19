@@ -1324,3 +1324,34 @@
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+  /*ant thingking*/
+    /* Simple pulse animation for visual feedback */
+  @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+  }
+  .animate-pulse-custom {
+      animation: pulse 2s infinite;
+  }
+
+  /* Animation for the ant icon to make it look like it's 'thinking' */
+  @keyframes thinking {
+    0%   { transform: translateY(0) rotate(0deg) scale(1); }
+    25%  { transform: translateY(-5px) rotate(-5deg) scale(1.05); }
+    50%  { transform: translateY(0) rotate(0deg) scale(1); }
+    75%  { transform: translateY(-5px) rotate(5deg) scale(1.05); }
+    100% { transform: translateY(0) rotate(0deg) scale(1); }
+  }
+  .ant-thinking {
+      animation: thinking 3s infinite ease-in-out; /* Applies the 'thinking' animation */
+      display: inline-block; /* Ensures transform applies correctly */
+  }
+  .text-10xl {
+  font-size: 6rem; /* Adjust this as needed */
+  line-height: 1;
+}
+  .text-6xl {
+  font-size: 4rem; /* Adjust this as needed */
+  line-height: 1;
+}

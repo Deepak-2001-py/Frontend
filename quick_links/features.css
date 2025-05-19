@@ -209,7 +209,7 @@ header.scrolled {
 
 /* Enhanced Hero Section */
 .hero-section {
-    background: linear-gradient(145deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(145deg, var(--primary-color) 0%,#8dbbe0  100%);
     color: white;
     padding: 6rem 0;
     text-align: center;
