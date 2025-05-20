@@ -78,7 +78,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-    font-size: 3.5rem;
+    font-size: 2rem;
     letter-spacing: -0.03em;
     color: white;
 }
@@ -128,7 +128,7 @@ a:hover {
 /* Upgraded Header */
 header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    padding: 1.5rem 0;
+    padding: 1rem 0;
     position: sticky;
     top: 0;
     z-index: 100;
