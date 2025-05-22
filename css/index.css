@@ -106,7 +106,7 @@
       left: 0;
       width: 100%;
       z-index: 1000;
-      background-color: #FFF3E0;
+      background-color: white;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       transition: var(--transition);
     }
@@ -1141,7 +1141,7 @@
     
     /* Footer */
     .footer {
-      background-color: #FFF3E0;;
+      background-color: #FFF3E0;
       color: var(--dark);
       padding: 60px 0 30px;
     }
