@@ -199,41 +199,45 @@ document.addEventListener("DOMContentLoaded", function () {
   // Initialize Tab Manager
   TabManager.init();
 
-  // ---------- Grades Functionality ----------
-  const studentViewBtn = document.getElementById("student-view-btn");
-  const teacherViewBtn = document.getElementById("teacher-view-btn");
-  const studentView = document.getElementById("student-view");
-  const teacherView = document.getElementById("teacher-view");
+// ---------- Grades Functionality ----------
+const studentViewBtn = document.getElementById("student-view-btn");
+const teacherViewBtn = document.getElementById("teacher-view-btn");
+const studentView = document.getElementById("student-view");
+const teacherView = document.getElementById("teacher-view");
 
-  // Ensure student view is visible by default
+// Ensure teacher view is visible by default
+studentView.style.display = "none";
+teacherView.style.display = "block";
+
+// Set initial ARIA attributes
+studentViewBtn.setAttribute("aria-selected", "false");
+teacherViewBtn.setAttribute("aria-selected", "true");
+
+// Optional: set initial "active" class
+studentViewBtn.classList.remove("active");
+teacherViewBtn.classList.add("active");
+
+studentViewBtn.addEventListener("click", function () {
   studentView.style.display = "block";
   teacherView.style.display = "none";
 
-  // Set initial ARIA attributes
+  studentViewBtn.classList.add("active");
+  teacherViewBtn.classList.remove("active");
+
   studentViewBtn.setAttribute("aria-selected", "true");
   teacherViewBtn.setAttribute("aria-selected", "false");
+});
 
-  studentViewBtn.addEventListener("click", function () {
-    studentView.style.display = "block";
-    teacherView.style.display = "none";
+teacherViewBtn.addEventListener("click", function () {
+  studentView.style.display = "none";
+  teacherView.style.display = "block";
 
-    studentViewBtn.classList.add("active");
-    teacherViewBtn.classList.remove("active");
+  teacherViewBtn.classList.add("active");
+  studentViewBtn.classList.remove("active");
 
-    studentViewBtn.setAttribute("aria-selected", "true");
-    teacherViewBtn.setAttribute("aria-selected", "false");
-  });
-
-  teacherViewBtn.addEventListener("click", function () {
-    studentView.style.display = "none";
-    teacherView.style.display = "block";
-
-    teacherViewBtn.classList.add("active");
-    studentViewBtn.classList.remove("active");
-
-    teacherViewBtn.setAttribute("aria-selected", "true");
-    studentViewBtn.setAttribute("aria-selected", "false");
-  });
+  teacherViewBtn.setAttribute("aria-selected", "true");
+  studentViewBtn.setAttribute("aria-selected", "false");
+});
 
   // ---------- Grades Functionality ----------
 
