@@ -1355,3 +1355,8 @@
   font-size: 4rem; /* Adjust this as needed */
   line-height: 1;
 }
+.nav-links a.active {
+  color: #ff7b00;
+  font-weight: bold;
+ /* Optional underline effect */
+}

@@ -352,44 +352,92 @@ document.addEventListener("DOMContentLoaded", function () {
       hideLoading("teacher-loader");
     }
   }
+// summary view
+  // function displayAllStudentGrades(data) {
+  //   const studentsListElement = document.getElementById("students-list");
+  //   const teacherResultContainer = document.getElementById("teacher-result");
+  //   studentsListElement.innerHTML = "";
 
-  function displayAllStudentGrades(data) {
-    const studentsListElement = document.getElementById("students-list");
-    const teacherResultContainer = document.getElementById("teacher-result");
-    studentsListElement.innerHTML = "";
+  //   let result;
+  //   if (data && data.body) {
+  //     try {
+  //       result = JSON.parse(data.body);
+  //     } catch (error) {
+  //       UIManager.showAlert("Failed to parse grade data", "danger");
+  //       return;
+  //     }
+  //   } else {
+  //     UIManager.showAlert("Invalid response from server", "danger");
+  //     return;
+  //   }
 
-    let result;
-    if (data && data.body) {
-      try {
-        result = JSON.parse(data.body);
-      } catch (error) {
-        UIManager.showAlert("Failed to parse grade data", "danger");
-        return;
-      }
-    } else {
-      UIManager.showAlert("Invalid response from server", "danger");
+  //   if (!result.grades || !Array.isArray(result.grades)) {
+  //     UIManager.showAlert("No grades available", "danger");
+  //     return;
+  //   }
+
+  //   result.grades.forEach((grade) => {
+  //     const row = document.createElement("tr");
+  //     const dateStr = new Date(grade.timestamp * 1000).toLocaleString();
+  //     row.innerHTML = `
+  //               <td>${grade.evaluation_id}</td>
+  //               <td>${grade.student_id}</td>
+  //               <td>${grade.qp_id}</td>
+  //               <td>${grade.total_marks}</td>
+  //               <td>${dateStr}</td>
+  //           `;
+  //     studentsListElement.appendChild(row);
+  //   });
+  //   teacherResultContainer.style.display = "block";
+  // }
+function displayAllStudentGrades(data) {
+  const studentsListElement = document.getElementById("students-list");
+  const teacherResultContainer = document.getElementById("teacher-result");
+  studentsListElement.innerHTML = "";
+
+  let result;
+  if (data && data.body) {
+    try {
+      result = JSON.parse(data.body);
+    } catch (error) {
+      UIManager.showAlert("Failed to parse grade data", "danger");
       return;
     }
-
-    if (!result.grades || !Array.isArray(result.grades)) {
-      UIManager.showAlert("No grades available", "danger");
-      return;
-    }
-
-    result.grades.forEach((grade) => {
-      const row = document.createElement("tr");
-      const dateStr = new Date(grade.timestamp * 1000).toLocaleString();
-      row.innerHTML = `
-                <td>${grade.evaluation_id}</td>
-                <td>${grade.student_id}</td>
-                <td>${grade.qp_id}</td>
-                <td>${grade.total_marks}</td>
-                <td>${dateStr}</td>
-            `;
-      studentsListElement.appendChild(row);
-    });
-    teacherResultContainer.style.display = "block";
+  } else {
+    UIManager.showAlert("Invalid response from server", "danger");
+    return;
   }
+
+  if (!result.grades || !Array.isArray(result.grades)) {
+    UIManager.showAlert("No grades available", "danger");
+    return;
+  }
+
+  result.grades.forEach((grade) => {
+    const row = document.createElement("tr");
+    const dateStr = new Date(grade.timestamp * 1000).toLocaleString();
+
+    const studentDetailLink = `student-details.html?student_id=${grade.student_id}&assignment_id=${grade.assignment_id}&qp_id=${grade.qp_id}`;
+
+    row.innerHTML = `
+      <td>${grade.evaluation_id}</td>
+      <td>
+        <a href="${studentDetailLink}" style="color: blue; text-decoration: underline;">
+          ${grade.student_id}
+        </a>
+      </td>
+      <td>${grade.qp_id}</td>
+      <td>${grade.total_marks}</td>
+      <td>${dateStr}</td>
+    `;
+
+    studentsListElement.appendChild(row);
+  });
+
+  teacherResultContainer.style.display = "block";
+}
+
+//signle student details view
 
   function displayStudentSummary(data) {
     const summaryBody = document.getElementById("summary-body");
@@ -447,202 +495,201 @@ document.addEventListener("DOMContentLoaded", function () {
  * Displays detailed question information in the questions container
  * @param {Object} data - The data containing question details
  */
-  function displayDetails(data) {
-    const questionsContainer = document.getElementById("questions-container");
+function displayDetails(data) {
+      const questionsContainer = document.getElementById("questions-container");
 
-    if (!questionsContainer) {
+      if (!questionsContainer) {
         console.error("Questions container not found");
         return;
-    }
+      }
 
-    questionsContainer.innerHTML = "";
+      questionsContainer.innerHTML = "";
 
-    let result;
-    if (data && data.body) {
+      let result;
+      if (data && data.body) {
         try {
-            result = JSON.parse(data.body);
+          result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
         } catch (error) {
-            console.error("Parse error:", error);
-            if (typeof UIManager !== 'undefined' && UIManager.showAlert) {
-                UIManager.showAlert("Failed to parse details data", "danger");
-            }
-            return;
+          console.error("Parse error:", error);
+          showAlert("Failed to parse details data", "danger");
+          return;
         }
-    } else {
-        return;
-    }
+      } else {
+        result = data;
+      }
 
-    if (!result.details || !Array.isArray(result.details)) {
+      if (!result || !result.details || !Array.isArray(result.details)) {
         console.log("No details available");
         return;
-    }
+      }
 
-    // Check if any question contains code blocks and initialize syntax highlighting
-    const hasCodeBlocks = result.details.some(question => 
-        question.feedback && question.feedback.includes('```')
-    );
-    
-    if (hasCodeBlocks) {
-        // Check if highlight.js is loaded
-        if (!window.hljs) {
-            // Load highlight.js for syntax highlighting
-            const hljs = document.createElement('script');
-            hljs.src = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js';
-            document.head.appendChild(hljs);
-            
-            // Load a stylesheet for highlight.js
-            const hljsCSS = document.createElement('link');
-            hljsCSS.rel = 'stylesheet';
-            hljsCSS.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css';
-            document.head.appendChild(hljsCSS);
-            
-            hljs.onload = function() {
-                // Initialize highlight.js
-                window.hljs.highlightAll();
-            };
-        } else {
-            // If highlight.js is already loaded, highlight all code blocks
-            setTimeout(() => window.hljs.highlightAll(), 100);
-        }
-    }
-
-    // Create a function to render LaTeX and Markdown
-    const renderContent = (text) => {
-        if (!text) return '';
-        
-        // Special handling for feedback in LaTeX format with sections
-        if (text.includes('\\textbf{') && text.includes('}:} \\quad \\text{')) {
-            // Parse the structured LaTeX feedback
-            const sections = text.match(/\[ \\textbf\{([^}]+)\}\:} \\quad \\text\{([^}]+)\} \]/g) || [];
-            
-            if (sections.length > 0) {
-                const parsedHtml = sections.map(section => {
-                    // Extract the heading and content from each section
-                    const headingMatch = section.match(/\\textbf\{([^}]+)\}/);
-                    const contentMatch = section.match(/\\quad \\text\{([^}]+)\}/);
-                    
-                    const heading = headingMatch ? headingMatch[1] : '';
-                    let content = contentMatch ? contentMatch[1] : '';
-                    
-                    // Handle itemize environments within the content
-                    content = content.replace(/\\begin\{itemize\}(.*?)\\end\{itemize\}/gs, (match, items) => {
-                        const listItems = items.split('\\item').filter(item => item.trim());
-                        return `<ul>${listItems.map(item => `<li>${item.trim()}</li>`).join('')}</ul>`;
-                    });
-                    
-                    // Convert basic LaTeX math to HTML with MathJax compatible syntax
-                    content = content.replace(/\\([a-zA-Z]+)/g, '\\$1');
-                    content = content.replace(/\\\(([^)]+)\\\)/g, '$$1$');
-                    
-                    return `
-                        <div class="feedback-section">
-                            <h4>${heading}:</h4>
-                            <div class="feedback-content">${content}</div>
-                        </div>
-                    `;
-                }).join('');
-                
-                return parsedHtml;
-            }
-        }
-        
-        // Process Markdown formatting
-        let processedText = text;
-        
-        // Handle numbered list with bold first (e.g., 1. **Item**)
-        processedText = processedText.replace(/^(\d+)\.\s*\*\*(.*?)\*\*/gm, '<br>$1. <strong>$2</strong>');
-        processedText = processedText.replace(/^-\s*\*\*(.*?)\*\*/gm, '<br>-<strong>$1</strong>');
-
-        // Then handle any remaining bold text (**bold**) not in lists
-        processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-        // processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<br><strong>$1</strong>');
-
-        // Ensure new line before main headings (## heading)
-        processedText = processedText.replace(/^## (.*?)$/gm, '<br><h2>$1</h2>');
-
-        // Ensure new line before subheadings (### heading)
-        processedText = processedText.replace(/^### (.*?)$/gm, '<br><h3>$1</h3>');
-        
-        // Create a div for the processed content
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = processedText;
-        
-        // If MathJax is available, queue it for processing
-        if (window.MathJax) {
-            if (MathJax.version && MathJax.version[0] === '3') {
-                MathJax.typeset([tempDiv]);
-            } else {
-                MathJax.Hub.Queue(["Typeset", MathJax.Hub, tempDiv]);
-            }
-        }
-        
-        return tempDiv.innerHTML;
-    };
-
-    // Sort questions by question_number to ensure they display serially
-    result.details.sort((a, b) => {
-        // First compare by question number
+      // Sort questions by question_number
+      result.details.sort((a, b) => {
         const numA = parseInt(a.question_number) || 0;
         const numB = parseInt(b.question_number) || 0;
         
         if (numA !== numB) return numA - numB;
         
-        // If question numbers are the same, sort by subpart
         if (a.subpart && b.subpart) {
-            return a.subpart.localeCompare(b.subpart);
+          return a.subpart.localeCompare(b.subpart);
         } else if (a.subpart) {
-            return 1;
+          return 1;
         } else if (b.subpart) {
-            return -1;
+          return -1;
         }
         
         return 0;
-    });
+      });
 
-    result.details.forEach((question) => {
+      result.details.forEach((question) => {
         const questionCard = document.createElement('div');
         questionCard.className = 'question-item';
         
-        // Format timestamp correctly
         let timestamp = '';
         if (question.timestamp) {
-            try {
-                timestamp = new Date(question.timestamp * 1000).toLocaleString();
-            } catch (e) {
-                console.error("Invalid timestamp format", e);
-                timestamp = '';
-            }
+          try {
+            timestamp = new Date(question.timestamp * 1000).toLocaleString();
+          } catch (e) {
+            console.error("Invalid timestamp format", e);
+            timestamp = '';
+          }
         }
         
         questionCard.innerHTML = `
-            <div class="question-header">
-                <h3>Question ${question.question_number || ''} ${question.subpart ? `(${question.subpart})` : ''}</h3>
-            </div>
-            
-            <div class="question-meta">
-                <span class="marks">Marks: <span class="obtained">${question.marks || 0}</span> / <span class="max">${question.max_marks || 0}</span></span>
-                ${timestamp ? `<span class="timestamp">Answered on: ${timestamp}</span>` : ''}
-            </div>
+          <div class="question-header">
+            <h3>Question ${escapeHtml(question.question_number || '')} ${question.subpart ? `(${escapeHtml(question.subpart)})` : ''}</h3>
+          </div>
+          
+          <div class="question-meta">
+            <span class="marks">Marks: <span class="obtained">${question.marks || 0}</span> / <span class="max">${question.max_marks || 0}</span></span>
+            ${timestamp ? `<span class="timestamp">Answered on: ${escapeHtml(timestamp)}</span>` : ''}
+          </div>
 
-            <p class="question-text">${renderContent(question.question || 'Question not available')}</p>
+          <p class="question-text">${renderContent(question.question || 'Question not available')}</p>
 
-            <div class="answer-section">
-                <h4>Your Answer:</h4>
-                <pre>${renderContent(question.student_answer || 'No answer provided')}</pre>
-            </div>
+          <div class="answer-section">
+            <h4>Your Answer:</h4>
+            <pre>${renderContent(question.student_answer || 'No answer provided')}</pre>
+          </div>
 
-            <div class="reasoning-section rubric">
-                <h4>Feedback:</h4>
-                <div class="feedback-container">${renderContent(question.feedback || 'No additional reasoning provided')}</div>
-            </div>
+          <div class="reasoning-section rubric">
+            <h4>Feedback:</h4>
+            <div class="feedback-container">${renderContent(question.feedback || 'No additional reasoning provided')}</div>
+          </div>
         `;
 
         questionsContainer.appendChild(questionCard);
-    });
-   
+      });
 
-    // Add CSS for feedback sections and code blocks
+      // Load MathJax if needed
+      loadMathJax(questionsContainer);
+    }
+
+    function renderContent(text) {
+      if (!text) return '';
+      
+      // Handle LaTeX format with sections
+      if (text.includes('\\textbf{') && text.includes('}:} \\quad \\text{')) {
+        const sections = text.match(/\[ \\textbf\{([^}]+)\}\:} \\quad \\text\{([^}]+)\} \]/g) || [];
+        
+        if (sections.length > 0) {
+          const parsedHtml = sections.map(section => {
+            const headingMatch = section.match(/\\textbf\{([^}]+)\}/);
+            const contentMatch = section.match(/\\quad \\text\{([^}]+)\}/);
+            
+            const heading = headingMatch ? escapeHtml(headingMatch[1]) : '';
+            let content = contentMatch ? contentMatch[1] : '';
+            
+            content = content.replace(/\\begin\{itemize\}(.*?)\\end\{itemize\}/gs, (match, items) => {
+              const listItems = items.split('\\item').filter(item => item.trim());
+              return `<ul>${listItems.map(item => `<li>${escapeHtml(item.trim())}</li>`).join('')}</ul>`;
+            });
+            
+            content = content.replace(/\\([a-zA-Z]+)/g, '\\$1');
+            content = content.replace(/\\\(([^)]+)\\\)/g, '$$1$');
+            
+            return `
+              <div class="feedback-section">
+                <h4>${heading}:</h4>
+                <div class="feedback-content">${content}</div>
+              </div>
+            `;
+          }).join('');
+          
+          return parsedHtml;
+        }
+      }
+      
+      // Process Markdown formatting
+      let processedText = escapeHtml(text);
+      
+      processedText = processedText.replace(/^(\d+)\.\s*\*\*(.*?)\*\*/gm, '<br>$1. <strong>$2</strong>');
+      processedText = processedText.replace(/^-\s*\*\*(.*?)\*\*/gm, '<br>- <strong>$1</strong>');
+      processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      processedText = processedText.replace(/^## (.*?)$/gm, '<br><h2>$1</h2>');
+      processedText = processedText.replace(/^### (.*?)$/gm, '<br><h3>$1</h3>');
+      
+      return processedText;
+    }
+
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return text;
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showAlert(message, type = 'info') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.textContent = message;
+      alertDiv.style.cssText = `
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        background-color: ${type === 'danger' ? '#f8d7da' : type === 'warning' ? '#fff3cd' : '#d1ecf1'};
+        color: ${type === 'danger' ? '#721c24' : type === 'warning' ? '#856404' : '#0c5460'};
+        border: 1px solid ${type === 'danger' ? '#f5c6cb' : type === 'warning' ? '#ffeaa7' : '#bee5eb'};
+      `;
+      
+      const container = document.querySelector('.container');
+      if (container) {
+        container.insertBefore(alertDiv, container.firstChild);
+        setTimeout(() => alertDiv.remove(), 5000);
+      }
+    }
+
+    function loadMathJax(container) {
+      if (!window.MathJax) {
+        window.MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            processEscapes: true
+          },
+          options: {
+            enableMenu: false,
+            processHtmlClass: 'math'
+          }
+        };
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js';
+        script.async = true;
+        document.head.appendChild(script);
+        
+        script.onload = function() {
+          if (MathJax.typeset) {
+            MathJax.typeset([container]);
+          }
+        };
+      } else {
+        if (MathJax.typeset) {
+          MathJax.typeset([container]);
+        }
+      }
+    }
+
+      // Add CSS for feedback sections and code blocks
     const style = document.createElement('style');
     style.textContent = `
         .feedback-container {
@@ -719,39 +766,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     `;
     document.head.appendChild(style);
-
-    // Ensure MathJax is loaded and configured
-    if (!window.MathJax) {
-        // Configure MathJax first
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                processEscapes: true
-            },
-            options: {
-                enableMenu: false,
-                processHtmlClass: 'math'
-            }
-        };
-        
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js';
-        script.async = true;
-        document.head.appendChild(script);
-        
-        script.onload = function() {
-            // Process all math in the container
-            MathJax.typeset([questionsContainer]);
-        };
-    } else {
-        // If MathJax is already loaded, process the container
-        if (MathJax.version && MathJax.version[0] === '3') {
-            MathJax.typeset([questionsContainer]);
-        } else {
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, questionsContainer]);
-        }
-    }
-  }
   setupNavLinkHighlighting();
 
 });

@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GradeAnt: AI-Powered Homework Grader for students and teachers" />
+  <title>GradeAnt: AI-Powered Homework Grader</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../img/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png" />
+  <link rel="apple-touch-icon" href="../img/apple-touch-icon.png" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/asthetic_style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../teacher/teacher_grade.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation will be loaded here -->
+  <div id="nav"></div>
+  <main class="main-content">
+    <div class="container">
+  
+      <section id="grades-section" class="tab-content" role="tabpanel">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-chart-bar"></i> View Grades</h2>
+          </div>
+          <div class="card-body">
+            <nav class="secondary-nav" aria-label="User Type Navigation">
+              <ul class="nav-tabs" role="tablist">
+                <li role="presentation">
+                  <button class="tab-btn active" id="student-view-btn" data-tab="student-view" aria-selected="true">
+                    <i class="fas fa-user-graduate"></i> Single Student's Assignment Info View
+                  </button>
+                </li>
+              </ul>
+            </nav>
+            
+            <h1>Student Assignment Details</h1>
+            
+            <div id="student-view" class="sub-tab-content active">
+              <div class="loader-container" id="student-loader-container">
+                <div class="loader" id="student-loader"></div>
+              </div>
+
+              <div class="result-container" id="student-result" style="display: none;">
+                <h4>Your Assignment Summary</h4>
+                <table id="summary-table" class="summary-table">
+                  <thead>
+                    <tr>
+                      <th>Student ID</th>
+                      <th>Assignment ID</th>
+                      <th>Total Marks</th>
+                      <th>Evaluation ID</th>
+                      <th>QP ID</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="summary-body"></tbody>
+                </table>
+
+                <h4>Question Breakdown</h4>
+                <div id="questions-container"></div>
+                
+                <button class="print-button" onclick="window.print()">Print Section</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="../component-loader.js"></script>
+  <script>
+    const CONFIG = {
+      API: {
+        GRADES_ENDPOINT: "https://rus9nultj9.execute-api.eu-north-1.amazonaws.com/dev/getgrades"
+      }
+    };
+
+    function showLoading(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.style.display = "block";
+      }
+    }
+
+    function hideLoading(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.style.display = "none";
+      }
+    }
+
+    async function makeAPIRequest(data) {
+      try {
+        const response = await fetch(CONFIG.API.GRADES_ENDPOINT, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
+      }
+    }
+
+    function getQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        student_id: params.get("student_id"),
+        assignment_id: params.get("assignment_id"),
+        qp_id: params.get("qp_id"),
+        operation: "getSingleStudentGrade"
+      };
+    }
+
+    function displayStudentSummary(data) {
+      const summaryBody = document.getElementById("summary-body");
+      const studentResultContainer = document.getElementById("student-result");
+
+      if (!summaryBody || !studentResultContainer) {
+        console.error("Required DOM elements not found");
+        return;
+      }
+
+      summaryBody.innerHTML = "";
+
+      let result;
+      if (data && data.body) {
+        try {
+          result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+        } catch (error) {
+          console.error("Parse error:", error);
+          showAlert("Failed to parse grade data", "danger");
+          return;
+        }
+      } else {
+        result = data;
+      }
+
+      if (!result || !result.summary || !Array.isArray(result.summary)) {
+        showAlert("No summary data available", "warning");
+        return;
+      }
+
+      result.summary.forEach((grade) => {
+        const row = document.createElement("tr");
+        const dateStr = grade.timestamp
+          ? new Date(grade.timestamp * 1000).toLocaleString()
+          : "N/A";
+        
+        row.innerHTML = `
+          <td>${escapeHtml(grade.student_id || "N/A")}</td>
+          <td>${escapeHtml(grade.assignment_id || "N/A")}</td>
+          <td>${grade.total_marks !== undefined && grade.total_marks !== null ? grade.total_marks : "N/A"}</td>
+          <td>${escapeHtml(grade.evaluation_id || "N/A")}</td>
+          <td>${escapeHtml(grade.qp_id || "N/A")}</td>
+          <td>${escapeHtml(dateStr)}</td>
+        `;
+        summaryBody.appendChild(row);
+      });
+      
+      studentResultContainer.style.display = "block";
+    }
+
+    function displayDetails(data) {
+      const questionsContainer = document.getElementById("questions-container");
+
+      if (!questionsContainer) {
+        console.error("Questions container not found");
+        return;
+      }
+
+      questionsContainer.innerHTML = "";
+
+      let result;
+      if (data && data.body) {
+        try {
+          result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+        } catch (error) {
+          console.error("Parse error:", error);
+          showAlert("Failed to parse details data", "danger");
+          return;
+        }
+      } else {
+        result = data;
+      }
+
+      if (!result || !result.details || !Array.isArray(result.details)) {
+        console.log("No details available");
+        return;
+      }
+
+      // Sort questions by question_number
+      result.details.sort((a, b) => {
+        const numA = parseInt(a.question_number) || 0;
+        const numB = parseInt(b.question_number) || 0;
+        
+        if (numA !== numB) return numA - numB;
+        
+        if (a.subpart && b.subpart) {
+          return a.subpart.localeCompare(b.subpart);
+        } else if (a.subpart) {
+          return 1;
+        } else if (b.subpart) {
+          return -1;
+        }
+        
+        return 0;
+      });
+
+      result.details.forEach((question) => {
+        const questionCard = document.createElement('div');
+        questionCard.className = 'question-item';
+        
+        let timestamp = '';
+        if (question.timestamp) {
+          try {
+            timestamp = new Date(question.timestamp * 1000).toLocaleString();
+          } catch (e) {
+            console.error("Invalid timestamp format", e);
+            timestamp = '';
+          }
+        }
+        
+        questionCard.innerHTML = `
+          <div class="question-header">
+            <h3>Question ${escapeHtml(question.question_number || '')} ${question.subpart ? `(${escapeHtml(question.subpart)})` : ''}</h3>
+          </div>
+          
+          <div class="question-meta">
+            <span class="marks">Marks: <span class="obtained">${question.marks || 0}</span> / <span class="max">${question.max_marks || 0}</span></span>
+            ${timestamp ? `<span class="timestamp">Answered on: ${escapeHtml(timestamp)}</span>` : ''}
+          </div>
+
+          <p class="question-text">${renderContent(question.question || 'Question not available')}</p>
+
+          <div class="answer-section">
+            <h4>Your Answer:</h4>
+            <pre>${renderContent(question.student_answer || 'No answer provided')}</pre>
+          </div>
+
+          <div class="reasoning-section rubric">
+            <h4>Feedback:</h4>
+            <div class="feedback-container">${renderContent(question.feedback || 'No additional reasoning provided')}</div>
+          </div>
+        `;
+
+        questionsContainer.appendChild(questionCard);
+      });
+
+      // Load MathJax if needed
+      loadMathJax(questionsContainer);
+    }
+
+    function renderContent(text) {
+      if (!text) return '';
+      
+      // Handle LaTeX format with sections
+      if (text.includes('\\textbf{') && text.includes('}:} \\quad \\text{')) {
+        const sections = text.match(/\[ \\textbf\{([^}]+)\}\:} \\quad \\text\{([^}]+)\} \]/g) || [];
+        
+        if (sections.length > 0) {
+          const parsedHtml = sections.map(section => {
+            const headingMatch = section.match(/\\textbf\{([^}]+)\}/);
+            const contentMatch = section.match(/\\quad \\text\{([^}]+)\}/);
+            
+            const heading = headingMatch ? escapeHtml(headingMatch[1]) : '';
+            let content = contentMatch ? contentMatch[1] : '';
+            
+            content = content.replace(/\\begin\{itemize\}(.*?)\\end\{itemize\}/gs, (match, items) => {
+              const listItems = items.split('\\item').filter(item => item.trim());
+              return `<ul>${listItems.map(item => `<li>${escapeHtml(item.trim())}</li>`).join('')}</ul>`;
+            });
+            
+            content = content.replace(/\\([a-zA-Z]+)/g, '\\$1');
+            content = content.replace(/\\\(([^)]+)\\\)/g, '$$1$');
+            
+            return `
+              <div class="feedback-section">
+                <h4>${heading}:</h4>
+                <div class="feedback-content">${content}</div>
+              </div>
+            `;
+          }).join('');
+          
+          return parsedHtml;
+        }
+      }
+      
+      // Process Markdown formatting
+      let processedText = escapeHtml(text);
+      
+      processedText = processedText.replace(/^(\d+)\.\s*\*\*(.*?)\*\*/gm, '<br>$1. <strong>$2</strong>');
+      processedText = processedText.replace(/^-\s*\*\*(.*?)\*\*/gm, '<br>- <strong>$1</strong>');
+      processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      processedText = processedText.replace(/^## (.*?)$/gm, '<br><h2>$1</h2>');
+      processedText = processedText.replace(/^### (.*?)$/gm, '<br><h3>$1</h3>');
+      
+      return processedText;
+    }
+
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return text;
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showAlert(message, type = 'info') {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type}`;
+      alertDiv.textContent = message;
+      alertDiv.style.cssText = `
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        background-color: ${type === 'danger' ? '#f8d7da' : type === 'warning' ? '#fff3cd' : '#d1ecf1'};
+        color: ${type === 'danger' ? '#721c24' : type === 'warning' ? '#856404' : '#0c5460'};
+        border: 1px solid ${type === 'danger' ? '#f5c6cb' : type === 'warning' ? '#ffeaa7' : '#bee5eb'};
+      `;
+      
+      const container = document.querySelector('.container');
+      if (container) {
+        container.insertBefore(alertDiv, container.firstChild);
+        setTimeout(() => alertDiv.remove(), 5000);
+      }
+    }
+
+    function loadMathJax(container) {
+      if (!window.MathJax) {
+        window.MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            processEscapes: true
+          },
+          options: {
+            enableMenu: false,
+            processHtmlClass: 'math'
+          }
+        };
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js';
+        script.async = true;
+        document.head.appendChild(script);
+        
+        script.onload = function() {
+          if (MathJax.typeset) {
+            MathJax.typeset([container]);
+          }
+        };
+      } else {
+        if (MathJax.typeset) {
+          MathJax.typeset([container]);
+        }
+      }
+    }
+
+    function setupNavLinkHighlighting() {
+      // Implementation depends on your navigation structure
+      console.log('Navigation highlighting setup');
+    }
+
+    async function loadAndDisplayData() {
+      const queryParams = getQueryParams();
+      
+      if (!queryParams.student_id || !queryParams.assignment_id) {
+        showAlert("Missing required parameters: student_id or assignment_id", "danger");
+        return;
+      }
+
+      showLoading("student-loader-container");
+
+      try {
+        const data = await makeAPIRequest(queryParams);
+        displayStudentSummary(data);
+        displayDetails(data);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        showAlert(`Failed to load data: ${error.message}`, "danger");
+      } finally {
+        hideLoading("student-loader-container");
+      }
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener("DOMContentLoaded", () => {
+      setupNavLinkHighlighting();
+      loadAndDisplayData();
+    });
+  </script>
+</body>
+</html>
