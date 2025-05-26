@@ -397,379 +397,762 @@ teacherViewBtn.addEventListener("click", function () {
 function displayAllStudentGrades(data) {
   const studentsListElement = document.getElementById("students-list");
   const teacherResultContainer = document.getElementById("teacher-result");
+  
+  // Clear existing content
   studentsListElement.innerHTML = "";
 
+  // Validate input data
+  if (!data) {
+    UIManager.showAlert("No data received from server", "danger");
+    return;
+  }
+
   let result;
-  if (data && data.body) {
+  if (data.body) {
     try {
       result = JSON.parse(data.body);
     } catch (error) {
+      console.error("JSON parse error:", error);
       UIManager.showAlert("Failed to parse grade data", "danger");
       return;
     }
   } else {
-    UIManager.showAlert("Invalid response from server", "danger");
+    // Handle case where data is already parsed
+    result = data;
+  }
+
+  // Validate result structure
+  if (!result || typeof result !== 'object') {
+    UIManager.showAlert("Invalid response format from server", "danger");
     return;
   }
 
-  if (!result.grades || !Array.isArray(result.grades)) {
-    UIManager.showAlert("No grades available", "danger");
+  if (!result.grades) {
+    UIManager.showAlert("No grades data received", "warning");
     return;
   }
 
-  result.grades.forEach((grade) => {
+  if (!Array.isArray(result.grades)) {
+    UIManager.showAlert("Invalid grades format", "danger");
+    return;
+  }
+
+  if (result.grades.length === 0) {
+    UIManager.showAlert("No grades found", "info");
+    return;
+  }
+
+  // Process each grade record
+  let validGradesCount = 0;
+  
+  result.grades.forEach((grade, index) => {
+    // Validate required properties
+    if (!grade || typeof grade !== 'object') {
+      console.warn(`Skipping invalid grade record at index ${index}:`, grade);
+      return;
+    }
+
+    if (!grade.evaluation_id || !grade.student_id || !grade.qp_id) {
+      console.warn(`Skipping incomplete grade record at index ${index}:`, grade);
+      return;
+    }
+
+    // Create table row
     const row = document.createElement("tr");
-    const dateStr = new Date(grade.timestamp * 1000).toLocaleString();
 
-    const studentDetailLink = `student-details.html?student_id=${grade.student_id}&assignment_id=${grade.assignment_id}&qp_id=${grade.qp_id}`;
+    // Create and populate cells safely
+    const evalCell = document.createElement("td");
+    evalCell.textContent = String(grade.evaluation_id);
+    row.appendChild(evalCell);
 
-    row.innerHTML = `
-      <td>${grade.evaluation_id}</td>
-      <td>
-        <a href="${studentDetailLink}" style="color: blue; text-decoration: underline;">
-          ${grade.student_id}
-        </a>
-      </td>
-      <td>${grade.qp_id}</td>
-      <td>${grade.total_marks}</td>
-      <td>${dateStr}</td>
-    `;
+    // Student ID cell with link
+    const studentCell = document.createElement("td");
+    const studentLink = document.createElement("a");
+    
+    // Safely construct the link URL
+    const studentId = encodeURIComponent(grade.student_id);
+    const assignmentId = grade.assignment_id ? encodeURIComponent(grade.assignment_id) : '';
+    const qpId = encodeURIComponent(grade.qp_id);
+    
+    let studentDetailLink = `student-details.html?student_id=${studentId}&qp_id=${qpId}`;
+    if (assignmentId) {
+      studentDetailLink += `&assignment_id=${assignmentId}`;
+    }
+    
+    studentLink.href = studentDetailLink;
+    studentLink.textContent = String(grade.student_id);
+    studentLink.style.color = "blue";
+    studentLink.style.textDecoration = "underline";
+    
+    studentCell.appendChild(studentLink);
+    row.appendChild(studentCell);
+
+    // Question Paper ID cell
+    const qpCell = document.createElement("td");
+    qpCell.textContent = String(grade.qp_id);
+    row.appendChild(qpCell);
+
+    // Total marks cell
+    const marksCell = document.createElement("td");
+    const marks = grade.total_marks !== undefined && grade.total_marks !== null 
+      ? String(grade.total_marks) 
+      : 'N/A';
+    marksCell.textContent = marks;
+    row.appendChild(marksCell);
+
+    // Timestamp cell
+    const dateCell = document.createElement("td");
+    let dateStr = 'N/A';
+    
+    if (grade.timestamp) {
+      try {
+        // Handle both Unix timestamp (seconds) and milliseconds
+        const timestamp = grade.timestamp.toString().length === 10 
+          ? grade.timestamp * 1000 
+          : grade.timestamp;
+        const date = new Date(timestamp);
+        
+        if (!isNaN(date.getTime())) {
+          dateStr = date.toLocaleString();
+        }
+      } catch (error) {
+        console.warn(`Invalid timestamp for grade at index ${index}:`, grade.timestamp);
+      }
+    }
+    
+    dateCell.textContent = dateStr;
+    row.appendChild(dateCell);
 
     studentsListElement.appendChild(row);
+    validGradesCount++;
   });
 
-  teacherResultContainer.style.display = "block";
+  // Show success message with count
+  if (validGradesCount > 0) {
+    UIManager.showAlert(`Successfully loaded ${validGradesCount} grade record(s)`, "success");
+    teacherResultContainer.style.display = "block";
+  } else {
+    UIManager.showAlert("No valid grade records found", "warning");
+  }
 }
 
-//signle student details view
+// Single student details view
+function displayStudentSummary(data) {
+  const summaryBody = document.getElementById("summary-body");
+  const studentResultContainer = document.getElementById("student-result");
 
-  function displayStudentSummary(data) {
-    const summaryBody = document.getElementById("summary-body");
-    const studentResultContainer = document.getElementById("student-result");
-
-    if (!summaryBody || !studentResultContainer) {
-      console.error("Required DOM elements not found");
-      return;
-    }
-
-    summaryBody.innerHTML = "";
-
-    let result;
-    if (data && data.body) {
-      try {
-        result = JSON.parse(data.body);
-      } catch (error) {
-        console.error("Parse error:", error);
-        UIManager.showAlert("Failed to parse grade data", "danger");
-        return;
-      }
-    } else {
-      UIManager.showAlert("Invalid response from server", "danger");
-      return;
-    }
-
-    if (!result.summary || !Array.isArray(result.summary)) {
-      UIManager.showAlert("No summary available", "danger");
-      return;
-    }
-
-    result.summary.forEach((grade) => {
-      const row = document.createElement("tr");
-      const dateStr = grade.timestamp
-        ? new Date(grade.timestamp * 1000).toLocaleString()
-        : "N/A";
-      row.innerHTML = `
-                <td>${grade.student_id || "N/A"}</td>
-                <td>${grade.assignment_id || "N/A"}</td>
-                <td>${
-                  grade.total_marks !== undefined && grade.total_marks !== null
-                    ? grade.total_marks
-                    : "N/A"
-                }</td>
-                <td>${grade.evaluation_id || "N/A"}</td>
-                <td>${grade.qp_id || "N/A"}</td>
-                <td>${dateStr}</td>
-            `;
-      summaryBody.appendChild(row);
-    });
-    studentResultContainer.style.display = "block";
+  // Check if required DOM elements exist
+  if (!summaryBody || !studentResultContainer) {
+    console.error("Required DOM elements not found");
+    UIManager.showAlert("Page elements not found", "danger");
+    return;
   }
+
+  // Clear existing content
+  summaryBody.innerHTML = "";
+
+  // Validate input data
+  if (!data) {
+    UIManager.showAlert("No data received from server", "danger");
+    return;
+  }
+
+  let result;
+  if (data.body) {
+    try {
+      result = JSON.parse(data.body);
+    } catch (error) {
+      console.error("JSON parse error:", error);
+      UIManager.showAlert("Failed to parse summary data", "danger");
+      return;
+    }
+  } else {
+    // Handle case where data is already parsed
+    result = data;
+  }
+
+  // Validate result structure
+  if (!result || typeof result !== 'object') {
+    UIManager.showAlert("Invalid response format from server", "danger");
+    return;
+  }
+
+  if (!result.summary) {
+    UIManager.showAlert("No summary data received", "warning");
+    return;
+  }
+
+  if (!Array.isArray(result.summary)) {
+    UIManager.showAlert("Invalid summary format", "danger");
+    return;
+  }
+
+  if (result.summary.length === 0) {
+    UIManager.showAlert("No summary records found", "info");
+    return;
+  }
+
+  // Process each summary record
+  let validRecordsCount = 0;
+
+  result.summary.forEach((grade, index) => {
+    // Validate grade object
+    if (!grade || typeof grade !== 'object') {
+      console.warn(`Skipping invalid summary record at index ${index}:`, grade);
+      return;
+    }
+
+    // Create table row
+    const row = document.createElement("tr");
+
+    // Student ID cell
+    const studentIdCell = document.createElement("td");
+    studentIdCell.textContent = grade.student_id || "N/A";
+    row.appendChild(studentIdCell);
+
+    // Assignment ID cell
+    const assignmentIdCell = document.createElement("td");
+    assignmentIdCell.textContent = grade.assignment_id || "N/A";
+    row.appendChild(assignmentIdCell);
+
+    // Total marks cell
+    const marksCell = document.createElement("td");
+    const marks = grade.total_marks !== undefined && grade.total_marks !== null 
+      ? String(grade.total_marks) 
+      : "N/A";
+    marksCell.textContent = marks;
+    row.appendChild(marksCell);
+
+    // Evaluation ID cell
+    const evaluationIdCell = document.createElement("td");
+    evaluationIdCell.textContent = grade.evaluation_id || "N/A";
+    row.appendChild(evaluationIdCell);
+
+    // Question Paper ID cell
+    const qpIdCell = document.createElement("td");
+    qpIdCell.textContent = grade.qp_id || "N/A";
+    row.appendChild(qpIdCell);
+
+    // Timestamp cell
+    const timestampCell = document.createElement("td");
+    let dateStr = "N/A";
+    
+    if (grade.timestamp) {
+      try {
+        // Handle both Unix timestamp (seconds) and milliseconds
+        const timestamp = grade.timestamp.toString().length === 10 
+          ? grade.timestamp * 1000 
+          : grade.timestamp;
+        const date = new Date(timestamp);
+        
+        if (!isNaN(date.getTime())) {
+          dateStr = date.toLocaleString();
+        }
+      } catch (error) {
+        console.warn(`Invalid timestamp for summary record at index ${index}:`, grade.timestamp);
+      }
+    }
+    
+    timestampCell.textContent = dateStr;
+    row.appendChild(timestampCell);
+
+    summaryBody.appendChild(row);
+    validRecordsCount++;
+  });
+
+  // Show result and success message
+  if (validRecordsCount > 0) {
+    UIManager.showAlert(`Successfully loaded ${validRecordsCount} summary record(s)`, "success");
+    studentResultContainer.style.display = "block";
+  } else {
+    UIManager.showAlert("No valid summary records found", "warning");
+  }
+}
 
 /**
  * Displays detailed question information in the questions container
  * @param {Object} data - The data containing question details
  */
 function displayDetails(data) {
-      const questionsContainer = document.getElementById("questions-container");
+  const questionsContainer = document.getElementById("questions-container");
 
-      if (!questionsContainer) {
-        console.error("Questions container not found");
-        return;
-      }
+  if (!questionsContainer) {
+    console.error("Questions container not found");
+    showAlert("Page elements not found", "danger");
+    return;
+  }
 
-      questionsContainer.innerHTML = "";
+  questionsContainer.innerHTML = "";
 
-      let result;
-      if (data && data.body) {
+  // Validate input data
+  if (!data) {
+    showAlert("No data received from server", "danger");
+    return;
+  }
+
+  let result;
+  if (data.body) {
+    try {
+      result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
+    } catch (error) {
+      console.error("JSON parse error:", error);
+      showAlert("Failed to parse details data", "danger");
+      return;
+    }
+  } else {
+    // Handle case where data is already parsed
+    result = data;
+  }
+
+  // Validate result structure
+  if (!result || typeof result !== 'object') {
+    showAlert("Invalid response format from server", "danger");
+    return;
+  }
+
+  if (!result.details) {
+    showAlert("No details data received", "warning");
+    return;
+  }
+
+  if (!Array.isArray(result.details)) {
+    showAlert("Invalid details format", "danger");
+    return;
+  }
+
+  if (result.details.length === 0) {
+    showAlert("No question details found", "info");
+    return;
+  }
+
+  // Sort questions by question_number safely
+  const validDetails = result.details.filter(question => 
+    question && typeof question === 'object'
+  );
+
+  if (validDetails.length === 0) {
+    showAlert("No valid question details found", "warning");
+    return;
+  }
+
+  validDetails.sort((a, b) => {
+    const numA = parseInt(a.question_number) || 0;
+    const numB = parseInt(b.question_number) || 0;
+    
+    if (numA !== numB) return numA - numB;
+    
+    if (a.subpart && b.subpart) {
+      return a.subpart.localeCompare(b.subpart);
+    } else if (a.subpart) {
+      return 1;
+    } else if (b.subpart) {
+      return -1;
+    }
+    
+    return 0;
+  });
+
+  let processedCount = 0;
+
+  validDetails.forEach((question, index) => {
+    try {
+      const questionCard = document.createElement('div');
+      questionCard.className = 'question-item';
+      
+      // Handle timestamp safely
+      let timestamp = '';
+      if (question.timestamp) {
         try {
-          result = typeof data.body === 'string' ? JSON.parse(data.body) : data.body;
-        } catch (error) {
-          console.error("Parse error:", error);
-          showAlert("Failed to parse details data", "danger");
-          return;
-        }
-      } else {
-        result = data;
-      }
-
-      if (!result || !result.details || !Array.isArray(result.details)) {
-        console.log("No details available");
-        return;
-      }
-
-      // Sort questions by question_number
-      result.details.sort((a, b) => {
-        const numA = parseInt(a.question_number) || 0;
-        const numB = parseInt(b.question_number) || 0;
-        
-        if (numA !== numB) return numA - numB;
-        
-        if (a.subpart && b.subpart) {
-          return a.subpart.localeCompare(b.subpart);
-        } else if (a.subpart) {
-          return 1;
-        } else if (b.subpart) {
-          return -1;
-        }
-        
-        return 0;
-      });
-
-      result.details.forEach((question) => {
-        const questionCard = document.createElement('div');
-        questionCard.className = 'question-item';
-        
-        let timestamp = '';
-        if (question.timestamp) {
-          try {
-            timestamp = new Date(question.timestamp * 1000).toLocaleString();
-          } catch (e) {
-            console.error("Invalid timestamp format", e);
-            timestamp = '';
-          }
-        }
-        
-        questionCard.innerHTML = `
-          <div class="question-header">
-            <h3>Question ${escapeHtml(question.question_number || '')} ${question.subpart ? `(${escapeHtml(question.subpart)})` : ''}</h3>
-          </div>
+          // Handle both Unix timestamp (seconds) and milliseconds
+          const ts = question.timestamp.toString().length === 10 
+            ? question.timestamp * 1000 
+            : question.timestamp;
+          const date = new Date(ts);
           
-          <div class="question-meta">
-            <span class="marks">Marks: <span class="obtained">${question.marks || 0}</span> / <span class="max">${question.max_marks || 0}</span></span>
-            ${timestamp ? `<span class="timestamp">Answered on: ${escapeHtml(timestamp)}</span>` : ''}
-          </div>
+          if (!isNaN(date.getTime())) {
+            timestamp = date.toLocaleString();
+          }
+        } catch (e) {
+          console.warn(`Invalid timestamp for question at index ${index}:`, question.timestamp);
+        }
+      }
 
-          <p class="question-text">${renderContent(question.question || 'Question not available')}</p>
-
-          <div class="answer-section">
-            <h4>Your Answer:</h4>
-            <pre>${renderContent(question.student_answer || 'No answer provided')}</pre>
-          </div>
-
-          <div class="reasoning-section rubric">
-            <h4>Feedback:</h4>
-            <div class="feedback-container">${renderContent(question.feedback || 'No additional reasoning provided')}</div>
-          </div>
-        `;
-
-        questionsContainer.appendChild(questionCard);
-      });
-
-      // Load MathJax if needed
-      loadMathJax(questionsContainer);
-    }
-
-    function renderContent(text) {
-      if (!text) return '';
+      // Create question header
+      const questionHeader = document.createElement('div');
+      questionHeader.className = 'question-header';
       
-      // Handle LaTeX format with sections
-      if (text.includes('\\textbf{') && text.includes('}:} \\quad \\text{')) {
-        const sections = text.match(/\[ \\textbf\{([^}]+)\}\:} \\quad \\text\{([^}]+)\} \]/g) || [];
+      const questionTitle = document.createElement('h3');
+      const questionNum = question.question_number || '';
+      const subpart = question.subpart ? ` (${question.subpart})` : '';
+      questionTitle.textContent = `Question ${questionNum}${subpart}`;
+      questionHeader.appendChild(questionTitle);
+
+      // Create question meta
+      const questionMeta = document.createElement('div');
+      questionMeta.className = 'question-meta';
+      
+      const marksSpan = document.createElement('span');
+      marksSpan.className = 'marks';
+      marksSpan.textContent = 'Marks: ';
+      
+      const obtainedSpan = document.createElement('span');
+      obtainedSpan.className = 'obtained';
+      obtainedSpan.textContent = question.marks || 0;
+      
+      const maxSpan = document.createElement('span');
+      maxSpan.className = 'max';
+      maxSpan.textContent = question.max_marks || 0;
+      
+      marksSpan.appendChild(obtainedSpan);
+      marksSpan.appendChild(document.createTextNode(' / '));
+      marksSpan.appendChild(maxSpan);
+      questionMeta.appendChild(marksSpan);
+
+      if (timestamp) {
+        const timestampSpan = document.createElement('span');
+        timestampSpan.className = 'timestamp';
+        timestampSpan.textContent = `Answered on: ${timestamp}`;
+        questionMeta.appendChild(timestampSpan);
+      }
+
+      // Create question text
+      const questionText = document.createElement('p');
+      questionText.className = 'question-text';
+      questionText.innerHTML = renderContent(question.question || 'Question not available');
+
+      // Create answer section
+      const answerSection = document.createElement('div');
+      answerSection.className = 'answer-section';
+      
+      const answerTitle = document.createElement('h4');
+      answerTitle.textContent = 'Your Answer:';
+      answerSection.appendChild(answerTitle);
+      
+      const answerPre = document.createElement('pre');
+      answerPre.innerHTML = renderContent(question.student_answer || 'No answer provided');
+      answerSection.appendChild(answerPre);
+
+      // Create reasoning section
+      const reasoningSection = document.createElement('div');
+      reasoningSection.className = 'reasoning-section rubric';
+      
+      const feedbackTitle = document.createElement('h4');
+      feedbackTitle.textContent = 'Feedback:';
+      reasoningSection.appendChild(feedbackTitle);
+      
+      const feedbackContainer = document.createElement('div');
+      feedbackContainer.className = 'feedback-container';
+      feedbackContainer.innerHTML = renderContent(question.feedback || 'No additional reasoning provided');
+      reasoningSection.appendChild(feedbackContainer);
+
+      // Assemble the question card
+      questionCard.appendChild(questionHeader);
+      questionCard.appendChild(questionMeta);
+      questionCard.appendChild(questionText);
+      questionCard.appendChild(answerSection);
+      questionCard.appendChild(reasoningSection);
+
+      questionsContainer.appendChild(questionCard);
+      processedCount++;
+
+    } catch (error) {
+      console.warn(`Error processing question at index ${index}:`, error);
+    }
+  });
+
+  if (processedCount > 0) {
+    showAlert(`Successfully loaded ${processedCount} question detail(s)`, "success");
+    // Load MathJax if needed
+    loadMathJax(questionsContainer);
+  } else {
+    showAlert("No question details could be processed", "warning");
+  }
+}
+
+function renderContent(text) {
+  if (!text || typeof text !== 'string') return '';
+  
+  // Handle LaTeX format with sections
+  if (text.includes('\\textbf{') && text.includes('}:} \\quad \\text{')) {
+    const sections = text.match(/\[ \\textbf\{([^}]+)\}\:} \\quad \\text\{([^}]+)\} \]/g) || [];
+    
+    if (sections.length > 0) {
+      const parsedHtml = sections.map(section => {
+        const headingMatch = section.match(/\\textbf\{([^}]+)\}/);
+        const contentMatch = section.match(/\\quad \\text\{([^}]+)\}/);
         
-        if (sections.length > 0) {
-          const parsedHtml = sections.map(section => {
-            const headingMatch = section.match(/\\textbf\{([^}]+)\}/);
-            const contentMatch = section.match(/\\quad \\text\{([^}]+)\}/);
-            
-            const heading = headingMatch ? escapeHtml(headingMatch[1]) : '';
-            let content = contentMatch ? contentMatch[1] : '';
-            
-            content = content.replace(/\\begin\{itemize\}(.*?)\\end\{itemize\}/gs, (match, items) => {
-              const listItems = items.split('\\item').filter(item => item.trim());
-              return `<ul>${listItems.map(item => `<li>${escapeHtml(item.trim())}</li>`).join('')}</ul>`;
-            });
-            
-            content = content.replace(/\\([a-zA-Z]+)/g, '\\$1');
-            content = content.replace(/\\\(([^)]+)\\\)/g, '$$1$');
-            
-            return `
-              <div class="feedback-section">
-                <h4>${heading}:</h4>
-                <div class="feedback-content">${content}</div>
-              </div>
-            `;
+        const heading = headingMatch ? escapeHtml(headingMatch[1]) : '';
+        let content = contentMatch ? contentMatch[1] : '';
+        
+        // Process itemize blocks safely
+        content = content.replace(/\\begin\{itemize\}(.*?)\\end\{itemize\}/gs, (match, items) => {
+          const listItems = items.split('\\item').filter(item => item.trim());
+          const safeListItems = listItems.map(item => {
+            const listItem = document.createElement('li');
+            listItem.textContent = item.trim();
+            return listItem.outerHTML;
           }).join('');
-          
-          return parsedHtml;
-        }
-      }
-      
-      // Process Markdown formatting
-      let processedText = escapeHtml(text);
-      
-      processedText = processedText.replace(/^(\d+)\.\s*\*\*(.*?)\*\*/gm, '<br>$1. <strong>$2</strong>');
-      processedText = processedText.replace(/^-\s*\*\*(.*?)\*\*/gm, '<br>- <strong>$1</strong>');
-      processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      processedText = processedText.replace(/^## (.*?)$/gm, '<br><h2>$1</h2>');
-      processedText = processedText.replace(/^### (.*?)$/gm, '<br><h3>$1</h3>');
-      
-      return processedText;
-    }
-
-    function escapeHtml(text) {
-      if (typeof text !== 'string') return text;
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
-
-    function showAlert(message, type = 'info') {
-      const alertDiv = document.createElement('div');
-      alertDiv.className = `alert alert-${type}`;
-      alertDiv.textContent = message;
-      alertDiv.style.cssText = `
-        padding: 10px;
-        margin: 10px 0;
-        border-radius: 4px;
-        background-color: ${type === 'danger' ? '#f8d7da' : type === 'warning' ? '#fff3cd' : '#d1ecf1'};
-        color: ${type === 'danger' ? '#721c24' : type === 'warning' ? '#856404' : '#0c5460'};
-        border: 1px solid ${type === 'danger' ? '#f5c6cb' : type === 'warning' ? '#ffeaa7' : '#bee5eb'};
-      `;
-      
-      const container = document.querySelector('.container');
-      if (container) {
-        container.insertBefore(alertDiv, container.firstChild);
-        setTimeout(() => alertDiv.remove(), 5000);
-      }
-    }
-
-    function loadMathJax(container) {
-      if (!window.MathJax) {
-        window.MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            processEscapes: true
-          },
-          options: {
-            enableMenu: false,
-            processHtmlClass: 'math'
-          }
-        };
+          return `<ul>${safeListItems}</ul>`;
+        });
         
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js';
-        script.async = true;
-        document.head.appendChild(script);
+        // Process LaTeX commands safely
+        content = content.replace(/\\([a-zA-Z]+)/g, '\\$1');
+        content = content.replace(/\\\(([^)]+)\\\)/g, '$$1$');
         
-        script.onload = function() {
-          if (MathJax.typeset) {
-            MathJax.typeset([container]);
-          }
-        };
-      } else {
-        if (MathJax.typeset) {
+        const sectionDiv = document.createElement('div');
+        sectionDiv.className = 'feedback-section';
+        
+        const headingEl = document.createElement('h4');
+        headingEl.textContent = heading + ':';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'feedback-content';
+        contentDiv.innerHTML = content; // Content is already processed safely above
+        
+        sectionDiv.appendChild(headingEl);
+        sectionDiv.appendChild(contentDiv);
+        
+        return sectionDiv.outerHTML;
+      }).join('');
+      
+      return parsedHtml;
+    }
+  }
+  
+  // Process Markdown formatting safely
+  let processedText = escapeHtml(text);
+  
+  // Apply markdown transformations to escaped text
+  processedText = processedText.replace(/^(\d+)\.\s*\*\*(.*?)\*\*/gm, '<br>$1. <strong>$2</strong>');
+  processedText = processedText.replace(/^-\s*\*\*(.*?)\*\*/gm, '<br>- <strong>$1</strong>');
+  processedText = processedText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  processedText = processedText.replace(/^## (.*?)$/gm, '<br><h2>$1</h2>');
+  processedText = processedText.replace(/^### (.*?)$/gm, '<br><h3>$1</h3>');
+  
+  return processedText;
+}
+
+function escapeHtml(text) {
+  if (typeof text !== 'string') return String(text || '');
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function showAlert(message, type = 'info') {
+  // Validate inputs
+  if (!message || typeof message !== 'string') return;
+  if (!['info', 'success', 'warning', 'danger'].includes(type)) {
+    type = 'info';
+  }
+
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type}`;
+  alertDiv.textContent = message;
+  
+  // Set styles safely
+  const bgColors = {
+    danger: '#f8d7da',
+    warning: '#fff3cd',
+    success: '#d4edda',
+    info: '#d1ecf1'
+  };
+  
+  const textColors = {
+    danger: '#721c24',
+    warning: '#856404',
+    success: '#155724',
+    info: '#0c5460'
+  };
+  
+  const borderColors = {
+    danger: '#f5c6cb',
+    warning: '#ffeaa7',
+    success: '#c3e6cb',
+    info: '#bee5eb'
+  };
+  
+  alertDiv.style.cssText = `
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    background-color: ${bgColors[type]};
+    color: ${textColors[type]};
+    border: 1px solid ${borderColors[type]};
+  `;
+  
+  const container = document.querySelector('.container');
+  if (container) {
+    container.insertBefore(alertDiv, container.firstChild);
+    setTimeout(() => {
+      if (alertDiv.parentNode) {
+        alertDiv.remove();
+      }
+    }, 5000);
+  } else {
+    console.warn('Container not found for alert display');
+  }
+}
+
+function loadMathJax(container) {
+  if (!container) return;
+  
+  if (!window.MathJax) {
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        processEscapes: true
+      },
+      options: {
+        enableMenu: false,
+        processHtmlClass: 'math'
+      }
+    };
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.0/es5/tex-mml-chtml.js';
+    script.async = true;
+    script.onerror = function() {
+      console.error('Failed to load MathJax');
+    };
+    script.onload = function() {
+      if (window.MathJax && MathJax.typeset) {
+        try {
           MathJax.typeset([container]);
+        } catch (error) {
+          console.error('MathJax typeset error:', error);
         }
       }
+    };
+    document.head.appendChild(script);
+  } else {
+    if (MathJax.typeset) {
+      try {
+        MathJax.typeset([container]);
+      } catch (error) {
+        console.error('MathJax typeset error:', error);
+      }
     }
+  }
+}
 
-      // Add CSS for feedback sections and code blocks
-    const style = document.createElement('style');
-    style.textContent = `
-        .feedback-container {
-            margin-top: 10px;
-        }
-        .feedback-section {
-            margin-bottom: 15px;
-            border-left: 3px solid #4a90e2;
-            padding-left: 15px;
-        }
-        .feedback-section h4 {
-            margin-top: 0;
-            margin-bottom: 5px;
-            color: #4a90e2;
-            font-weight: bold;
-        }
-        .feedback-content {
-            margin-left: 5px;
-        }
-        .feedback-content ul {
-            margin-top: 5px;
-            padding-left: 20px;
-        }
-        .feedback-content li {
-            margin-bottom: 5px;
-        }
-        
-        /* Code block styling */
-        pre {
-            background-color: #f5f5f5;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 10px;
-            overflow-x: auto;
-            margin: 10px 0;
-            font-family: 'Courier New', Courier, monospace;
-        }
-        code {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9em;
-        }
-        
-        /* Syntax highlighting based on language */
-        .language-python {
-            color: #3572A5;
-        }
-        .language-javascript {
-            color: #f1e05a;
-        }
-        .language-java {
-            color: #b07219;
-        }
-        .language-cpp, .language-c {
-            color: #f34b7d;
-        }
-        
-        /* Markdown styling */
-        strong {
-            font-weight: bold;
-        }
-        h2 {
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: 5px;
-        }
-        h3 {
-            font-size: 1.25em;
-            font-weight: bold;
-            margin-top: 12px;
-            margin-bottom: 8px;
-        }
-    `;
-    document.head.appendChild(style);
+// Add CSS for feedback sections and code blocks (run once)
+function addStyles() {
+  // Check if styles already exist
+  if (document.getElementById('question-details-styles')) {
+    return;
+  }
+
+  const style = document.createElement('style');
+  style.id = 'question-details-styles';
+  style.textContent = `
+    .feedback-container {
+      margin-top: 10px;
+    }
+    .feedback-section {
+      margin-bottom: 15px;
+      border-left: 3px solid #4a90e2;
+      padding-left: 15px;
+    }
+    .feedback-section h4 {
+      margin-top: 0;
+      margin-bottom: 5px;
+      color: #4a90e2;
+      font-weight: bold;
+    }
+    .feedback-content {
+      margin-left: 5px;
+    }
+    .feedback-content ul {
+      margin-top: 5px;
+      padding-left: 20px;
+    }
+    .feedback-content li {
+      margin-bottom: 5px;
+    }
+    
+    /* Code block styling */
+    pre {
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: 'Courier New', Courier, monospace;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    code {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.9em;
+    }
+    
+    /* Syntax highlighting based on language */
+    .language-python { color: #3572A5; }
+    .language-javascript { color: #f1e05a; }
+    .language-java { color: #b07219; }
+    .language-cpp, .language-c { color: #f34b7d; }
+    
+    /* Markdown styling */
+    strong { font-weight: bold; }
+    h2 {
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eaecef;
+      padding-bottom: 5px;
+    }
+    h3 {
+      font-size: 1.25em;
+      font-weight: bold;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+    
+    /* Question item styling */
+    .question-item {
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background-color: #fff;
+    }
+    
+    .question-header h3 {
+      margin: 0;
+      color: #333;
+    }
+    
+    .question-meta {
+      margin: 10px 0;
+      font-size: 0.9em;
+      color: #666;
+    }
+    
+    .question-meta .marks {
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    
+    .obtained { color: #28a745; }
+    .max { color: #6c757d; }
+    
+    .answer-section, .reasoning-section {
+      margin-top: 15px;
+    }
+    
+    .answer-section h4, .reasoning-section h4 {
+      margin-bottom: 10px;
+      color: #495057;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// Initialize styles
+addStyles();
   setupNavLinkHighlighting();
 
 });
