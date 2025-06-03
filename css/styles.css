@@ -781,9 +781,24 @@
   object-fit: cover;
 }
 
+.expertise {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;
+}
 .team-member h3 {
   padding: 1.5rem 1.5rem 0.5rem;
   font-size: 1.25rem;
+}
+
+.team-member h4 {
+    color: #555;
+    font-size: 1rem;
+    margin: 15px 0 5px 0;
+    font-weight: 600;
+    padding: 1.5rem 1.5rem 0.5rem;
 }
 
 .member-title {
@@ -1694,3 +1709,10 @@ a {
       width: 100%;
     }
   }
+
+.expertise {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 600;}
