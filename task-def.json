@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:761018852934:task-definition/frontend-task:3",
+    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:761018852934:task-definition/frontend-task:7",
     "containerDefinitions": [
         {
             "name": "Frontend",
@@ -35,7 +35,7 @@
     "family": "frontend-task",
     "executionRoleArn": "arn:aws:iam::761018852934:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 3,
+    "revision": 7,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -81,7 +81,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-06-11T14:02:30.457Z",
+    "registeredAt": "2025-06-11T14:56:54.534Z",
     "registeredBy": "arn:aws:iam::761018852934:root",
     "tags": []
 }
