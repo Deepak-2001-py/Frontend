@@ -84,6 +84,14 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
+    "logConfiguration": {
+  "logDriver": "awslogs",
+  "options": {
+    "awslogs-group": "/ecs/frontend-task",
+    "awslogs-region": "eu-north-1",
+    "awslogs-stream-prefix": "ecs"
+  }
+},
     "registeredAt": "2025-06-11T12:28:11.056Z",
     "registeredBy": "arn:aws:iam::761018852934:root",
     "tags": []
