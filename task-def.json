@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:761018852934:task-definition/frontend-task:1",
+    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:761018852934:task-definition/frontend-task:3",
     "containerDefinitions": [
         {
             "name": "Frontend",
-            "image": "761018852934.dkr.ecr.eu-north-1.amazonaws.com/gradeant",
+            "image": "761018852934.dkr.ecr.eu-north-1.amazonaws.com/gradeant:7e050d1284016bd1a736420d66c9bfbd81a42a52",
             "cpu": 0,
             "portMappings": [
                 {
@@ -16,10 +16,8 @@
             ],
             "essential": true,
             "environment": [],
-            "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -29,8 +27,7 @@
                     "max-buffer-size": "25m",
                     "awslogs-region": "eu-north-1",
                     "awslogs-stream-prefix": "ecs"
-                },
-                "secretOptions": []
+                }
             },
             "systemControls": []
         }
@@ -38,7 +35,7 @@
     "family": "frontend-task",
     "executionRoleArn": "arn:aws:iam::761018852934:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 1,
+    "revision": 3,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -84,7 +81,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-06-11T12:28:11.056Z",
+    "registeredAt": "2025-06-11T14:02:30.457Z",
     "registeredBy": "arn:aws:iam::761018852934:root",
     "tags": []
 }
