@@ -194,6 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ---------- File Input and Drag & Drop Handling ----------
     const fileInput = document.getElementById('file-input');
     const fileList = document.getElementById('file-list');
+    const fileDropZone = document.getElementById('file-drop-zone');
     const selectedFiles = new Set();
 
     if (fileInput) {
@@ -216,25 +217,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    const fileInputLabel = document.querySelector('.file-upload-label');
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        fileInputLabel.addEventListener(eventName, preventDefaults, false);
-    });
+    if (fileDropZone) {
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileDropZone.addEventListener(eventName, preventDefaults, false);
+        });
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileDropZone.addEventListener(eventName, () => fileDropZone.classList.add('drag-over'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileDropZone.addEventListener(eventName, () => fileDropZone.classList.remove('drag-over'), false);
+        });
+
+        fileDropZone.addEventListener('drop', handleDrop, false);
     }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        fileInputLabel.addEventListener(eventName, () => fileInputLabel.classList.add('highlight'), false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        fileInputLabel.addEventListener(eventName, () => fileInputLabel.classList.remove('highlight'), false);
-    });
-
-    fileInputLabel.addEventListener('drop', handleDrop, false);
 
     function handleDrop(e) {
         const dt = e.dataTransfer;
@@ -260,16 +262,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function validateFileSize(file, maxSizeMB) {
-        const maxSize = maxSizeMB * 1024 * 1024;
-        return file.size <= maxSize;
+        return file.size <= maxSizeMB * 1024 * 1024;
     }
 
     function addFileToList(file) {
         const li = document.createElement('li');
-        const span = document.createElement('span');
-        span.textContent = `${file.name} (${Utils.formatFileSize(file.size)})`;
+        
+        const fileName = document.createElement('span');
+        fileName.className = 'file-name';
+        fileName.textContent = file.name;
+
+        const fileSize = document.createElement('span');
+        fileSize.className = 'file-size';
+        fileSize.textContent = Utils.formatFileSize(file.size);
         
         const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-file';
         removeBtn.innerHTML = '&times;';
         removeBtn.addEventListener('click', function(e) {
             e.preventDefault();
@@ -277,7 +285,8 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedFiles.delete(file.name);
         });
         
-        li.appendChild(span);
+        li.appendChild(fileName);
+        li.appendChild(fileSize);
         li.appendChild(removeBtn);
         fileList.appendChild(li);
     }
@@ -288,49 +297,51 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedFiles.clear();
     }
 
-    // Dynamic field management
-// Dynamic field management
-const uploadTypeSelect = document.getElementById('upload-type');
-if (uploadTypeSelect) {
-    uploadTypeSelect.addEventListener('change', function() {
-        const studentIdFieldContainer = document.querySelector('.student-id-container');
-        
-        // If student ID field doesn't exist yet, create it when needed
-        if (this.value === 'student' && !document.getElementById('student-id')) {
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group student-id-container';
-            formGroup.innerHTML = `
-                <label for="student-id">Student ID</label>
-                <input type="text" id="student-id" class="form-control" placeholder="Enter your student ID" />
-            `;
+    const uploadTypeSelect = document.getElementById('upload-type');
+    if (uploadTypeSelect) {
+        uploadTypeSelect.addEventListener('change', function() {
+            const studentIdFieldContainer = document.querySelector('.student-id-container');
             
-            // Insert after assignment-id field
-            const assignmentIdField = document.getElementById('assignment-id').closest('.form-group');
-            if (assignmentIdField && assignmentIdField.parentNode) {
-                assignmentIdField.parentNode.insertBefore(formGroup, assignmentIdField.nextSibling);
+            // If student ID field doesn't exist yet, create it when needed
+            if (this.value === 'student' && !document.getElementById('student-id')) {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group student-id-container';
+                formGroup.innerHTML = `
+                    <label for="student-id">Student ID</label>
+                    <input type="text" id="student-id" class="form-control" placeholder="Enter your student ID" />
+                `;
+                
+                // Insert after assignment-id field
+                const assignmentIdField = document.getElementById('assignment-id').closest('.form-group');
+                if (assignmentIdField && assignmentIdField.parentNode) {
+                    assignmentIdField.parentNode.insertBefore(formGroup, assignmentIdField.nextSibling);
+                }
+            } else if (this.value !== 'student' && studentIdFieldContainer) {
+                // Remove student ID field if it exists and upload type is not 'student'
+                studentIdFieldContainer.remove();
             }
-        } else if (this.value !== 'student' && studentIdFieldContainer) {
-            // Remove student ID field if it exists and upload type is not 'student'
-            studentIdFieldContainer.remove();
-        }
-        
-        // Adjust assignment ID label based on upload type
-        const assignmentIdLabel = document.querySelector('label[for="assignment-id"]');
-        if (assignmentIdLabel) {
-            assignmentIdLabel.textContent = this.value === 'teacher' ? 'Assignment ID' : 'Assignment ID';
-        }
-        
-        // Dynamic heading update based on upload type
-        const cardHeader = document.querySelector('.card-header h2');
-        if (cardHeader) {
-            if (this.value === 'student') {
-                cardHeader.innerHTML = '<i class="fas fa-file-upload"></i> Upload Assignment';
-            } else if (this.value === 'teacher') {
-                cardHeader.innerHTML = '<i class="fas fa-file-upload"></i> Upload Question Paper';
+            
+            // Adjust assignment ID label based on upload type
+            const assignmentIdLabel = document.querySelector('label[for="assignment-id"]');
+            if (assignmentIdLabel) {
+                assignmentIdLabel.textContent = this.value === 'teacher' ? 'Assignment ID' : 'Assignment ID';
+            }else if (assignmentIdLabel) {
+                assignmentIdLabel.textContent = this.value === 'answer' ? 'Assignment ID' : 'Assignment ID';
             }
-        }
-    });
-}
+            
+            // Dynamic heading update based on upload type
+            const cardHeader = document.querySelector('.card-header h2');
+            if (cardHeader) {
+                if (this.value === 'student') {
+                    cardHeader.innerHTML = '<i class="fas fa-file-upload"></i> Upload Assignment';
+                } else if (this.value === 'teacher') {
+                    cardHeader.innerHTML = '<i class="fas fa-file-upload"></i> Upload Question Paper';
+                }else if (this.value === 'answer') {
+                    cardHeader.innerHTML = '<i class="fas fa-file-upload"></i> Upload Answer Sheet';
+                }
+            }
+        });
+    }
 
     // ---------- Upload Form Submission ----------
     const uploadForm = document.getElementById('upload-form');
@@ -347,7 +358,10 @@ if (uploadTypeSelect) {
             UIManager.showAlert('Please select upload type', 'danger');
             return;
         }
-        
+            // Route to appropriate upload function based on type
+        if (uploadType === 'answer') {
+            await handleAnswerUpload();
+        }
         // Validate assignment ID only for student uploads
         if (uploadType === 'student') {
             const assignmentId = document.getElementById('assignment-id').value;
@@ -496,6 +510,179 @@ if (uploadTypeSelect) {
             }
         }
     });
+
+    // Separate function for answer upload
+async function handleAnswerUpload() {
+    const assignmentId = document.getElementById('assignment-id').value;
+    const qpId = document.getElementById('course-id').value;
+    
+    if (!assignmentId) {
+        UIManager.showAlert('Please enter Assignment ID', 'danger');
+        return;
+    }
+    
+    if (!qpId) {
+        UIManager.showAlert('Please enter Question Paper ID', 'danger');
+        return;
+    }
+    
+    if (fileList.children.length === 0) {
+        UIManager.showAlert('Please select at least one answer sheet file', 'danger');
+        return;
+    }
+
+    progressContainer.style.display = 'block';
+    alertsContainer.innerHTML = '';
+
+    try {
+        const metadata = {
+            uploadType: 'answer',
+            assignmentId: assignmentId,
+            qpId: qpId,
+            files: []
+        };
+
+        const courseId = document.getElementById('course-id').value;
+        if (courseId) {
+            metadata.courseId = courseId;
+        }
+
+        // Collect file information and rename files
+        const fileInputFiles = fileInput.files;
+        const filesToUpload = [];
+        
+        // Clean assignment ID and qpId for filename (remove special characters and spaces)
+        const cleanAssignmentId = assignmentId.replace(/[^a-zA-Z0-9]/g, '_');
+        const cleanQpId = qpId.replace(/[^a-zA-Z0-9]/g, '_');
+        
+        for (let i = 0; i < fileInputFiles.length; i++) {
+            if (selectedFiles.has(fileInputFiles[i].name)) {
+                const originalFile = fileInputFiles[i];
+                const fileExtension = originalFile.name.split('.').pop();
+
+                // Generate new filename: {assignmentId}_{qpId}_answer.extension
+                const newFileName = `${cleanAssignmentId}_${cleanQpId}_answer.${fileExtension}`;
+                
+                // Create a new File object with the new name
+                const renamedFile = new File([originalFile], newFileName, {
+                    type: originalFile.type,
+                    lastModified: originalFile.lastModified
+                });
+                
+                filesToUpload.push(renamedFile);
+                metadata.files.push({
+                    name: newFileName,
+                    originalName: originalFile.name,
+                    type: renamedFile.type,
+                    size: renamedFile.size
+                });
+            }
+        }
+
+        const submitButton = uploadForm.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Uploading Answer Sheets...';
+        }
+
+        await processFileUpload(filesToUpload, metadata);
+        
+    } catch (error) {
+        UIManager.showAlert(`Answer upload failed: ${error.message}`, 'danger');
+    } finally {
+        resetUploadButton();
+    }
+}
+function resetUploadButton() {
+  const submitButton = document.getElementById('upload-form').querySelector('button[type="submit"]');
+  if (submitButton) {
+    submitButton.disabled = false;
+    submitButton.textContent = 'Upload Files';
+  }
+}
+// Common file processing function
+async function processFileUpload(filesToUpload, metadata) {
+    // Request presigned URLs from the server using the configured endpoint
+    let response;
+    try {
+        response = await fetch(CONFIG.API.API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            },
+            body: JSON.stringify(metadata),
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Server error (${response.status}): ${errorText}`);
+        }
+    } catch (fetchError) {
+        throw new Error(`Failed to connect to server: ${fetchError.message}`);
+    }
+
+    const presignedData = await response.json();
+
+    const totalFiles = filesToUpload.length;
+    let completedFiles = 0;
+    let failedFiles = 0;
+
+    const fileProgressElements = filesToUpload.map((file) => {
+        const fileProgressDiv = document.createElement('div');
+        fileProgressDiv.className = 'file-progress';
+        fileProgressDiv.innerHTML = `
+            <p>${file.name} (0%)</p>
+            <div class="progress">
+                <div class="progress-bar" style="width: 0%"></div>
+            </div>
+        `;
+        progressContainer.appendChild(fileProgressDiv);
+        return {
+            element: fileProgressDiv,
+            progressBar: fileProgressDiv.querySelector('.progress-bar'),
+            progressText: fileProgressDiv.querySelector('p')
+        };
+    });
+
+    const uploadPromises = filesToUpload.map(async (file, index) => {
+        const presignedUrl = presignedData.urls[index];
+        const fileProgress = fileProgressElements[index];
+
+        try {
+            await uploadFileWithPresignedUrl(file, presignedUrl, (progress) => {
+                fileProgress.progressBar.style.width = `${progress}%`;
+                fileProgress.progressText.textContent = `${file.name} (${progress}%)`;
+            });
+            completedFiles++;
+            updateTotalProgress(completedFiles, failedFiles, totalFiles);
+            return { success: true };
+        } catch (error) {
+            failedFiles++;
+            fileProgress.element.classList.add('upload-failed');
+            fileProgress.progressText.textContent = `${file.name} (Failed: ${error.message})`;
+            updateTotalProgress(completedFiles, failedFiles, totalFiles);
+            return { success: false, error: error.message };
+        }
+    });
+
+    const results = await Promise.all(uploadPromises);
+    if (failedFiles === 0) {
+        const uploadType = metadata.uploadType;
+        const successMessage = uploadType === 'answer' 
+            ? 'All answer sheets uploaded successfully!' 
+            : 'All files uploaded successfully!';
+        UIManager.showAlert(successMessage, 'success');
+        resetForm();
+    } else {
+        UIManager.showAlert(`Upload completed with ${failedFiles} failed file(s) out of ${totalFiles}`, 'warning');
+    }
+
+    setTimeout(() => {
+        // Clear file progress elements
+        Array.from(progressContainer.querySelectorAll('.file-progress')).forEach(el => el.remove());
+        progressContainer.style.display = 'none';
+    }, CONFIG.UI.PROGRESS_HIDE_DELAY_MS);
+}
 
     async function uploadFileWithPresignedUrl(file, presignedUrl, progressCallback) {
         return new Promise((resolve, reject) => {

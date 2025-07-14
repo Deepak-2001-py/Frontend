@@ -24,6 +24,208 @@
     --focus-color: #8E44AD;           /* Sophisticated Purple */
 }
 
+/* Shared Styles */
+.card {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+}
+
+.card-header h2,
+.section-title h3 {
+  color: var(--primary-color);
+}
+
+.card-header p,
+.section-title p,
+.field-help {
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+/* Upload Type Selector */
+.upload-type-selector {
+  background-color: var(--light-primary);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.upload-options {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.upload-option {
+  flex: 1;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upload-option:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-shadow);
+  border-color: var(--hover-color);
+}
+
+.option-icon i,
+.header-icon i {
+  font-size: 2rem;
+  color: var(--secondary-color);
+}
+
+.option-content h3 {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.option-features .feature-tag {
+  display: inline-block;
+  background-color: var(--light-secondary);
+  color: var(--text-color);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin: 0.2rem 0.3rem 0 0;
+}
+
+/* Section Header */
+.section-header {
+  background-color: var(--light-secondary);
+  padding: 1.25rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.header-text h2 {
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.header-stats .stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+/* Form Sections */
+.form-section {
+  margin-top: 2rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.form-control,
+textarea,
+select {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  color: var(--text-color);
+  background-color: white;
+}
+
+.form-control:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--focus-color);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.2);
+}
+
+.required {
+  color: var(--danger-color);
+  margin-left: 0.2rem;
+}
+
+/* Upload Area */
+.upload-area {
+  background-color: var(--light-orange);
+  border: 2px dashed var(--accent-color);
+  border-radius: 8px;
+  text-align: center;
+  padding: 2rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: var(--hover-color);
+}
+
+.upload-specs .spec-item {
+  display: inline-block;
+  margin: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+/* Buttons */
+.btn-professional {
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-professional:hover {
+  background-color: var(--hover-color);
+}
+
+.btn-shine {
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: skewX(-25deg);
+  animation: shine 2s infinite;
+}
+
+@keyframes shine {
+  to {
+    left: 125%;
+  }
+}
+
+/* Progress Bar */
+.progress-container {
+  background-color: var(--light-green);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.progress-bar {
+  height: 10px;
+  background-color: var(--primary-color);
+  transition: width 0.4s ease;
+  border-radius: 5px;
+}
+
+.progress-details,
+.progress-text {
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
 /* Alerts */
 .alerts-container {
     position: fixed;
