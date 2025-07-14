@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:eu-north-1:761018852934:task-definition/frontend-task:15",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-2:593793036761:task-definition/Frontend_task:22",
     "containerDefinitions": [
         {
-            "name": "frontend",
-            "image": "761018852934.dkr.ecr.eu-north-1.amazonaws.com/gradeant:latest",
+            "name": "Frontend",
+            "image": "593793036761.dkr.ecr.us-east-2.amazonaws.com/grade-ant:latest",
             "cpu": 0,
             "portMappings": [
                 {
@@ -23,11 +23,11 @@
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "/ecs/frontend-task",
+                    "awslogs-group": "/ecs/Frontend_task",
                     "mode": "non-blocking",
                     "awslogs-create-group": "true",
                     "max-buffer-size": "25m",
-                    "awslogs-region": "eu-north-1",
+                    "awslogs-region": "us-east-2",
                     "awslogs-stream-prefix": "ecs"
                 },
                 "secretOptions": []
@@ -35,10 +35,10 @@
             "systemControls": []
         }
     ],
-    "family": "frontend-task",
-    "executionRoleArn": "arn:aws:iam::761018852934:role/ecsTaskExecutionRole",
+    "family": "Frontend_task",
+    "executionRoleArn": "arn:aws:iam::593793036761:role/ECStaskexecutionrole",
     "networkMode": "awsvpc",
-    "revision": 15,
+    "revision": 22,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -84,7 +84,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2025-06-24T14:52:21.060Z",
-    "registeredBy": "arn:aws:iam::761018852934:root",
+    "registeredAt": "2025-06-24T19:07:16.151Z",
+    "registeredBy": "arn:aws:iam::593793036761:root",
     "tags": []
 }
