@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDFtoBlog AI | Wireframe Design</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #4cc9f0;
+            --success: #4ade80;
+            --error: #f87171;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .page-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .diagram-container {
+            background: var(--light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow: auto;
+        }
+
+        .mermaid {
+            min-width: 600px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .wireframe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .wireframe-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .wireframe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .wireframe-elements {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .element {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 0.9rem;
+        }
+
+        .element.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .element.secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .element.light {
+            background: var(--light);
+        }
+
+        .element-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .element-group-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        .workflow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 200px;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 15px;
+            z-index: 2;
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 35px;
+            left: calc(100% + 10px);
+            width: 50px;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .workflow-step:last-child .step-connector {
+            display: none;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .preview-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .preview-column {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .preview-header {
+            background: var(--light-gray);
+            padding: 10px 15px;
+            font-weight: 600;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .preview-content {
+            border: 1px solid var(--light-gray);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        .preview-image {
+            width: 100%;
+            height: 200px;
+            background: var(--light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .preview-blog-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .preview-blog-content {
+            line-height: 1.6;
+            color: var(--gray);
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-column h3 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .workflow-step {
+                max-width: 100%;
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            .step-connector {
+                display: none;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .preview-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- <header>
+        <div class="header-content">
+            <a href="#" class="logo">
+                <div class="logo-icon">PB</div>
+                <div class="logo-text">PDF<span>toBlog</span> AI</div>
+            </a>
+            <nav class="nav-links">
+                <a href="#" class="active">Design</a>
+                <a href="#">Workflow</a>
+                <a href="#">Components</a>
+                <a href="#">Auth</a>
+                <a href="#">API</a>
+            </nav>
+        </div>
+    </header> -->
+
+    <!-- <div class="hero">
+        <h1>PDF to Blog AI Generator</h1>
+        <p>Transform your PDF documents into engaging blog posts with our AI-powered content generation system</p>
+    </div> -->
+
+    <div class="container">
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <h2 class="section-title">Core Functionality</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph LR
+                    A[User Uploads PDF] --> B[AI Processing]
+                    B --> C[Content Analysis]
+                    C --> D[Blog Generation]
+                    D --> E[Preview & Edit]
+                    E --> F[Publish/Export]
+                </div>
+            </div>
+            
+            <h3>PDF-to-Blog Conversion Workflow</h3>
+            <div class="workflow-diagram">
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">Upload PDF</div>
+                    <div class="step-description">User uploads document via drag & drop or file browser</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">AI Processing</div>
+                    <div class="step-description">System extracts text and analyzes content</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">Blog Generation</div>
+                    <div class="step-description">AI creates structured blog post with headings and paragraphs</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">Preview & Edit</div>
+                    <div class="step-description">User reviews and customizes generated content</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">
+                        <i class="fas fa-share"></i>
+                    </div>
+                    <div class="step-title">Export/Publish</div>
+                    <div class="step-description">Final content exported or published to platforms</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-laptop"></i>
+                </div>
+                <h2 class="section-title">User Interface Wireframes</h2>
+            </div>
+            
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">PDF Upload Interface</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Drag & Drop Area</div>
+                            <div class="element">"Browse Files" Button</div>
+                            <div class="element-group">
+                                <div class="element-group-title">File Requirements</div>
+                                <div class="element light">PDF format only</div>
+                                <div class="element">Max 20MB file size</div>
+                            </div>
+                            <div class="element">Processing Status Indicator</div>
+                            <div class="element secondary">Generate Blog Button</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Blog Generation Panel</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">AI Configuration Options</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Tone Selection</div>
+                                <div class="element light">Formal</div>
+                                <div class="element">Casual</div>
+                                <div class="element">Technical</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">Length Options</div>
+                                <div class="element light">Summary</div>
+                                <div class="element">Detailed</div>
+                                <div class="element">Comprehensive</div>
+                            </div>
+                            <div class="element">Target Audience Selection</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Generated Blog Preview</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Blog Title</div>
+                            <div class="element">Author/Date Information</div>
+                            <div class="element">Featured Image</div>
+                            <div class="element">Content Sections</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Editing Tools</div>
+                                <div class="element light">Text Formatting</div>
+                                <div class="element">Image Insertion</div>
+                                <div class="element">SEO Optimization</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px;">Preview Interface</h3>
+            <div class="preview-container">
+                <div class="preview-column">
+                    <div class="preview-header">PDF Upload</div>
+                    <div class="preview-content">
+                        <div class="preview-image">
+                            PDF Document Preview
+                        </div>
+                        <div class="element secondary" style="text-align: center;">Upload PDF File</div>
+                        <div class="element light" style="text-align: center; margin-top: 10px;">Drag & drop or click to browse</div>
+                        <div class="element-group" style="margin-top: 20px;">
+                            <div class="element-group-title">AI Configuration</div>
+                            <div class="element">Tone: Professional</div>
+                            <div class="element">Length: Detailed (800-1000 words)</div>
+                            <div class="element">Target: Technical Audience</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preview-column">
+                    <div class="preview-header">Generated Blog</div>
+                    <div class="preview-content">
+                        <div class="preview-blog-title">The Future of Renewable Energy Technologies</div>
+                        <div class="preview-blog-content">
+                            <p>In recent years, renewable energy has transformed from a niche interest to a mainstream power solution...</p>
+                            <p style="margin-top: 10px;">Solar photovoltaic technology has achieved unprecedented efficiency levels, with new perovskite cells reaching...</p>
+                            <p style="margin-top: 10px;">Wind energy continues to expand offshore, with floating turbine technology enabling deployment in deeper waters...</p>
+                        </div>
+                        <div class="element-group" style="margin-top: 20px;">
+                            <div class="element-group-title">Actions</div>
+                            <div class="element secondary">Edit Content</div>
+                            <div class="element light">Export as HTML</div>
+                            <div class="element">Publish to WordPress</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h2 class="section-title">Authentication System</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TB
+                    A[Home Page] -->|Click Login| B[Login Page]
+                    A -->|Click Sign Up| C[Sign Up Page]
+                    B -->|Valid Credentials| D[PDF Upload Dashboard]
+                    C -->|Successful Registration| D
+                    B -->|Forgot Password| E[Password Reset]
+                    C -->|Already Registered| B
+                </div>
+            </div>
+            
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">Login Page</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Email Input</div>
+                            <div class="element">Password Input</div>
+                            <div class="element-group">
+                                <div class="element light">Remember Me Checkbox</div>
+                                <div class="element">Forgot Password Link</div>
+                            </div>
+                            <div class="element secondary">Login Button</div>
+                            <div class="element">Sign Up Link</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Sign Up Page</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element-group">
+                                <div class="element-group-title">User Information</div>
+                                <div class="element">First Name</div>
+                                <div class="element">Last Name</div>
+                                <div class="element">Email</div>
+                                <div class="element">Password</div>
+                            </div>
+                            <div class="element">Terms Agreement</div>
+                            <div class="element secondary">Create Account Button</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-cogs"></i>
+                </div>
+                <h2 class="section-title">Technical Architecture</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph LR
+                    A[Frontend UI] --> B[API Gateway]
+                    B --> C[PDF Processing Service]
+                    C --> D[AI Content Generation]
+                    D --> E[Database]
+                    F[User Authentication] --> B
+                    G[Blog Management] --> B
+                </div>
+            </div>
+            
+            <h3>System Components</h3>
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">Frontend</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">React.js Application</div>
+                            <div class="element">PDF Upload Interface</div>
+                            <div class="element">Blog Editor</div>
+                            <div class="element">User Authentication</div>
+                            <div class="element">Dashboard</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Backend Services</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Node.js API</div>
+                            <div class="element">PDF Text Extraction</div>
+                            <div class="element">AI Content Generation (GPT-4)</div>
+                            <div class="element">User Management</div>
+                            <div class="element">Blog Storage</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Database</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">MongoDB</div>
+                            <div class="element">User Profiles</div>
+                            <div class="element">PDF Metadata</div>
+                            <div class="element">Generated Blogs</div>
+                            <div class="element">Processing History</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>PDFtoBlog AI</h3>
+                <p>Transform your documents into compelling blog content with our AI-powered conversion platform.</p>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Core Features</h3>
+                <div class="footer-links">
+                    <a href="#">PDF Upload</a>
+                    <a href="#">AI Content Generation</a>
+                    <a href="#">Blog Editing</a>
+                    <a href="#">Content Export</a>
+                    <a href="#">Publishing Tools</a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <div class="footer-links">
+                    <a href="#">Documentation</a>
+                    <a href="#">API Reference</a>
+                    <a href="#">Tutorials</a>
+                    <a href="#">Support Center</a>
+                    <a href="#">Blog Examples</a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Content Policy</a>
+                    <a href="#">Copyright Information</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2023 PDFtoBlog AI. All rights reserved. This is a design documentation prototype.
+        </div>
+    </footer>
+    
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>

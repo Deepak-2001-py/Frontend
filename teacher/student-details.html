@@ -83,6 +83,7 @@
   --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   --gradient-danger: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 /* Base Layout Improvements */
@@ -281,18 +282,22 @@
 
 /* Hero Action Buttons */
 .print-button, .update-marks-button {
-  background: var(--gradient-success);
+  background: var(--primary-gradient);
   color: white;
   border: none;
-  padding: 16px 32px;
-  border-radius: 50px;
+  padding: 8px 16px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  text-transform: uppercase;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   letter-spacing: 1px;
   margin: 24px 12px 24px 0;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
@@ -314,10 +319,7 @@
   transform: translateY(-4px) scale(1.05);
   box-shadow: var(--shadow-xl), 0 0 30px rgba(16, 185, 129, 0.3);
 }
-.update-marks-button:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: var(--shadow-xl), 0 0 30px rgba(16, 185, 129, 0.3);
-}
+
 
 
 .print-button:hover::before, .update-marks-button:hover::before {

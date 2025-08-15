@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeAnt - Platform Design & Wireframes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #4cc9f0;
+            --success: #4ade80;
+            --error: #f87171;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .page-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .diagram-container {
+            background: var(--light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow: auto;
+        }
+
+        .mermaid {
+            min-width: 600px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .wireframe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .wireframe-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .wireframe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .wireframe-elements {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .element {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 0.9rem;
+        }
+
+        .element.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .element.secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .element.light {
+            background: var(--light);
+        }
+
+        .element-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+        }
+
+        .element-group-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        .workflow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 200px;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 15px;
+            z-index: 2;
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 35px;
+            left: calc(100% + 10px);
+            width: 50px;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .workflow-step:last-child .step-connector {
+            display: none;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-column h3 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .workflow-step {
+                max-width: 100%;
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            .step-connector {
+                display: none;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <a href="#" class="logo">
+                <div class="logo-icon">GA</div>
+                <div class="logo-text">Grade<span>Ant</span></div>
+            </a>
+            <nav class="nav-links">
+                <a href="#" class="active">Design</a>
+                <a href="#">Wireframes</a>
+                <a href="#">Workflow</a>
+                <a href="#">Components</a>
+                <a href="#">Docs</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h1>GradeAnt Platform Design & Wireframes</h1>
+        <p>Comprehensive design documentation with interactive wireframe diagrams for the AI-powered STEM grading platform</p>
+    </div>
+
+    <div class="container">
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h2 class="section-title">Home Page Wireframe</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph LR
+                    A[Navbar] --> B[Hero Section]
+                    B --> C[Features Grid]
+                    C --> D[Workflow Section]
+                    D --> E[Demo Slideshow]
+                    E --> F[CTA Section]
+                    F --> G[Footer]
+                </div>
+            </div>
+            
+            <h3>Home Page Components</h3>
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">Hero Section</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Platform Title</div>
+                            <div class="element">Tagline: "The Future of STEM Grading"</div>
+                            <div class="element">Key Benefits Bullet Points</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Call to Action</div>
+                                <div class="element secondary">Get Started Button</div>
+                                <div class="element light">Learn More Button</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Features Grid</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Section Title</div>
+                            <div class="element">6 Feature Cards</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Each Card Contains</div>
+                                <div class="element light">Emoji Icon</div>
+                                <div class="element">Feature Title</div>
+                                <div class="element">Short Description</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Demo Section</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Slideshow Title</div>
+                            <div class="element">Interactive Slideshow</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Controls</div>
+                                <div class="element light">Previous/Next Arrows</div>
+                                <div class="element">Progress Bar</div>
+                                <div class="element">Navigation Dots</div>
+                            </div>
+                            <div class="element">Demo Caption</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h2 class="section-title">Authentication System</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TB
+                    A[Home Page] -->|Click Login| B[Login Page]
+                    A -->|Click Sign Up| C[Sign Up Page]
+                    B -->|Valid Credentials| D[Dashboard]
+                    C -->|Successful Registration| D
+                    B -->|Forgot Password| E[Password Reset]
+                    C -->|Already Registered| B
+                </div>
+            </div>
+            
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">Login Page</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Role Selector (Student/Teacher)</div>
+                            <div class="element">Email Input</div>
+                            <div class="element">Password Input</div>
+                            <div class="element-group">
+                                <div class="element light">Remember Me Checkbox</div>
+                                <div class="element">Forgot Password Link</div>
+                            </div>
+                            <div class="element secondary">Login Button</div>
+                            <div class="element">Sign Up Link</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Sign Up Page</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Role Toggle (Student/Teacher)</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Common Fields</div>
+                                <div class="element">First Name</div>
+                                <div class="element">Last Name</div>
+                                <div class="element">Email</div>
+                                <div class="element">Password</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">Student Fields</div>
+                                <div class="element light">Student ID</div>
+                                <div class="element">Grade/Year Level</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">Teacher Fields</div>
+                                <div class="element light">Institution</div>
+                                <div class="element">Department</div>
+                            </div>
+                            <div class="element">Terms Agreement</div>
+                            <div class="element secondary">Create Account Button</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <h2 class="section-title">Navigation Component</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph LR
+                    A[User Type] -->|Student| B[Student Navbar]
+                    A -->|Teacher| C[Teacher Navbar]
+                    B --> D[Dashboard Link]
+                    B --> E[Assignments Link]
+                    B --> F[My Grades Link]
+                    C --> G[Dashboard Link]
+                    C --> H[Assignments Link]
+                    C --> I[Student Grades Link]
+                    B --> J[User Menu]
+                    C --> J
+                    J --> K[Profile]
+                    J --> L[Settings]
+                    J --> M[Logout]
+                </div>
+            </div>
+            
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">Student Navigation</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">GradeAnt Logo</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Navigation Links</div>
+                                <div class="element secondary">Dashboard</div>
+                                <div class="element">Assignments</div>
+                                <div class="element">My Grades</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">User Menu</div>
+                                <div class="element light">Student Avatar</div>
+                                <div class="element">Student Name</div>
+                                <div class="element">Role Badge</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Teacher Navigation</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">GradeAnt Logo</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Navigation Links</div>
+                                <div class="element secondary">Dashboard</div>
+                                <div class="element">Assignments</div>
+                                <div class="element">Student Grades</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">User Menu</div>
+                                <div class="element light">Teacher Avatar</div>
+                                <div class="element">Teacher Name</div>
+                                <div class="element">Role Badge</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Mobile Navigation</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Hamburger Menu Icon</div>
+                            <div class="element">Collapsible Menu Panel</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Mobile Elements</div>
+                                <div class="element light">Vertical Navigation Links</div>
+                                <div class="element">User Profile Section</div>
+                                <div class="element">Logout Button</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <h2 class="section-title">Dashboard & Workflow</h2>
+            </div>
+            
+            <div class="workflow-diagram">
+                <div class="workflow-step">
+                    <div class="step-icon">1</div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">Upload Content</div>
+                    <div class="step-description">Students submit assignments via multiple formats</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">2</div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">AI Processing</div>
+                    <div class="step-description">GradeAnt analyzes submissions using AI algorithms</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">3</div>
+                    <div class="step-connector"></div>
+                    <div class="step-title">Review & Feedback</div>
+                    <div class="step-description">Teachers review AI suggestions and add feedback</div>
+                </div>
+                
+                <div class="workflow-step">
+                    <div class="step-icon">4</div>
+                    <div class="step-title">Results Delivery</div>
+                    <div class="step-description">Students receive graded assignments with insights</div>
+                </div>
+            </div>
+            
+            <div class="wireframe-grid">
+                <div class="wireframe-card">
+                    <div class="card-header">Student Dashboard</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Welcome Banner</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Overview Cards</div>
+                                <div class="element light">Pending Assignments</div>
+                                <div class="element">Recent Grades</div>
+                                <div class="element">Performance Trends</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">Assignment List</div>
+                                <div class="element">Assignment Cards with Status</div>
+                                <div class="element">Due Dates & Priority Indicators</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wireframe-card">
+                    <div class="card-header">Teacher Dashboard</div>
+                    <div class="card-body">
+                        <div class="wireframe-elements">
+                            <div class="element primary">Class Overview</div>
+                            <div class="element-group">
+                                <div class="element-group-title">Summary Cards</div>
+                                <div class="element light">Assignments to Grade</div>
+                                <div class="element">Average Class Performance</div>
+                                <div class="element">Student Engagement</div>
+                            </div>
+                            <div class="element-group">
+                                <div class="element-group-title">Quick Actions</div>
+                                <div class="element secondary">Create Assignment</div>
+                                <div class="element">Grade Submissions</div>
+                                <div class="element">Generate Reports</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>GradeAnt Platform</h3>
+                <p>AI-powered grading solutions for STEM education, transforming how educators assess and students learn.</p>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Core Pages</h3>
+                <div class="footer-links">
+                    <a href="#">Home Page</a>
+                    <a href="#">Login/Signup</a>
+                    <a href="#">Student Dashboard</a>
+                    <a href="#">Teacher Dashboard</a>
+                    <a href="#">Assignment Grading</a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <div class="footer-links">
+                    <a href="#">Documentation</a>
+                    <a href="#">API Reference</a>
+                    <a href="#">Design System</a>
+                    <a href="#">Tutorials</a>
+                    <a href="#">Support Center</a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Legal</h3>
+                <div class="footer-links">
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Data Security</a>
+                    <a href="#">Compliance</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2023 GradeAnt. All rights reserved. This is a design documentation prototype.
+        </div>
+    </footer>
+</body>
+</html>

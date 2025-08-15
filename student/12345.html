@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GradeAnt: AI-Powered Homework Grader" />
+  <title>GradeAnt: AI-Powered Homework Grader</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+   <!-- Styles -->
+  <link rel="stylesheet" href="..\css\asthetic_style.css" />
+  <link rel="stylesheet" href="..\css\nav.css" />
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <!-- Scripts -->
+  <script src="../component-loader.js"></script>
+  <!-- Additional Professional Styles -->
+  <style>
+    /* Professional upload interface enhancements */
+    .upload-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+    
+    .upload-section.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .upload-option {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-option:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      border-color: #007bff;
+    }
+    
+    .upload-option.selected {
+      border-color: #007bff;
+      background: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+    }
+    
+    .file-upload-label {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .file-upload-label:hover {
+      background: #f8f9fa;
+    }
+    
+    .file-upload-label.highlight {
+      background: #e3f2fd;
+      border: 2px dashed #2196f3;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 5px;
+      border-left: 4px solid #28a745;
+    }
+    
+    .file-item .file-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .file-item .file-size {
+      font-size: 0.875rem;
+      color: #6c757d;
+    }
+    
+    .file-item .remove-file {
+      color: #dc3545;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+    
+    .file-item .remove-file:hover {
+      background: #f5c6cb;
+    }
+    
+    .professional-form {
+      background-color: var(--light-secondary);
+      padding: 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    
+    .alert {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+    }
+    
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .alert-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .progress-container {
+      margin: 1rem 0;
+    }
+    
+    .progress {
+      height: 20px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745, #20c997);
+      transition: width 0.3s ease;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .form-row {
+        flex-direction: column;
+      }
+      
+      .form-group {
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+      
+      .upload-option {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation will be loaded here -->
+  <div id="nav"></div>
+  
+  <div class="container">
+    <!-- Teacher/Answer Key Upload Interface -->
+    <section id="teacher-answer-section" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-file-upload"></i> Upload Educational Content</h2>
+          <p>Choose your upload type and submit your files in PDF format.</p>
+        </div>
+        <div class="card-body">
+          <!-- Upload Type Selector -->
+          <div class="upload-options">
+            <div class="upload-option" data-type="teacher">
+              <div class="option-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+              </div>
+              <div class="option-content">
+                <h3>Question Paper Upload</h3>
+                <p>Upload original question papers for AI analysis</p>
+              </div>
+            </div>
+            <div class="upload-option" data-type="answer">
+              <div class="option-icon">
+                <i class="fas fa-file-certificate"></i>
+              </div>
+              <div class="option-content">
+                <h3>Answer Key Upload</h3>
+                <p>Upload solution keys for accurate AI assessment</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Teacher Upload Form -->
+          <form id="teacher-form" class="form" style="display: none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="teacher-assignment-id">Assignment ID</label>
+                <input type="text" id="teacher-assignment-id" class="form-control" placeholder="e.g. PHYS_2024_MIDTERM_01" required />
+              </div>
+              <div class="form-group">
+                <label for="teacher-course-id">Course Code</label>
+                <input type="text" id="teacher-course-id" class="form-control" placeholder="e.g. PHYS-101" />
+              </div>
+            </div>
+            
+            <div class="file-upload" id="teacher-file-drop-zone">
+              <label for="teacher-file-input" class="file-upload-label">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h4>Drop files here or click to browse</h4>
+                <p>Supports PDF files up to 10MB each</p>
+                <div class="upload-specs">
+                  <span class="spec-item"><i class="fas fa-file-pdf"></i> PDF Format</span>
+                  <span class="spec-item"><i class="fas fa-weight"></i> Max 10MB</span>
+                  <span class="spec-item"><i class="fas fa-layers"></i> Multiple Files</span>
+                </div>
+              </label>
+              <input type="file" id="teacher-file-input" class="file-input" accept=".pdf" multiple />
+            </div>
+            
+            <div class="file-list-container">
+              <ul id="teacher-file-list" class="file-list"></ul>
+            </div>
+            
+            <div id="teacher-progress-container" class="progress-container">
+              <div class="progress-header">
+                <h4><i class="fas fa-cog fa-spin"></i> Processing Upload</h4>
+                <span id="teacher-progress-text" class="progress-text">0%</span>
+              </div>
+              <div class="progress">
+                <div id="teacher-progress-bar" class="progress-bar"></div>
+              </div>
+            </div>
+            
+            <div id="teacher-alerts-container" class="alerts-container"></div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="resetForm('teacher')">
+                <i class="fas fa-undo"></i> Reset Form
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-rocket"></i> Process Question Paper
+              </button>
+            </div>
+          </form>
+          
+          <!-- Answer Key Upload Form -->
+          <form id="answer-form" class="form" style="display: none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="answer-assignment-id">Assignment ID</label>
+                <input type="text" id="answer-assignment-id" class="form-control" placeholder="e.g. PHYS_2024_MIDTERM_01" required />
+              </div>
+              <div class="form-group">
+                <label for="answer-course-id">Course Code</label>
+                <input type="text" id="answer-course-id" class="form-control" placeholder="e.g. PHYS-101" />
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="grading-criteria">Grading Criteria</label>
+              <textarea id="grading-criteria" class="form-control" rows="4" placeholder="Specify grading instructions..."></textarea>
+            </div>
+            
+            <div class="file-upload" id="answer-file-drop-zone">
+              <label for="answer-file-input" class="file-upload-label">
+                <i class="fas fa-file-certificate"></i>
+                <h4>Drop solution files here or click to browse</h4>
+                <p>Upload detailed answer keys and rubrics</p>
+                <div class="upload-specs">
+                  <span class="spec-item"><i class="fas fa-file-pdf"></i> PDF Format</span>
+                  <span class="spec-item"><i class="fas fa-weight"></i> Max 10MB</span>
+                  <span class="spec-item"><i class="fas fa-layers"></i> Multiple Files</span>
+                </div>
+              </label>
+              <input type="file" id="answer-file-input" class="file-input" accept=".pdf" multiple />
+            </div>
+            
+            <div class="file-list-container">
+              <ul id="answer-file-list" class="file-list"></ul>
+            </div>
+            
+            <div id="answer-progress-container" class="progress-container">
+              <div class="progress-header">
+                <h4><i class="fas fa-cog fa-spin"></i> Processing Solution</h4>
+                <span id="answer-progress-text" class="progress-text">0%</span>
+              </div>
+              <div class="progress">
+                <div id="answer-progress-bar" class="progress-bar"></div>
+              </div>
+            </div>
+            
+            <div id="answer-alerts-container" class="alerts-container"></div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="resetForm('answer')">
+                <i class="fas fa-undo"></i> Reset Form
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-rocket"></i> Deploy Answer Key
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Student Assignment Upload Interface -->
+    <section id="student-section" class="tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-file-upload"></i> Upload Assignment</h2>
+          <p>Submit your assignment files in PDF format.</p>
+        </div>
+        <div class="card-body">
+          <form id="student-form" class="form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="upload-type">Upload Type</label>
+                <select id="upload-type" class="form-control" required>
+                  <option value="">Select Upload Type</option>
+                  <option value="student">Student Assignment</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="assignment-id">Assignment ID</label>
+                <input type="text" id="assignment-id" class="form-control" placeholder="e.g. assignment456" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="course-id">Question Paper ID</label>
+              <input type="text" id="course-id" class="form-control" placeholder="e.g. physics_101" />
+            </div>
+            
+            <div class="file-upload" id="student-file-drop-zone">
+              <label for="student-file-input" class="file-upload-label">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h4>Drop files here or click to browse</h4>
+                <p>Supports PDF files up to 10MB each</p>
+              </label>
+              <input type="file" id="student-file-input" class="file-input" accept=".pdf" multiple />
+            </div>
+            
+            <div class="file-list-container">
+              <ul id="student-file-list" class="file-list"></ul>
+            </div>
+            
+            <div id="student-progress-container" class="progress-container">
+              <div class="progress-header">
+                <h4><i class="fas fa-cog fa-spin"></i> Uploading Files</h4>
+                <span id="student-progress-text" class="progress-text">0%</span>
+              </div>
+              <div class="progress">
+                <div id="student-progress-bar" class="progress-bar"></div>
+              </div>
+            </div>
+            
+            <div id="student-alerts-container" class="alerts-container"></div>
+            
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary" onclick="resetForm('student')">
+                <i class="fas fa-undo"></i> Reset Form
+              </button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-upload"></i> Upload Assignments
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Mode Switch -->
+    <div class="mode-switch">
+      <button id="switch-to-teacher" class="btn btn-secondary">Teacher/Answer Key Upload</button>
+      <button id="switch-to-student" class="btn btn-secondary">Student Assignment Upload</button>
+    </div>
+  </div>
+  
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 GradeAnt. AI-Powered Homework Grader for students and teachers.</p>
+    </div>
+  </footer>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Configuration
+      const CONFIG = {
+        API_ENDPOINT: 'https://rus9nultj9.execute-api.eu-north-1.amazonaws.com/dev/uploadpdf',
+        MAX_FILE_SIZE_MB: 10,
+        ALLOWED_FILE_TYPES: ['application/pdf']
+      };
+      
+      // State management
+      const state = {
+        currentUploadType: 'teacher', // 'teacher', 'answer', or 'student'
+        selectedFiles: {
+          teacher: new Set(),
+          answer: new Set(),
+          student: new Set()
+        }
+      };
+      
+      // Initialize the interface
+      init();
+      
+      function init() {
+        // Setup event listeners for the teacher/answer interface
+        setupUploadOptions();
+        setupFileUpload('teacher');
+        setupFileUpload('answer');
+        setupFileUpload('student');
+        setupFormSubmit('teacher');
+        setupFormSubmit('answer');
+        setupFormSubmit('student');
+        setupModeSwitch();
+        
+        // Show the teacher form by default
+        showForm('teacher');
+      }
+      
+      // Setup upload type selection
+      function setupUploadOptions() {
+        const options = document.querySelectorAll('.upload-option');
+        options.forEach(option => {
+          option.addEventListener('click', function() {
+            const type = this.dataset.type;
+            state.currentUploadType = type;
+            showForm(type);
+            
+            // Update UI
+            options.forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+          });
+        });
+      }
+      
+      // Show the appropriate form
+      function showForm(type) {
+        // Hide all forms
+        document.getElementById('teacher-form').style.display = 'none';
+        document.getElementById('answer-form').style.display = 'none';
+        
+        // Show the selected form
+        if (type === 'teacher') {
+          document.getElementById('teacher-form').style.display = 'block';
+        } else if (type === 'answer') {
+          document.getElementById('answer-form').style.display = 'block';
+        }
+      }
+      
+      // Setup file upload functionality
+      function setupFileUpload(prefix) {
+        const fileInput = document.getElementById(`${prefix}-file-input`);
+        const dropZone = document.getElementById(`${prefix}-file-drop-zone`);
+        const fileList = document.getElementById(`${prefix}-file-list`);
+        
+        if (!fileInput || !dropZone) return;
+        
+        // Click handler
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        // Drag and drop handlers
+        ['dragenter', 'dragover'].forEach(event => {
+          dropZone.addEventListener(event, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(event => {
+          dropZone.addEventListener(event, unhighlight, false);
+        });
+        
+        dropZone.addEventListener('drop', handleDrop, false);
+        
+        // File selection handler
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        function highlight(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-over');
+        }
+        
+        function unhighlight(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          handleFiles(files, prefix);
+        }
+        
+        function handleFileSelect(e) {
+          const files = e.target.files;
+          handleFiles(files, prefix);
+        }
+        
+        function handleFiles(files, prefix) {
+          state.selectedFiles[prefix] = new Set();
+          fileList.innerHTML = '';
+          
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // Validate file type
+            if (!CONFIG.ALLOWED_FILE_TYPES.includes(file.type)) {
+              showAlert(prefix, `File ${file.name} is not a PDF`, 'error');
+              continue;
+            }
+            
+            // Validate file size
+            if (file.size > CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024) {
+              showAlert(prefix, `File ${file.name} exceeds maximum size of ${CONFIG.MAX_FILE_SIZE_MB}MB`, 'error');
+              continue;
+            }
+            
+            // Add file to list
+            state.selectedFiles[prefix].add(file.name);
+            addFileToList(file, fileList, prefix);
+          }
+        }
+      }
+      
+      // Add file to the file list
+      function addFileToList(file, fileList, prefix) {
+        const li = document.createElement('li');
+        li.className = 'file-item';
+        
+        li.innerHTML = `
+          <div class="file-info">
+            <i class="fas fa-file-pdf file-icon"></i>
+            <div>
+              <div class="file-name">${file.name}</div>
+              <div class="file-size">${formatFileSize(file.size)}</div>
+            </div>
+          </div>
+          <button class="remove-file" data-prefix="${prefix}" data-filename="${file.name}">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        
+        fileList.appendChild(li);
+        
+        // Add remove event listener
+        const removeBtn = li.querySelector('.remove-file');
+        removeBtn.addEventListener('click', function() {
+          const filename = this.dataset.filename;
+          state.selectedFiles[prefix].delete(filename);
+          li.remove();
+        });
+      }
+      
+      // Format file size
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' bytes';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      
+      // Setup form submission
+      function setupFormSubmit(prefix) {
+        const form = document.getElementById(`${prefix}-form`);
+        if (!form) return;
+        
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Validate form
+          const assignmentId = document.getElementById(`${prefix}-assignment-id`)?.value;
+          if (!assignmentId) {
+            showAlert(prefix, 'Please enter Assignment ID', 'error');
+            return;
+          }
+          
+          // Check if files are selected
+          if (state.selectedFiles[prefix].size === 0) {
+            showAlert(prefix, 'Please select at least one file', 'error');
+            return;
+          }
+          
+          // Show progress
+          showProgress(prefix, true);
+          
+          // Simulate upload process
+          simulateUpload(prefix);
+        });
+      }
+      
+      // Show progress bar
+      function showProgress(prefix, show) {
+        const progressContainer = document.getElementById(`${prefix}-progress-container`);
+        if (progressContainer) {
+          progressContainer.style.display = show ? 'block' : 'none';
+        }
+      }
+      
+      // Simulate file upload
+      function simulateUpload(prefix) {
+        const progressBar = document.getElementById(`${prefix}-progress-bar`);
+        const progressText = document.getElementById(`${prefix}-progress-text`);
+        const alertsContainer = document.getElementById(`${prefix}-alerts-container`);
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 10;
+          if (progress > 100) progress = 100;
+          
+          if (progressBar) progressBar.style.width = `${progress}%`;
+          if (progressText) progressText.textContent = `${Math.round(progress)}%`;
+          
+          if (progress >= 100) {
+            clearInterval(interval);
+            
+            // Show success message
+            showAlert(prefix, 'Files uploaded successfully!', 'success');
+            
+            // Hide progress after delay
+            setTimeout(() => {
+              showProgress(prefix, false);
+              resetForm(prefix);
+            }, 2000);
+          }
+        }, 200);
+      }
+      
+      // Show alert message
+      function showAlert(prefix, message, type) {
+        const alertsContainer = document.getElementById(`${prefix}-alerts-container`);
+        if (!alertsContainer) return;
+        
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+          ${message}
+          <button class="close-btn">&times;</button>
+        `;
+        
+        // Add close button functionality
+        const closeBtn = alert.querySelector('.close-btn');
+        closeBtn.addEventListener('click', () => {
+          alert.remove();
+        });
+        
+        alertsContainer.appendChild(alert);
+        
+        // Auto-remove alert after 5 seconds
+        setTimeout(() => {
+          alert.remove();
+        }, 5000);
+      }
+      
+      // Reset form
+      function resetForm(prefix) {
+        const form = document.getElementById(`${prefix}-form`);
+        if (form) form.reset();
+        
+        const fileList = document.getElementById(`${prefix}-file-list`);
+        if (fileList) fileList.innerHTML = '';
+        
+        const fileInput = document.getElementById(`${prefix}-file-input`);
+        if (fileInput) fileInput.value = '';
+        
+        state.selectedFiles[prefix] = new Set();
+        
+        const alertsContainer = document.getElementById(`${prefix}-alerts-container`);
+        if (alertsContainer) alertsContainer.innerHTML = '';
+      }
+      
+      // Setup mode switching
+      function setupModeSwitch() {
+        const teacherBtn = document.getElementById('switch-to-teacher');
+        const studentBtn = document.getElementById('switch-to-student');
+        
+        if (teacherBtn && studentBtn) {
+          teacherBtn.addEventListener('click', () => {
+            document.getElementById('teacher-answer-section').style.display = 'block';
+            document.getElementById('student-section').style.display = 'none';
+            teacherBtn.classList.add('active');
+            studentBtn.classList.remove('active');
+          });
+          
+          studentBtn.addEventListener('click', () => {
+            document.getElementById('teacher-answer-section').style.display = 'none';
+            document.getElementById('student-section').style.display = 'block';
+            studentBtn.classList.add('active');
+            teacherBtn.classList.remove('active');
+          });
+        }
+      }
+    });
+    
+    // Global function for resetting forms
+    function resetForm(type) {
+      const event = new CustomEvent('resetForm', { detail: type });
+      document.dispatchEvent(event);
+    }
+  </script>
+</body>
+</html>

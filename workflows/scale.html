@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Grading System - Scalable System Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the page and animations */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #1e293b; /* slate-800 */
+        }
+
+        .animated-card {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .animated-card.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        /* Custom table styling */
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .custom-table th, .custom-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* slate-200 */
+        }
+        .custom-table th {
+            background-color: #f1f5f9; /* slate-100 */
+            font-weight: 600;
+            color: #475569; /* slate-600 */
+        }
+        .custom-table tr:last-child td {
+            border-bottom: none;
+        }
+        .custom-table tr:nth-child(even) {
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .workflow-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #ecfccb 100%);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 md:p-8">
+
+        <!-- Header Section -->
+        <header class="text-center py-10 md:py-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">AI Grading System</h1>
+            <p class="text-lg md:text-xl text-slate-500 mt-4 max-w-3xl mx-auto">A complete, cloud-native, and scalable system design for handling millions of requests with high reliability.</p>
+        </header>
+
+        <main>
+            <!-- Overall Workflow & Goal Section -->
+            <section class="mb-16">
+                <h2 class="text-3xl font-bold text-center mb-12">🎯 Overall Workflow & Goal</h2>
+                <div class="animated-card workflow-card p-8 rounded-2xl shadow-lg mb-12">
+                    <p class="text-center text-slate-700 text-lg">
+                        The primary goal is to design a fault-tolerant, secure, and highly scalable system. The architecture leverages a distributed network of services, including CDN, load balancing, asynchronous workers, and geo-replicated databases, to ensure low latency and high availability for users across the globe.
+                    </p>
+                </div>
+                <!-- Updated grid to stack cards vertically for a larger appearance -->
+                <div class="grid grid-cols-1 gap-12">
+                    <!-- High-Level Architecture Card -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg p-8">
+                        <h3 class="text-2xl font-bold text-center text-slate-800 mb-6">High-Level Architecture</h3>
+                        <div class="flex justify-center">
+                            <img src="Screenshot (159).png" alt="High-Level System Architecture Diagram" class="rounded-lg shadow-md max-w-8xl w-full" onerror="this.onerror=null;this.src='https://placehold.co/800x500/e2e8f0/334155?text=Architecture+Diagram';">
+                        </div>
+                        <p class="text-slate-600 mt-6 text-center max-w-3xl mx-auto">Requests are routed via DNS and CDN. A load balancer distributes traffic to application servers, which interact with a caching layer, a message queue for asynchronous tasks, and a primary database. Workers process tasks from the queue.</p>
+                    </div>
+                    <!-- Geo-Distributed Scalability Card -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg p-8">
+                         <h3 class="text-2xl font-bold text-center text-slate-800 mb-6">Geo-Distributed Scalability</h3>
+                        <div class="flex justify-center">
+                           <img src="Screenshot (160).png" alt="Geo-Distributed Scalability Diagram" class="rounded-lg shadow-md max-w-8xl w-full" onerror="this.onerror=null;this.src='https://placehold.co/800x500/e2e8f0/334155?text=Scalability+Diagram';">
+                        </div>
+                        <p class="text-slate-600 mt-6 text-center max-w-3xl mx-auto">The system is deployed across multiple geographic regions (e.g., Russia, Japan). Each region has a full stack of services, and databases are synchronized, ensuring low latency for a global user base and providing high availability through redundancy.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Functional Flow Section -->
+            <section class="mb-16">
+                <h2 class="text-3xl font-bold text-center mb-12">🧭 Functional Flow & Architecture</h2>
+                <div class="space-y-8">
+                    
+                    <!-- Step 1: User Interface -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-blue-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-blue-900">Step 1: User Interface (Frontend)</h3>
+                            <p class="text-slate-600 mt-2">The journey begins with a secure, responsive frontend for file uploads, report viewing, and user authentication, with role-based access for teachers and students.</p>
+                            <div class="bg-blue-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Functionality</th><th>Details</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Upload Files</td><td>Drag-and-drop or file selection</td></tr>
+                                        <tr><td>View Reports</td><td>List of graded reports, downloadable as PDF</td></tr>
+                                        <tr><td>Authentication</td><td>Signup/Login (email or OAuth)</td></tr>
+                                        <tr><td>Role-based Access</td><td>Teacher vs Student UI</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: DNS + CDN Layer -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-green-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-green-900">Step 2: DNS + CDN Layer</h3>
+                            <p class="text-slate-600 mt-2">A robust edge layer to resolve the domain and deliver static frontend assets quickly and securely across the globe.</p>
+                             <div class="bg-green-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Component</th><th>Purpose</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>DNS (e.g., Cloudflare / Route 53)</td><td>Resolves the domain to load balancer IP</td></tr>
+                                        <tr><td>CDN (e.g., Cloudflare CDN / CloudFront)</td><td>Delivers static frontend assets fast globally</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: API Gateway + Reverse Proxy -->
+                     <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-orange-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-orange-900">Step 3: API Gateway + Reverse Proxy</h3>
+                            <p class="text-slate-600 mt-2">A single, managed entry point for all API requests, handling authentication, rate limiting, routing, and SSL termination.</p>
+                             <div class="bg-orange-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Feature</th><th>Purpose</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>API Gateway</td><td>Auth, rate limiting, routing (e.g., Amazon API Gateway, Kong)</td></tr>
+                                        <tr><td>Reverse Proxy</td><td>SSL termination, caching headers (e.g., NGINX)</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Authentication Service -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-blue-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-blue-900">Step 4: Authentication Service</h3>
+                            <p class="text-slate-600 mt-2">Manages user identity with OAuth and email/password logins, issuing JWTs for secure, role-based sessions.</p>
+                            <div class="bg-blue-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Capability</th><th>Tool / Implementation</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>OAuth + Email/Password login</td><td>Firebase Auth, Auth0, or Keycloak</td></tr>
+                                        <tr><td>Token-based sessions</td><td>JWT issued on login</td></tr>
+                                        <tr><td>Role-based access</td><td>User role stored in DB, decoded via token middleware</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Upload Service -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-green-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-green-900">Step 5: Upload Service</h3>
+                            <p class="text-slate-600 mt-2">Accepts, validates (size, type, virus scan), and securely stores user-submitted files in a scalable object store like S3 or GCS.</p>
+                            <div class="bg-green-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Role</th><th>Explanation</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>File Receiver</td><td>Accepts .pdf, .docx, .jpg/.png</td></tr>
+                                        <tr><td>Validation</td><td>Check for size, type, virus scan</td></tr>
+                                        <tr><td>Storage</td><td>Uploads sent to object store (S3/GCS)</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 6: Preprocessing Worker -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-orange-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-orange-900">Step 6: Preprocessing Worker</h3>
+                            <p class="text-slate-600 mt-2">An asynchronous worker that uses OCR to extract text from images and NLP to parse and normalize the content for the LLM.</p>
+                            <div class="bg-orange-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Task</th><th>Description</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>OCR</td><td>Extracts text from scanned images</td></tr>
+                                        <tr><td>Parsing</td><td>Breaks into questions/answers</td></tr>
+                                        <tr><td>Normalization</td><td>Formats text for LLM input</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 7: Message Queue Layer -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-blue-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-blue-900">Step 7: Message Queue Layer</h3>
+                            <p class="text-slate-600 mt-2">Decouples microservices using queues (RabbitMQ/SQS) to reliably trigger processing, grading, and report generation tasks.</p>
+                            <div class="bg-blue-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Queue Role</th><th>Use</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Upload → Preprocessing</td><td>Triggers conversion</td></tr>
+                                        <tr><td>Preprocessing → LLM</td><td>Async call to grading</td></tr>
+                                        <tr><td>Grading → Report Generator</td><td>Generate PDF/JSON</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 8: Grading Service (LLM) -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-green-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-green-900">Step 8: Grading Service (LLM)</h3>
+                            <p class="text-slate-600 mt-2">Calls the LLM API (GPT-4, Gemini) with engineered prompts containing rubrics and student answers to perform the evaluation.</p>
+                            <div class="bg-green-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Task</th><th>Details</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>API Call</td><td>Send structured prompt to LLM</td></tr>
+                                        <tr><td>LLM Provider</td><td>OpenAI GPT-4, Gemini Pro 1.5</td></tr>
+                                        <tr><td>Prompt Engineering</td><td>Inject rubrics, expected answers, and student answer</td></tr>
+                                        <tr><td>Token Usage Monitoring</td><td>Limit request volume</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 9: Caching Layer -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-orange-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-orange-900">Step 9: Caching Layer</h3>
+                            <p class="text-slate-600 mt-2">Uses a Redis cluster to cache recent reports, rubric data, and API rate limits to improve speed and reduce costs.</p>
+                            <div class="bg-orange-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Purpose</th><th>Details</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Speed</td><td>Store recent reports and frequent rubric queries</td></tr>
+                                        <tr><td>Token Store</td><td>API token limit tracking</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 10: Report Generation -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-blue-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-blue-900">Step 10: Report Generation</h3>
+                            <p class="text-slate-600 mt-2">Takes the structured JSON output from the LLM and generates a user-friendly PDF report, which is then stored.</p>
+                            <div class="bg-blue-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Input</th><th>Output</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>JSON from LLM</td><td>PDF file with grading, marks, suggestions</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 11: Database Layer -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-green-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-green-900">Step 11: Database Layer</h3>
+                            <p class="text-slate-600 mt-2">Persists all metadata (users, files, grades) in a scalable PostgreSQL database, architected with read replicas and sharding.</p>
+                            <div class="bg-green-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Type</th><th>Use</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>PostgreSQL</td><td>Users, roles, file metadata, grades</td></tr>
+                                        <tr><td>Redis</td><td>Cache, token store</td></tr>
+                                        <tr><td>Sharding</td><td>Hash-based on user_id for scale</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 12: Asynchronous Worker Pool -->
+                    <div class="animated-card bg-white rounded-2xl shadow-lg overflow-hidden border-l-4 border-orange-400">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-orange-900">Step 12: Asynchronous Worker Pool</h3>
+                            <p class="text-slate-600 mt-2">A pool of workers (Celery/Lambda) that auto-scales using Kubernetes HPA or Fargate to handle the workload for OCR, grading, and reporting.</p>
+                            <div class="bg-orange-50 rounded-lg p-4 mt-4">
+                               <table class="custom-table">
+                                    <thead>
+                                        <tr><th>Use</th><th>Tool / Platform</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td>Grading, OCR, Report</td><td>Celery with Redis broker or AWS Lambda</td></tr>
+                                        <tr><td>Auto-Scale</td><td>Kubernetes HPA / AWS Fargate with concurrency controls</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Strategies Section -->
+            <section>
+                 <h2 class="text-3xl font-bold text-center mb-12">📈 Strategies for Scale & Security</h2>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Security -->
+                    <div class="animated-card p-8 bg-white rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold text-center text-slate-800 mb-6">Security Best Practices</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3"><span class="text-xl text-green-500 mt-1">🛡️</span><div><strong>XSS/CSRF:</strong> Mitigated with strict Content Security Policy (CSP) headers and token-based authentication.</div></li>
+                            <li class="flex items-start gap-3"><span class="text-xl text-green-500 mt-1">🛡️</span><div><strong>API Abuse:</strong> Prevented using JWT validation and fine-grained rate limiting at the API Gateway.</div></li>
+                            <li class="flex items-start gap-3"><span class="text-xl text-green-500 mt-1">🛡️</span><div><strong>File Injection:</strong> All uploads are scanned with services like ClamAV to prevent malware.</div></li>
+                            <li class="flex items-start gap-3"><span class="text-xl text-green-500 mt-1">🛡️</span><div><strong>LLM Prompt Injection:</strong> Handled via rigorous input sanitization and structuring before API calls.</div></li>
+                        </ul>
+                    </div>
+                    <!-- Scaling -->
+                    <div class="animated-card p-8 bg-white rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold text-center text-slate-800 mb-6">Scaling to 1 Million Users</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3"><span class="text-xl text-blue-500 mt-1">🚀</span><div><strong>Backend & Workers:</strong> Horizontally scaled with Kubernetes (HPA) or Serverless functions (Lambda/Fargate).</div></li>
+                            <li class="flex items-start gap-3"><span class="text-xl text-blue-500 mt-1">🚀</span><div><strong>Database:</strong> Scaled using read replicas for query distribution and sharding (e.g., Vitess) for write throughput.</div></li>
+                            <li class="flex items-start gap-3"><span class="text-xl text-blue-500 mt-1">🚀</span><div><strong>Message Queues:</strong> Partitioned queues (Kafka/SQS) to handle high message throughput without bottlenecks.</div></li>
+                            <li class="flex items-start gap-3"><span class="text-xl text-blue-500 mt-1">🚀</span><div><strong>Caching:</strong> A distributed Redis cluster with partitioned shards to handle high-volume caching needs.</div></li>
+                        </ul>
+                    </div>
+                 </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.animated-card');
+
+            // Use IntersectionObserver for performant scroll animations
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        // Apply a staggered delay for a cascading effect
+                        entry.target.style.transitionDelay = `${index * 50}ms`;
+                        entry.target.classList.add('is-visible');
+                        // Stop observing the element once it's visible
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1 // Trigger when 10% of the element is visible
+            });
+
+            // Observe each card
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

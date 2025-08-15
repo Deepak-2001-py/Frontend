@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EKS Microservices Architecture</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .component-box {
+            background-color: white;
+            border: 1px solid #e2e8f0; /* slate-200 */
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .component-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .component-title {
+            font-weight: 600;
+            color: #1e293b; /* slate-800 */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .component-desc {
+            font-size: 0.8rem;
+            color: #64748b; /* slate-500 */
+            margin-top: 0.25rem;
+        }
+        .tech-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #475569; /* slate-600 */
+            background-color: #f1f5f9; /* slate-100 */
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            border: 1px solid #e2e8f0; /* slate-200 */
+        }
+        .arrow {
+            position: absolute;
+            stroke: #94a3b8; /* slate-400 */
+            stroke-width: 1.5;
+            fill: none;
+            marker-end: url(#arrowhead);
+        }
+        .dashed-arrow {
+            stroke-dasharray: 4 4;
+        }
+        .arrow-label {
+            position: absolute;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #334155; /* slate-700 */
+            background-color: #f8fafc; /* slate-50 */
+            padding: 0 2px;
+            border-radius: 4px;
+        }
+        .eks-cluster {
+            border: 2px dashed #38bdf8; /* sky-400 */
+            background-color: rgba(14, 165, 233, 0.03);
+            padding: 2.5rem 1.5rem 1.5rem;
+            margin-top: 1.5rem;
+            border-radius: 1rem;
+            position: relative;
+        }
+        .cluster-label {
+            position: absolute;
+            top: -0.8rem;
+            left: 1.5rem;
+            background-color: #f8fafc;
+            padding: 0 0.5rem;
+            font-weight: 600;
+            color: #0ea5e9; /* sky-500 */
+        }
+        .icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold text-center text-slate-800 mb-2">Distributed System Architecture</h1>
+        <p class="text-center text-slate-500 mb-12">Migration from AWS Lambda to a Scalable Kubernetes (EKS) Microservices Architecture</p>
+
+        <!-- SVG Definitions for Arrows -->
+        <svg width="0" height="0">
+            <defs>
+                <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+                    <polygon points="0 0, 8 3, 0 6" fill="#94a3b8" />
+                </marker>
+            </defs>
+        </svg>
+
+        <div id="diagram-container" class="relative">
+            <!-- Top Layer: Users & CI/CD -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <!-- Users -->
+                <div id="users" class="component-box flex flex-col items-center justify-center">
+                    <div class="component-title">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m-7.5-2.962A3.75 3.75 0 0 1 15 12a3.75 3.75 0 0 1-2.25 3.512M7.5 12a3.75 3.75 0 0 1 3.75-3.75A3.75 3.75 0 0 1 15 12a3.75 3.75 0 0 1-2.25 3.512M7.5 12a3.75 3.75 0 0 0-3.75 3.75v.375c0 .621.504 1.125 1.125 1.125h10.5c.621 0 1.125-.504 1.125-1.125v-.375a3.75 3.75 0 0 0-3.75-3.75H7.5Z" /></svg>
+                        Millions of Users
+                    </div>
+                    <p class="component-desc text-center">Web & Mobile Clients</p>
+                    <div class="mt-2"><span class="tech-label">ReactJS / Next.js</span></div>
+                </div>
+
+                <!-- Spacer -->
+                <div></div>
+
+                <!-- CI/CD Pipeline -->
+                <div id="cicd" class="component-box">
+                    <div class="component-title">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.092 1.21-.138 2.43-.138 3.662v.513a5.25 5.25 0 0 0 5.25 5.25h1.5a5.25 5.25 0 0 0 5.25-5.25v-.513Z" /></svg>
+                        CI/CD Pipeline
+                    </div>
+                    <div class="space-y-2 mt-3 text-sm text-slate-700">
+                        <div class="flex items-center gap-2"><span class="font-semibold w-24">Code:</span> <span class="tech-label">GitHub</span></div>
+                        <div class="flex items-center gap-2"><span class="font-semibold w-24">Build & Test:</span> <span class="tech-label">GitHub Actions</span></div>
+                        <div class="flex items-center gap-2"><span class="font-semibold w-24">Registry:</span> <span class="tech-label">Amazon ECR</span></div>
+                        <div class="flex items-center gap-2"><span class="font-semibold w-24">Deploy:</span> <span class="tech-label">ArgoCD (GitOps)</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AWS Entry Point -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 my-8">
+                <div id="route53" class="component-box text-center">
+                    <div class="component-title justify-center">AWS Route 53</div>
+                    <p class="component-desc">DNS Resolution</p>
+                </div>
+                <div id="cloudfront" class="component-box text-center">
+                    <div class="component-title justify-center">AWS CloudFront</div>
+                    <p class="component-desc">CDN & Edge Caching</p>
+                </div>
+                <div id="nlb" class="component-box text-center">
+                    <div class="component-title justify-center">Network Load Balancer</div>
+                    <p class="component-desc">High-throughput TCP Load Balancing</p>
+                </div>
+            </div>
+
+            <!-- EKS Cluster -->
+            <div class="eks-cluster">
+                <div class="cluster-label">Amazon EKS Cluster</div>
+                
+                <!-- Ingress & Management -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <div id="ingress" class="component-box">
+                        <div class="component-title">NGINX Ingress Controller</div>
+                        <p class="component-desc">API Gateway, Routing, TLS Termination</p>
+                    </div>
+                    <div id="autoscaler" class="component-box">
+                        <div class="component-title">K8s Auto-Scaling</div>
+                        <p class="component-desc">HPA (Pods) & Cluster Autoscaler (Nodes)</p>
+                    </div>
+                    <div id="servicemesh" class="component-box">
+                        <div class="component-title">Service Mesh (Istio)</div>
+                        <p class="component-desc">mTLS, Traffic Control, Observability</p>
+                    </div>
+                </div>
+
+                <!-- Microservices Grid -->
+                <div class="service-grid">
+                    <div id="auth" class="component-box">
+                        <div class="component-title">Authentication</div>
+                        <p class="component-desc">Handles user login & signup.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="pdfupload" class="component-box">
+                        <div class="component-title">PdfUpload</div>
+                        <p class="component-desc">Accepts PDF files from users.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="pdfparser" class="component-box">
+                        <div class="component-title">PdfParser</div>
+                        <p class="component-desc">Parses PDF content into JSON.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="qp_rubric" class="component-box">
+                        <div class="component-title">QP_rubric</div>
+                        <p class="component-desc">Manages question paper rubrics.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="grader" class="component-box">
+                        <div class="component-title">GraderLambda</div>
+                        <p class="component-desc">Core grading logic service.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="getgrades" class="component-box">
+                        <div class="component-title">GetGrades</div>
+                        <p class="component-desc">Fetches student grades.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="getgrades_std" class="component-box">
+                        <div class="component-title">GetGrades w/ Answer</div>
+                        <p class="component-desc">Fetches grades with standard answers.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="url_generator" class="component-box">
+                        <div class="component-title">Url_generator</div>
+                        <p class="component-desc">Creates pre-signed URLs for results.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                    <div id="update_db" class="component-box">
+                        <div class="component-title">Update_db</div>
+                        <p class="component-desc">Writes final results to the database.</p>
+                        <div class="mt-2"><span class="tech-label">Python/FastAPI</span></div>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Bottom Layer: Shared Services -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mt-12">
+                <div id="cognito" class="component-box text-center">
+                    <div class="component-title justify-center">Amazon Cognito</div>
+                    <p class="component-desc">User Pools & Identity</p>
+                </div>
+                <div id="s3" class="component-box text-center">
+                    <div class="component-title justify-center">Amazon S3</div>
+                    <p class="component-desc">Object Storage for PDFs</p>
+                </div>
+                <div id="sqs" class="component-box text-center">
+                    <div class="component-title justify-center">Amazon SQS/SNS</div>
+                    <p class="component-desc">Async Event Bus</p>
+                </div>
+                <div id="rds" class="component-box text-center">
+                    <div class="component-title justify-center">Amazon RDS</div>
+                    <p class="component-desc">Relational Data (Users, Grades)</p>
+                </div>
+                <div id="dynamodb" class="component-box text-center">
+                    <div class="component-title justify-center">Amazon DynamoDB</div>
+                    <p class="component-desc">NoSQL Data (Sessions, Metadata)</p>
+                </div>
+            </div>
+
+            <!-- Observability -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+                <div id="prometheus" class="component-box text-center">
+                    <div class="component-title justify-center">Prometheus</div>
+                    <p class="component-desc">Metrics Collection</p>
+                </div>
+                <div id="grafana" class="component-box text-center">
+                    <div class="component-title justify-center">Grafana</div>
+                    <p class="component-desc">Dashboards & Visualization</p>
+                </div>
+                <div id="cloudwatch" class="component-box text-center">
+                    <div class="component-title justify-center">AWS CloudWatch</div>
+                    <p class="component-desc">Logs, Metrics, Alarms</p>
+                </div>
+            </div>
+
+            <!-- SVG for drawing arrows -->
+            <svg id="arrow-svg" class="absolute top-0 left-0 w-full h-full pointer-events-none"></svg>
+
+        </div>
+    </div>
+
+    <script>
+        function drawArrow(fromId, toId, options = {}) {
+            const from = document.getElementById(fromId);
+            const to = document.getElementById(toId);
+            const container = document.getElementById('diagram-container');
+            const svg = document.getElementById('arrow-svg');
+
+            if (!from || !to || !container || !svg) return;
+
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            const fromX = fromRect.left + fromRect.width / 2 - containerRect.left;
+            const fromY = fromRect.top + fromRect.height / 2 - containerRect.top;
+            const toX = toRect.left + toRect.width / 2 - containerRect.left;
+            const toY = toRect.top + toRect.height / 2 - containerRect.top;
+
+            const start = getEdgePoint(fromRect, toX, toY, containerRect);
+            const end = getEdgePoint(toRect, fromX, fromY, containerRect);
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const curveFactor = options.curve || 0.3;
+            const pathData = `M ${start.x} ${start.y} C ${start.x + dx * curveFactor} ${start.y}, ${end.x - dx * curveFactor} ${end.y}, ${end.x} ${end.y}`;
+            
+            path.setAttribute('d', pathData);
+            path.setAttribute('class', `arrow ${options.dashed ? 'dashed-arrow' : ''}`);
+            svg.appendChild(path);
+
+            if (options.label) {
+                const label = document.createElement('div');
+                label.innerText = options.label;
+                label.className = 'arrow-label';
+                const labelX = start.x + dx * 0.5;
+                const labelY = start.y + dy * 0.5 - (options.labelOffset || 10);
+                label.style.left = `${labelX}px`;
+                label.style.top = `${labelY}px`;
+                label.style.transform = 'translateX(-50%)';
+                container.appendChild(label);
+            }
+        }
+
+        function getEdgePoint(rect, targetX, targetY, containerRect) {
+            const x = rect.left - containerRect.left;
+            const y = rect.top - containerRect.top;
+            const width = rect.width;
+            const height = rect.height;
+            const cx = x + width / 2;
+            const cy = y + height / 2;
+
+            const dx = targetX - cx;
+            const dy = targetY - cy;
+
+            if (Math.abs(dx) * height > Math.abs(dy) * width) {
+                // Intersect with left/right edge
+                if (dx > 0) return { x: x + width, y: cy };
+                else return { x: x, y: cy };
+            } else {
+                // Intersect with top/bottom edge
+                if (dy > 0) return { x: cx, y: y + height };
+                else return { x: cx, y: y };
+            }
+        }
+
+        function drawAllArrows() {
+            // Clear existing arrows
+            document.getElementById('arrow-svg').innerHTML = '';
+            document.querySelectorAll('.arrow-label').forEach(el => el.remove());
+
+            // Main flow
+            drawArrow('users', 'route53', { label: 'HTTP/S Request' });
+            drawArrow('route53', 'cloudfront');
+            drawArrow('cloudfront', 'nlb');
+            drawArrow('nlb', 'ingress', { label: 'TCP Traffic' });
+            
+            // Ingress to services
+            drawArrow('ingress', 'auth', { label: 'Auth Routes', curve: 0.1 });
+            drawArrow('ingress', 'pdfupload', { label: 'Upload Route', curve: 0.1 });
+            drawArrow('ingress', 'getgrades', { label: 'Grade Routes', curve: 0.1 });
+            drawArrow('ingress', 'getgrades_std', { curve: 0.1 });
+            drawArrow('ingress', 'url_generator', { curve: 0.1 });
+
+            // Service to external AWS
+            drawArrow('auth', 'cognito', { label: 'Verify User', curve: -0.4 });
+            drawArrow('cognito', 'auth', { label: 'JWT Token', curve: -0.4 });
+            drawArrow('pdfupload', 's3', { label: 'Store PDF', curve: 0.4 });
+            drawArrow('pdfupload', 'sqs', { label: 'PDF Stored Event', dashed: true, curve: 0.4 });
+
+            // Async flow
+            drawArrow('sqs', 'pdfparser', { label: 'Consume Event', dashed: true, curve: 0.4 });
+            drawArrow('pdfparser', 'qp_rubric', { label: 'Get Rubric', curve: 0 });
+            drawArrow('pdfparser', 'grader', { label: 'Trigger Grading', curve: 0 });
+            
+            // Grading flow
+            drawArrow('grader', 'rds', { label: 'Read/Write', curve: -0.4 });
+            drawArrow('grader', 'update_db', { label: 'Final Grade', curve: 0 });
+            drawArrow('update_db', 'rds', { label: 'Write Result', curve: 0.4 });
+
+            // Data retrieval flow
+            drawArrow('getgrades', 'rds', { label: 'Read Grades', curve: -0.4 });
+            drawArrow('getgrades_std', 'rds', { label: 'Read Grades/Answers', curve: -0.4 });
+            drawArrow('url_generator', 's3', { label: 'Generate Pre-signed URL', curve: 0.4 });
+
+            // CI/CD flow
+            drawArrow('cicd', 'autoscaler', { label: 'Deploy to EKS', dashed: true, curve: 0.2 });
+            
+            // Observability
+            drawArrow('servicemesh', 'prometheus', { label: 'Metrics', dashed: true, curve: -0.3 });
+            drawArrow('prometheus', 'grafana', { label: 'Visualize', dashed: true, curve: 0 });
+            drawArrow('autoscaler', 'cloudwatch', { label: 'Logs/Metrics', dashed: true, curve: 0.3 });
+
+        }
+
+        window.addEventListener('load', drawAllArrows);
+        window.addEventListener('resize', drawAllArrows);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GradeAnt: AI-Powered Assignment Submission" />
+  <title>GradeAnt: Submit Your Assignment</title>
+  
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../img/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png" />
+  <link rel="apple-touch-icon" href="../img/apple-touch-icon.png" />
+  
+  <!-- Styles -->
+  <!-- <link rel="stylesheet" href="../css/asthetic_style.css" /> -->
+  <link rel="stylesheet" href="../css/nav.css" />
+  
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+  --bg-primary: linear-gradient(135deg, #f8f9ff 0%, #e8f2ff 100%);
+  --bg-secondary: var(--secondary-gradient);
+  --bg-card: #16213e;
+  --bg-glass: rgba(255, 255, 255, 0.1);
+
+  --text-primary: #ffffff;
+  --text-secondary: #b8c6db;
+  --text-muted: #8892b0;
+
+  --border-glass: rgba(255, 255, 255, 0.18);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+  --border-radius: 16px;
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: white;
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+    
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+      z-index: -1;
+      animation: backgroundFloat 20s ease-in-out infinite;
+    }
+    
+    @keyframes backgroundFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(1deg); }
+      66% { transform: translateY(20px) rotate(-1deg); }
+    }
+    
+
+    
+
+    
+    
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    
+    /* Main content */
+    .main-content {
+      padding: 4rem 0;
+    }
+    
+    /* Hero section */
+    .hero {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+    
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+      animation: fadeInUp 1s ease-out;
+    }
+    
+    .hero p {
+      font-size: 1.2rem;
+      color: black;
+      max-width: 600px;
+      margin: 0 auto;
+      animation: fadeInUp 1s ease-out 0.2s both;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Card */
+    .card {
+      background: #E3F2FD;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-glass);
+      overflow: hidden;
+      animation: fadeInUp 1s ease-out 0.4s both;
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 2rem;
+      border-radius: var(--border-radius);
+      border-bottom: 1px solid var(--border-glass);
+      text-align: center;
+    }
+    
+    .card-header h2 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    
+    .card-header h2 i {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .card-header p {
+      color: whitesmoke;
+      font-size: 1rem;
+    }
+    
+    .card-body {
+      padding: 2.5rem;
+    }
+    
+    /* Form styles */
+    .form-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+      flex: 1;
+    }
+    
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #2D3E50;
+      font-size: 1.5 rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: ghostwhite;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      color: black;
+      font-size: 1rem;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #667eea;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-control::placeholder {
+      color: #2D3E50;
+    }
+    
+    /* File upload area */
+    .file-upload {
+      margin: 2rem 0;
+    }
+    
+    .file-upload-label {
+      display: block;
+      padding: 3rem 2rem;
+      border: 2px dashed var(--border-glass);
+      border-radius: var(--border-radius);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: ghostwhite;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .file-upload-label::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+    
+    .file-upload-label:hover::before {
+      left: 100%;
+    }
+    
+    .file-upload-label:hover {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.05);
+      transform: translateY(-2px);
+    }
+    
+    .file-upload-label.drag-over {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+      transform: scale(1.02);
+    }
+    
+    .file-upload-label i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .file-upload-label h4 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .file-upload-label p {
+      color: #764ba2;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-specs {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .spec-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .spec-item i {
+      color: #4facfe !important;
+      background: none !important;
+      -webkit-text-fill-color: #4facfe !important;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    /* File list */
+    .file-list {
+      list-style: none;
+      margin-top: 1.5rem;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      background:#f8f9fa;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      border-left: 4px solid #28a745;
+      backdrop-filter: blur(10px);
+      animation: slideInRight 0.3s ease-out;
+       }
+   /* .file-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      background:#f8f9fa;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      border-left: 4px solid #28a745;
+      backdrop-filter: blur(10px);
+      animation: slideInRight 0.3s ease-out;
+    }*/
+    
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .file-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .file-icon {
+      font-size: 1.5rem;
+      color: #ff6b6b;
+    }
+    
+    .file-name {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .file-size {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    .remove-file {
+      background: none;
+      border: none;
+      color: #ff6b6b;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 50%;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .remove-file:hover {
+      background: rgba(255, 107, 107, 0.1);
+      transform: scale(1.1);
+    }
+    
+    /* Progress bar */
+    .progress-container {
+      margin: 2rem 0;
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .progress-header h4 {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .progress-text {
+      font-weight: 600;
+      color: #4facfe;
+    }
+    
+    .progress {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--accent-gradient);
+      transition: width 0.3s ease;
+      position: relative;
+    }
+    
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(90deg, #28a745, #20c997);
+      background-size: 30px 30px;
+      animation: progressShine 2s linear infinite;
+    }
+    
+    @keyframes progressShine {
+      0% { transform: translateX(-30px); }
+      100% { transform: translateX(100px); }
+    }
+    
+    /* Alerts */
+    .alerts-container {
+      margin: 1.5rem 0;
+    }
+    
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+      animation: slideInDown 0.3s ease-out;
+    }
+    
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .alert-success {
+      background: rgba(56, 239, 125, 0.1);
+      border: 1px solid rgba(56, 239, 125, 0.3);
+      color: #38ef7d;
+    }
+    
+    .alert-error {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid rgba(255, 107, 107, 0.3);
+      color: #ff6b6b;
+    }
+    
+    .alert-info {
+      background: rgba(79, 172, 254, 0.1);
+      border: 1px solid rgba(79, 172, 254, 0.3);
+      color: #4facfe;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0;
+      margin-left: 1rem;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+    
+    .close-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+    
+    /* Buttons */
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      padding: 0.75rem 2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn-primary {
+      background: var(--primary-gradient);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      border: 1px solid var(--border-glass);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .btn:disabled:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* Footer */
+    .footer {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-glass);
+      padding: 2rem 0;
+      text-align: center;
+      margin-top: 4rem;
+    }
+    
+    .footer p {
+      color: black;
+      margin: 0;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+      
+      .form-row {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .upload-specs {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+      
+      .btn {
+        justify-content: center;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .container {
+        padding: 0 1rem;
+      }
+      
+      .card-body {
+        padding: 1.5rem;
+      }
+      
+      .file-upload-label {
+        padding: 2rem 1rem;
+      }
+    }
+    
+    /* Floating particles animation */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 20s infinite linear;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+  </style>
+    <!-- Scripts -->
+  <script src="../component-loader.js"></script>
+</head>
+<body>
+  <!-- Floating particles -->
+  <div class="particles"></div>
+  
+  <!-- Navigation will be loaded here -->
+  <div id="nav"></div>
+
+  <main class="main-content">
+    <div class="container">
+      <!-- Hero Section -->
+      <!-- <section class="hero">
+        <h1>Submit Your Assignment</h1>
+        <p>Upload your completed assignment and let our AI-powered system provide instant feedback and grading. Supported formats: PDF files up to 10MB each.</p>
+      </section> -->
+
+      <!-- Upload Interface -->
+      <section class="upload-section">
+        <div class="card">
+          <div class="card-header">
+            <h2><i class="fas fa-file-upload"></i> Assignment Submission</h2>
+            <p>Fill in your assignment details and upload your files securely</p>
+          </div>
+          
+          <div class="card-body">
+            <form id="student-form" class="form">
+              <!-- Student Information -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="student-name">Student Name</label>
+                  <input type="text" id="student-name" class="form-control" placeholder="Enter your full name" required />
+                </div>
+                <div class="form-group">
+                  <label for="student-id">Student ID</label>
+                  <input type="text" id="student-id" class="form-control" placeholder="e.g. STU2024001" required />
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="assignment-id">Assignment ID</label>
+                  <input type="text" id="assignment-id" class="form-control" placeholder="e.g. PHYS_2024_MIDTERM_01" required />
+                </div>
+                <div class="form-group">
+                  <label for="course-code">Course Code</label>
+                  <input type="text" id="course-code" class="form-control" placeholder="e.g. PHYS-101" required />
+                </div>
+              </div>
+              
+              <!-- Additional Notes -->
+              <div class="form-group">
+                <label for="submission-notes">Submission Notes (Optional)</label>
+                <textarea id="submission-notes" class="form-control" rows="3" placeholder="Add any additional notes about your submission..."></textarea>
+              </div>
+              
+              <!-- File Upload Area -->
+              <div class="file-upload">
+                <label for="student-file-input" class="file-upload-label" id="file-drop-zone">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <h4>Drop your assignment files here or click to browse</h4>
+                  <p>Upload your completed assignment in PDF format</p>
+                  <div class="upload-specs">
+                    <span class="spec-item"><i class="fas fa-file-pdf"></i> PDF Format</span>
+                    <span class="spec-item"><i class="fas fa-weight"></i> Max 10MB</span>
+                    <span class="spec-item"><i class="fas fa-shield-alt"></i> Secure Upload</span>
+                  </div>
+                </label>
+                <input type="file" id="student-file-input" class="file-input" accept=".pdf" multiple />
+              </div>
+              
+              <!-- File List -->
+              <div class="file-list-container">
+                <ul id="file-list" class="file-list"></ul>
+              </div>
+              
+              <!-- Progress Bar -->
+              <div id="progress-container" class="progress-container">
+                <div class="progress-header">
+                  <h4><i class="fas fa-cog fa-spin"></i> Uploading Assignment</h4>
+                  <span id="progress-text" class="progress-text">0%</span>
+                </div>
+                <div class="progress">
+                  <div id="progress-bar" class="progress-bar"></div>
+                </div>
+              </div>
+              
+              <!-- Alerts Container -->
+              <div id="alerts-container" class="alerts-container"></div>
+              
+              <!-- Form Actions -->
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                  <i class="fas fa-undo"></i> Reset Form
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-paper-plane"></i> Submit Assignment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 GradeAnt. AI-Powered Assignment Grading Platform for students and educators.</p>
+    </div>
+  </footer>
+</div>
+  </body>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Configuration
+      const CONFIG = {
+        API_ENDPOINT: 'https://rus9nultj9.execute-api.eu-north-1.amazonaws.com/dev/uploadpdf',
+        MAX_FILE_SIZE_MB: 10,
+        ALLOWED_FILE_TYPES: ['application/pdf']
+      };
+      
+      // State management
+      let selectedFiles = new Set();
+      
+      // Initialize
+      init();
+      
+      function init() {
+        setupFileUpload();
+        setupFormSubmit();
+        createFloatingParticles();
+        
+        // Add some entrance animations
+        setTimeout(() => {
+          document.querySelectorAll('.card').forEach(card => {
+            card.style.transform = 'translateY(0)';
+            card.style.opacity = '1';
+          });
+        }, 100);
+      }
+      
+      // Create floating particles for ambiance
+      function createFloatingParticles() {
+        const particlesContainer = document.querySelector('.particles');
+        const particleCount = 20;
+        
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 20 + 's';
+          particle.style.animationDuration = (Math.random() * 10 + 20) + 's';
+          particlesContainer.appendChild(particle);
+        }
+      }
+      
+      // Setup file upload functionality
+      function setupFileUpload() {
+        const fileInput = document.getElementById('student-file-input');
+        const dropZone = document.getElementById('file-drop-zone');
+        const fileList = document.getElementById('file-list');
+        
+        // Click handler
+        dropZone.addEventListener('click', (e) => {
+          if (e.target !== fileInput) {
+            fileInput.click();
+          }
+        });
+        
+        // Drag and drop handlers
+        ['dragenter', 'dragover'].forEach(eventName => {
+          dropZone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        function highlight(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('drag-over');
+        }
+        
+        function unhighlight(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          handleFiles(files);
+        }
+        
+        function handleFileSelect(e) {
+          const files = e.target.files;
+          handleFiles(files);
+        }
+        
+        function handleFiles(files) {
+          selectedFiles.clear();
+          fileList.innerHTML = '';
+          
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // Validate file type
+            if (!CONFIG.ALLOWED_FILE_TYPES.includes(file.type)) {
+              showAlert(`File ${file.name} is not a PDF`, 'error');
+              continue;
+            }
+            
+            // Validate file size
+            if (file.size > CONFIG.MAX_FILE_SIZE_MB * 1024 * 1024) {
+              showAlert(`File ${file.name} exceeds maximum size of ${CONFIG.MAX_FILE_SIZE_MB}MB`, 'error');
+              continue;
+            }
+            
+            // Add file to selection
+            selectedFiles.add(file.name);
+            addFileToList(file);
+          }
+        }
+      }
+      
+      // Add file to the display list
+      function addFileToList(file) {
+        const fileList = document.getElementById('file-list');
+        const li = document.createElement('li');
+        li.className = 'file-item';
+        
+        li.innerHTML = `
+          <div class="file-info">
+            <i class="fas fa-file-pdf file-icon"></i>
+            <div>
+              <div class="file-name">${file.name}</div>
+              <div class="file-size">${formatFileSize(file.size)}</div>
+            </div>
+          </div>
+          <button type="button" class="remove-file" data-filename="${file.name}">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        
+        fileList.appendChild(li);
+        
+        // Add remove event listener
+        const removeBtn = li.querySelector('.remove-file');
+        removeBtn.addEventListener('click', function() {
+          const filename = this.dataset.filename;
+          selectedFiles.delete(filename);
+          li.remove();
+          
+          // Clear file input if no files remain
+          if (selectedFiles.size === 0) {
+            document.getElementById('student-file-input').value = '';
+          }
+        });
+      }
+      
+      // Format file size for display
+      function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' bytes';
+        else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        else return (bytes / 1048576).toFixed(1) + ' MB';
+      }
+      
+      // Setup form submission
+      function setupFormSubmit() {
+        const form = document.getElementById('student-form');
+        
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Validate required fields
+          const studentName = document.getElementById('student-name').value.trim();
+          const studentId = document.getElementById('student-id').value.trim();
+          const assignmentId = document.getElementById('assignment-id').value.trim();
+          const courseCode = document.getElementById('course-code').value.trim();
+          
+          if (!studentName) {
+            showAlert('Please enter your name', 'error');
+            return;
+          }
+          
+          if (!studentId) {
+            showAlert('Please enter your student ID', 'error');
+            return;
+          }
+          
+          if (!assignmentId) {
+            showAlert('Please enter assignment ID', 'error');
+            return;
+          }
+          
+          if (!courseCode) {
+            showAlert('Please enter course code', 'error');
+            return;
+          }
+          
+          // Check if files are selected
+          if (selectedFiles.size === 0) {
+            showAlert('Please select at least one file to upload', 'error');
+            return;
+          }
+          
+          // Show progress and start upload simulation
+          showProgress(true);
+          disableForm(true);
+          simulateUpload();
+        });
+      }
+      
+      // Show/hide progress bar
+      function showProgress(show) {
+        const progressContainer = document.getElementById('progress-container');
+        progressContainer.style.display = show ? 'block' : 'none';
+      }
+      
+      // Enable/disable form elements
+      function disableForm(disabled) {
+        const form = document.getElementById('student-form');
+        const inputs = form.querySelectorAll('input, textarea, button');
+        inputs.forEach(input => {
+          input.disabled = disabled;
+        });
+      }
+      
+      // Simulate file upload process
+      function simulateUpload() {
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += Math.random() * 8 + 2; // Random progress between 2-10%
+          if (progress > 100) progress = 100;
+          
+          progressBar.style.width = `${progress}%`;
+          progressText.textContent = `${Math.round(progress)}%`;
+          
+          if (progress >= 100) {
+            clearInterval(interval);
+            
+            // Show success message
+            setTimeout(() => {
+              showAlert('Assignment submitted successfully! You will receive feedback soon.', 'success');
+              showProgress(false);
+              
+              // Re-enable form and reset after delay
+              setTimeout(() => {
+                disableForm(false);
+                resetForm();
+              }, 3000);
+            }, 500);
+          }
+        }, 150);
+      }
+      
+      // Show alert messages
+      function showAlert(message, type) {
+        const alertsContainer = document.getElementById('alerts-container');
+        
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type}`;
+        alert.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+          </div>
+          <button type="button" class="close-btn" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        alertsContainer.appendChild(alert);
+        
+        // Auto-remove alert after 6 seconds
+        setTimeout(() => {
+          if (alert.parentElement) {
+            alert.remove();
+          }
+        }, 6000);
+      }
+      
+      // Reset form function
+      window.resetForm = function() {
+        const form = document.getElementById('student-form');
+        form.reset();
+        
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = '';
+        
+        const fileInput = document.getElementById('student-file-input');
+        fileInput.value = '';
+        
+        selectedFiles.clear();
+        
+        const alertsContainer = document.getElementById('alerts-container');
+        alertsContainer.innerHTML = '';
+        
+        showProgress(false);
+        disableForm(false);
+      };
+      
+      // Add some interactive hover effects
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateY(-2px)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+          if (!this.disabled) {
+            this.style.transform = 'translateY(0)';
+          }
+        });
+      });
+      
+      // Add ripple effect to buttons
+      document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          const ripple = document.createElement('span');
+          const rect = this.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height);
+          const x = e.clientX - rect.left - size / 2;
+          const y = e.clientY - rect.top - size / 2;
+          
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = x + 'px';
+          ripple.style.top = y + 'px';
+          ripple.classList.add('ripple');
+          
+          this.appendChild(ripple);
+          
+          setTimeout(() => {
+            ripple.remove();
+          }, 600);
+        });
+      });
+    });
+    
+    // Add CSS for ripple effect
+    const rippleCSS = `
+      .btn {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .ripple {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(0);
+        animation: ripple-animation 0.6s linear;
+        pointer-events: none;
+      }
+      
+      @keyframes ripple-animation {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = rippleCSS;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

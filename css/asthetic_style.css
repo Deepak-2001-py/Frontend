@@ -1,232 +1,695 @@
-/* Reset and Base Styles */
+/**
+ * =================================================================
+ * MODERN WEB APPLICATION STYLESHEET
+ * =================================================================
+ * 
+ * A comprehensive CSS framework for educational/grading applications
+ * Includes: Base styles, components, layout systems, and utilities
+ * 
+ * Author: Senior Web Developer
+ * Version: 2.0
+ * =================================================================
+ */
+
+/* =================================================================
+   1. CSS RESET & BASE CONFIGURATION
+   ================================================================= */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/**
+ * CSS Custom Properties (Variables)
+ * Centralized color and design system management
+ */
 :root {
+    /* Primary Color Palette */
     --primary-color: #4A90E2;         /* Elegant Royal Blue */
     --secondary-color: #50E3C2;       /* Modern Mint Green */
     --accent-color: #F5A623;          /* Warm Golden Orange */
-    --background-color: #F4F7FA;      /* Soft White-Gray */
-    --text-color: #2D3E50;            /* Deep Charcoal */
-    --border-color: #E0E6EA;          /* Soft Border Gray */
+    --hover-color: #2C8F92;           /* Deep Teal */
+    --focus-color: #8E44AD;           /* Sophisticated Purple */
+    --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Semantic Colors */
     --success-color: #2ECC71;         /* Vibrant Green */
     --danger-color: #E74C3C;          /* Bold Red */
     --warning-color: #F1C40F;         /* Bright Yellow */
+    
+    /* Background Colors */
+    --background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);      /* Soft White-Gray */
     --light-primary: #E3F2FD;         /* Gentle Blue Background */
     --light-secondary: #E8F8F5;       /* Soft Mint Background */
     --light-orange: #FFF3E0;          /* Light Orange */
     --light-green: #E8F5E9;           /* Light Green */
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Elegant Shadow */
-    --hover-color: #2C8F92;           /* Deep Teal */
-    --focus-color: #8E44AD;           /* Sophisticated Purple */
+    
+    /* Text and Border Colors */
+    --text-color: #2D3E50;            /* Deep Charcoal */
+    --border-color: #E0E6EA;          /* Soft Border Gray */
+    
+    /* Shadows and Effects */
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --border-glass: rgba(255, 255, 255, 0.18);
+    --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    --shadow-card: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+    --border-radius: 16px;
+    --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Shared Styles */
+/* =================================================================
+   2. BASE TYPOGRAPHY & BODY STYLES
+   ================================================================= */
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+      z-index: -1;
+      animation: backgroundFloat 20s ease-in-out infinite;
+    }
+    
+    @keyframes backgroundFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(1deg); }
+      66% { transform: translateY(20px) rotate(-1deg); }
+    }
+
+/* Typography Hierarchy */
+h3, h4 {
+    color: var(--text-color);
+}
+
+/* =================================================================
+   3. LAYOUT SYSTEM
+   ================================================================= */
+
+    /* Main content */
+.main-content {
+    padding: 4rem 0;
+    /* background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); */
+}
+/**
+ * Container System
+ * Responsive container with max-width and center alignment
+ */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+    /* Floating particles animation */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      animation: float 20s infinite linear;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+/* =================================================================
+   4. HEADER & NAVIGATION COMPONENTS
+   ================================================================= */
+
+/**
+ * Site Header
+ * Main application header with gradient background
+ */
+.site-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(44, 143, 146, 0.5);
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+/* Brand/Logo Section */
+.brand {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    margin-right: 10px;
+    height: 40px;
+    width: 40px;
+}
+
+.brand h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.tagline {
+    font-size: 16px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 5px;
+}
+
+/**
+ * Navigation System
+ * Tab-based navigation with active states
+ */
+.primary-nav, 
+.secondary-nav {
+    margin-bottom: 20px;
+}
+
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    margin: 0 5px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-color);
+}
+
+.tab-btn.active {
+    border-bottom: 3px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.tab-btn i {
+    margin-right: 8px;
+}
+
+/* =================================================================
+   5. CARD SYSTEM
+   ================================================================= */
+
+/**
+ * Card Component
+ * Reusable card container with shadow and border
+ */
 .card {
-  background-color: white;
-  border: 1px solid var(--border-color);
-  box-shadow: var(--card-shadow);
-  border-radius: 8px;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
+    background-color: #E3F2FD;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
 }
 
-.card-header h2,
+.card-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 2rem;
+      border-radius: 8px;
+      border-bottom: 1px solid var(--border-glass);
+      text-align: center;
+    }
+
+.card-header h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex
+;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.fa-file-arrow-up:before, .fa-file-upload:before {
+    content: "\f574";
+}
+
+.card-header h2 i {
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+/* Card Header Styles */
+
 .section-title h3 {
-  color: var(--primary-color);
+    color: Black;
 }
 
 .card-header p,
 .section-title p,
 .field-help {
-  color: var(--text-color);
-  font-size: 0.95rem;
+    color: white;
+    font-size: 0.95rem;
 }
 
-/* Upload Type Selector */
-.upload-type-selector {
-  background-color: var(--light-primary);
-  padding: 1rem;
-  border-radius: 8px;
+/* Alternating Card Header Colors */
+.card:nth-child(odd) .card-header {
+    background-color: var(--light-orange);
 }
 
-.upload-options {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 1rem;
+.card:nth-child(even) .card-header {
+    background-color: var(--light-green);
 }
 
-.upload-option {
-  flex: 1;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+/* =================================================================
+   6. FORM SYSTEM
+   ================================================================= */
+
+/**
+ * Form Layout and Components
+ * Comprehensive form styling system
+ */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.upload-option:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--card-shadow);
-  border-color: var(--hover-color);
-}
+    .form-row {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group {
+      flex: 1;
+    }
+    
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #2D3E50;
+      font-size: 1.5 rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: ghostwhite;
+      border: 1px solid var(--border-glass);
+      border-radius: 8px;
+      color: black;
+      font-size: 1rem;
+      transition: var(--transition);
+      backdrop-filter: blur(10px);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #667eea;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-control::placeholder {
+      color: #2D3E50;
+    }
 
-.option-icon i,
-.header-icon i {
-  font-size: 2rem;
-  color: var(--secondary-color);
-}
-
-.option-content h3 {
-  color: var(--text-color);
-  font-weight: 600;
-}
-
-.option-features .feature-tag {
-  display: inline-block;
-  background-color: var(--light-secondary);
-  color: var(--text-color);
-  padding: 0.3rem 0.6rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  margin: 0.2rem 0.3rem 0 0;
-}
-
-/* Section Header */
-.section-header {
-  background-color: var(--light-secondary);
-  padding: 1.25rem;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-}
-
-.header-text h2 {
-  color: var(--primary-color);
-  margin: 0;
-}
-
-.header-stats .stat-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-color);
-  font-size: 0.95rem;
-}
-
-/* Form Sections */
-.form-section {
-  margin-top: 2rem;
-}
-
-.form-group label {
-  font-weight: 600;
-  color: var(--text-color);
-}
-
+/* Form Controls */
 .form-control,
 textarea,
 select {
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 0.6rem 1rem;
-  font-size: 1rem;
-  color: var(--text-color);
-  background-color: white;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: white;
+    transition: border-color 0.3s ease;
 }
 
 .form-control:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--focus-color);
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.2);
+    outline: none;
+    border-color: var(--focus-color);
+    box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.2);
 }
 
 .required {
-  color: var(--danger-color);
-  margin-left: 0.2rem;
+    color: var(--danger-color);
+    margin-left: 0.2rem;
 }
 
-/* Upload Area */
-.upload-area {
-  background-color: var(--light-orange);
-  border: 2px dashed var(--accent-color);
-  border-radius: 8px;
-  text-align: center;
-  padding: 2rem;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
+/* Form Sections */
+.form-section {
+    margin-top: 2rem;
 }
 
-.upload-area:hover {
-  border-color: var(--hover-color);
+/* =================================================================
+   7. UPLOAD COMPONENTS
+   ================================================================= */
+
+/**
+ * Upload Type Selector
+ * Component for choosing upload methods
+ */
+.upload-type-selector {
+    background-color: var(--light-primary);
+    padding: 1rem;
+    border-radius: 8px;
 }
 
+.upload-options {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.upload-option {
+    flex: 1;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upload-option:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow);
+    border-color: var(--hover-color);
+}
+
+/* Upload Area Styling */
+.upload-area,
+.file-upload {
+    background-color: var(--light-orange);
+    border: 2px dashed var(--accent-color);
+    border-radius: 8px;
+    text-align: center;
+    padding: 2rem;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.upload-area:hover,
+.file-upload:hover,
+.file-upload.highlight {
+    border-color: var(--hover-color);
+    background-color: var(--light-orange);
+}
+
+/* File Upload Label */
+.file-upload-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.fa-bar-chart:before, .fa-chart-bar:before {
+    content: "\f080";
+    font-size: 2rem;
+
+
+}
+.fa-file:before, .fa-file-alt:before {
+    content: "\f15b";
+    font-size: 2rem;
+}
+.fa-file-arrow-up:before, .fa-file-upload:before {
+    content: "\f574";
+    font-size: 2rem;
+}
+i {
+    color: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    font-size: 2rem;
+}
+.file-upload-label i {
+    font-size: 48px;
+    color: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    margin-bottom: 10px;
+}
+
+/* Upload Specifications */
 .upload-specs .spec-item {
-  display: inline-block;
-  margin: 0.3rem 0.6rem;
-  font-size: 0.85rem;
-  color: var(--text-color);
+    display: inline-block;
+    margin: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+    color: var(--text-color);
 }
 
-/* Buttons */
+/* File List */
+.file-list {
+    list-style: none;
+    margin-top: 15px;
+}
+
+.file-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--light-orange);
+    margin-bottom: 5px;
+    border-radius: 4px;
+}
+
+.file-list li button {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+/* =================================================================
+   8. BUTTON SYSTEM
+   ================================================================= */
+
+/**
+ * Button Base Styles
+ * Comprehensive button system with variants
+ */
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn i {
+    margin-right: 8px;
+}
+
+/* Button Variants */
+.btn-primary {
+    background-color: var(--primary-gradient);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #F57C00;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #7CB342;
+}
+
+/* Professional Button with Animation */
 .btn-professional {
-  background-color: var(--primary-color);
-  color: white;
-  font-weight: 600;
-  border-radius: 6px;
-  padding: 0.75rem 1.5rem;
-  position: relative;
-  overflow: hidden;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-professional:hover {
-  background-color: var(--hover-color);
+    background-color: var(--hover-color);
 }
 
+/* Button Shine Animation */
 .btn-shine {
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  transform: skewX(-25deg);
-  animation: shine 2s infinite;
+    position: absolute;
+    top: 0;
+    left: -75%;
+    width: 50%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: skewX(-25deg);
+    animation: shine 2s infinite;
 }
 
 @keyframes shine {
-  to {
-    left: 125%;
-  }
+    to {
+        left: 125%;
+    }
 }
 
-/* Progress Bar */
+/* Print Button */
+.print-button {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
+}
+
+.print-button:hover {
+    background: linear-gradient(45deg, #0072ff, #00c6ff);
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 114, 255, 0.4);
+}
+
+/* =================================================================
+   9. PROGRESS & LOADING COMPONENTS
+   ================================================================= */
+
+/**
+ * Progress Bar System
+ * Visual progress indicators
+ */
 .progress-container {
-  background-color: var(--light-green);
-  padding: 1rem;
-  border-radius: 8px;
-  margin-top: 1rem;
+    background-color: var(--light-green);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.progress,
+.progress-container .progress {
+    background-color: #e0e0e0;
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
 }
 
 .progress-bar {
-  height: 10px;
-  background-color: var(--primary-color);
-  transition: width 0.4s ease;
-  border-radius: 5px;
+    height: 10px;
+    background-color: var(--primary-color);
+    transition: width 0.4s ease;
+    border-radius: 5px;
+    width: 0;
+}
+
+.progress-container .progress-bar {
+    height: 100%;
 }
 
 .progress-details,
 .progress-text {
-  font-size: 0.85rem;
-  color: var(--text-color);
+    font-size: 0.85rem;
+    color: var(--text-color);
 }
 
-/* Alerts */
+/* Loading Spinner */
+.loader-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.loader,
+#student-loader {
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    display: none;
+}
+
+#student-loader {
+    border: 5px solid var(--border-color);
+    border-top: 5px solid var(--primary-color);
+    width: 50px;
+    height: 50px;
+    margin: 20px auto;
+}
+
+.loader.active {
+    display: block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* =================================================================
+   10. ALERT & NOTIFICATION SYSTEM
+   ================================================================= */
+
+/**
+ * Alert System
+ * Toast-style notifications with animations
+ */
 .alerts-container {
     position: fixed;
     top: 20px;
@@ -244,6 +707,7 @@ select:focus {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+/* Alert Variants */
 .alert-info {
     background-color: #d1ecf1;
     color: #0c5460;
@@ -285,6 +749,7 @@ select:focus {
     opacity: 1;
 }
 
+/* Alert Animations */
 @keyframes slideIn {
     from {
         transform: translateX(100%);
@@ -300,7 +765,6 @@ select:focus {
     animation: fadeOut 0.5s ease-out forwards;
 }
 
-
 @keyframes fadeOut {
     from {
         opacity: 1;
@@ -311,292 +775,22 @@ select:focus {
     }
 }
 
-/* Base Body */
-body {
-    font-family: 'Arial', sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
-}
+/* =================================================================
+   11. TABLE SYSTEM
+   ================================================================= */
 
-/* Container */
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-}
-
-/* Header Styles */
-.site-header {
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    color: white;
-    padding: 15px 0;
-    box-shadow: 0 2px 4px rgba(44, 143, 146, 0.5);
-}
-
-.header-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-}
-
-.logo {
-    margin-right: 10px;
-    height: 40px;
-    width: 40px;
-}
-
-.brand h1 {
-    font-size: 24px;
-    font-weight: bold;
-}
-
-.tagline {
-    font-size: 16px;
-    color: rgba(255,255,255,0.8);
-    margin-top: 5px;
-}
-
-/* Navigation Styles */
-.primary-nav, .secondary-nav {
-    margin-bottom: 20px;
-}
-
-.nav-tabs {
-    display: flex;
-    justify-content: center;
-    list-style: none;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.tab-btn {
-    padding: 10px 20px;
-    margin: 0 5px;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    color: var(--text-color);
-}
-
-.tab-btn.active {
-    border-bottom: 3px solid var(--primary-color);
-    color: var(--primary-color);
-}
-
-.tab-btn i {
-    margin-right: 8px;
-}
-
-/* Card Styles */
-.card {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: var(--card-shadow);
-    margin-bottom: 20px;
-    overflow: hidden;
-}
-
-.card-header {
-    background-color: var(--light-orange);
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.card-header h2 {
-    font-size: 20px;
-    color: var(--text-color);
-}
-
-.card-body {
-    padding: 20px;
-}
-
-/* Form Styles */
-.form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.form-row {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    flex: 1;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-control {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    transition: border-color 0.3s ease;
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary-color);
-}
-
-/* File Upload Styles */
-.file-upload {
-    border: 2px dashed var(--border-color);
-    padding: 20px;
-    text-align: center;
-    transition: background-color 0.3s ease;
-    border-radius: 4px;
-}
-
-.file-upload.highlight {
-    background-color: var(--light-orange);
-    border-color: var(--primary-color);
-}
-
-.file-upload-label {
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.file-upload-label i {
-    font-size: 48px;
-    color: var(--primary-color);
-    margin-bottom: 10px;
-}
-
-.file-list {
-    list-style: none;
-    margin-top: 15px;
-}
-
-.file-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: var(--light-orange);
-    margin-bottom: 5px;
-    border-radius: 4px;
-}
-
-.file-list li button {
-    background: var(--danger-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 25px;
-    height: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
-
-/* Button Styles */
-.btn {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #F57C00; /* Darker orange */
-}
-
-.btn-secondary {
-    background-color: var(--secondary-color);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #7CB342; /* Darker green */
-}
-
-.btn i {
-    margin-right: 8px;
-}
-
-/* Progress Styles */
-.progress-container {
-    margin-top: 15px;
-}
-
-.progress {
-    background-color: #e0e0e0;
-    border-radius: 4px;
-    height: 20px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    background-color: var(--primary-color);
-    height: 100%;
-    width: 0;
-    transition: width 0.5s ease;
-}
-
-/* Loader Styles */
-.loader-container {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0;
-}
-
-.loader {
-    border: 4px solid var(--border-color);
-    border-top: 4px solid var(--primary-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    display: none;
-}
-
-.loader.active {
-    display: block;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Modified Table Styles with Enhanced Header */
+/**
+ * Data Table System
+ * Responsive tables with enhanced styling
+ */
 .table-responsive {
     width: 100%;
     overflow-x: auto;
     margin-bottom: 20px;
 }
 
-.data-table {
+.data-table,
+.summary-table {
     width: 100%;
     margin: 20px 0;
     border-collapse: collapse;
@@ -606,30 +800,50 @@ body {
     overflow: hidden;
 }
 
-/* Make the table header sticky */
-.data-table thead {
+.summary-table {
+    box-shadow: 0 6px 12px rgba(74, 144, 226, 0.3);
+    border-radius: 10px;
+}
+
+/* Sticky Table Headers */
+.data-table thead,
+.summary-table thead {
     position: sticky;
     top: 0;
     z-index: 2;
 }
 
 .data-table th, 
-.data-table td {
+.data-table td,
+.summary-table th,
+.summary-table td {
     border: 1px solid var(--border-color);
     padding: 12px 15px;
     text-align: left;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.data-table th {
+.summary-table th,
+.summary-table td {
+    padding: 14px 18px;
+    font-size: 1rem;
+}
+
+.data-table th,
+.summary-table th {
     background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
     font-weight: bold;
     color: white;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-/* Alternating row colors for better readability */
-.data-table tbody tr:nth-of-type(even) {
+.summary-table th {
+    letter-spacing: 0.5px;
+}
+
+/* Table Row Styling */
+.data-table tbody tr:nth-of-type(even),
+.summary-table tbody tr:nth-of-type(even) {
     background-color: var(--light-primary);
 }
 
@@ -637,149 +851,34 @@ body {
     background-color: #fff;
 }
 
-/* Hover effect on rows */
-.data-table tbody tr:hover {
-    background-color: var(--light-secondary);
-    cursor: pointer;
-}
-
-
-
-/* Footer Styles */
-.site-footer {
-    /* background-color: linear-gradient(135deg, var(--primary-color), var(--accent-color)); */
-    color: white;
-    text-align: center;
-    padding: 15px 0;
-    margin-top: 20px;
-
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    box-shadow: 0 2px 4px rgba(44, 143, 146, 0.5);
-    
-}
-
-/* Questions Section */
-#questions-container {
-    margin-top: 20px;
-}
-
-.question-card {
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 5px;
-    border: 1px solid var(--border-color);
-    margin-bottom: 10px;
-    border-left: 4px solid var(--primary-color);
-}
-
-h3, h4 {
-    color: var(--text-color);
-}
-
-.error {
-    color: var(--danger-color);
-    font-weight: bold;
-}
-
-/* Student Loader */
-#student-loader {
-    display: none;
-    border: 5px solid var(--border-color);
-    border-radius: 50%;
-    border-top: 5px solid var(--primary-color);
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-    margin: 20px auto;
-}
-
-/* Summary Table */
-/* Make the table header sticky */
-/* .summary-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-
-.summary-table th, 
-.summary-table td {
-    border: 1px solid var(--border-color);
-    padding: 12px 15px;
-    text-align: left;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.summary-table th {
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    font-weight: bold;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-/* Alternating row colors for better readability 
-.summary-table tbody tr:nth-of-type(even) {
-    background-color: var(--light-primary);
-}
-
-.summary-table tbody tr:nth-of-type(odd) {
-    background-color: #fff;
-}
-
-
-.summary-table tbody tr:hover {
-    background-color: var(--light-secondary);
-    cursor: pointer;
-}*/
-.summary-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    background-color: #fff;
-    box-shadow: 0 6px 12px linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.summary-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-
-.summary-table th,
-.summary-table td {
-    border: 1px solid var(--border-color);
-    padding: 14px 18px;
-    text-align: left;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    font-size: 1rem;
-}
-
-.summary-table th {
-    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-    color: white;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-    letter-spacing: 0.5px;
-}
-
-.summary-table tbody tr:nth-of-type(even) {
-    background-color: var(--light-primary);
-}
-
 .summary-table tbody tr:nth-of-type(odd) {
     background-color: #fdfdfd;
 }
 
+/* Table Hover Effects */
+.data-table tbody tr:hover,
 .summary-table tbody tr:hover {
     background-color: var(--light-secondary);
     cursor: pointer;
+}
+
+.summary-table tbody tr:hover {
     transform: scale(1.01);
     transition: all 0.2s ease-in-out;
 }
 
+/* =================================================================
+   12. QUESTION & GRADING SYSTEM
+   ================================================================= */
 
-/* Questions Container */
+/**
+ * Questions Container
+ * Main container for question displays
+ */
+#questions-container {
+    margin-top: 20px;
+}
+
 .questions-container {
     margin-top: 30px;
     padding: 20px;
@@ -792,14 +891,24 @@ h3, h4 {
 .questions-container:hover {
     transform: scale(1.02);
 }
-/* Individual Question Item */
+
+/* Question Card Styles */
+.question-card,
 .question-item {
-    background: #fff;
-    border-radius: 10px;
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 10px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease-in-out;
+}
+
+.question-item {
     padding: 20px;
     margin-bottom: 15px;
+    border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease-in-out;
 }
 
 .question-item:hover {
@@ -822,6 +931,7 @@ h3, h4 {
     font-size: 1.2rem;
 }
 
+/* Question Metadata */
 .subpart {
     background: var(--light-orange);
     padding: 6px 12px;
@@ -851,7 +961,9 @@ h3, h4 {
     line-height: 1.5;
 }
 
-.answer-section pre {
+/* Answer Section */
+.answer-section pre,
+.student-answer pre {
     background: #f8f9fa;
     padding: 20px;
     border-radius: 6px;
@@ -861,33 +973,37 @@ h3, h4 {
     border-left: 4px solid var(--primary-color);
 }
 
-/* Rubric Section */
+.student-answer pre {
+    font-family: 'Courier New', monospace;
+    border-left: 4px solid var(--accent-color);
+}
+
+/* Grading Details */
+.grading-details,
 .rubric-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-top: 20px;
-    background: var(--light-green);
+    background: var(--light-orange);
     padding: 20px;
     border-radius: 8px;
 }
-/* Font Awesome Icons */
-i {
-    color: var(--primary-color);
-    font-size: 1.1rem;
+
+.rubric-section {
+    background: var(--light-green);
 }
 
-/* Hover Effects */
-.question-item:hover .question-header h3,
-.question-item:hover .question-meta,
-.question-item:hover .question-text {
-    color: var(--hover-color);
+.rubric, 
+.reasoning {
+    padding: 20px;
+    border-radius: 6px;
 }
 
-.answer-section:hover h4,
-.reasoning-section:hover h4 {
-    color: var(--hover-color);
+.rubric {
+    border-right: 1px solid var(--border-color);
 }
+
 /* Feedback Section */
 .reasoning-section {
     background: #fef6e4;
@@ -903,43 +1019,14 @@ i {
     color: var(--accent-color);
 }
 
-/* Grading Details */
-.grading-details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-top: 20px;
-    background: var(--light-orange);
-    padding: 20px;
-    border-radius: 8px;
-}
-
-.rubric, .reasoning {
-    padding: 20px;
-    border-radius: 6px;
-}
-
-.rubric {
-    border-right: 1px solid var(--border-color);
-}
-
-.student-answer pre {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 6px;
-    white-space: pre-wrap;
-    font-family: 'Courier New', monospace;
-    font-size: 1rem;
-    border-left: 4px solid var(--accent-color);
-}
-
+/* Timestamp */
 .timestamp {
     font-size: 0.85rem;
     color: #95a5a6;
     font-style: italic;
 }
 
-/* No Questions */
+/* No Questions State */
 .no-questions {
     text-align: center;
     color: #95a5a6;
@@ -950,21 +1037,123 @@ i {
     font-weight: 600;
 }
 
-/* Alternating Card Headers */
-.card:nth-child(odd) .card-header {
-    background-color: var(--light-orange);
+/* =================================================================
+   13. SECTION HEADERS & LAYOUTS
+   ================================================================= */
+
+/**
+ * Section Header Component
+ * Enhanced header with stats display
+ */
+.section-header {
+    background-color: var(--light-secondary);
+    padding: 1.25rem;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
 }
 
-.card:nth-child(even) .card-header {
-    background-color: var(--light-green);
+.header-text h2 {
+    color: var(--primary-color);
+    margin: 0;
 }
 
-/* Responsive Adjustments */
+.header-stats .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+/* Option Components */
+.option-icon i,
+.header-icon i {
+    font-size: 2rem;
+    color: var(--secondary-color);
+}
+
+.option-content h3 {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.option-features .feature-tag {
+    display: inline-block;
+    background-color: var(--light-secondary);
+    color: var(--text-color);
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin: 0.2rem 0.3rem 0 0;
+}
+
+/* =================================================================
+   14. FOOTER
+   ================================================================= */
+
+/**
+ * Site Footer
+ * Application footer with gradient background
+ */
+.site-footer {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    box-shadow: 0 2px 4px rgba(44, 143, 146, 0.5);
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    margin-top: 20px;
+}
+
+/* =================================================================
+   15. UTILITY CLASSES & ICONS
+   ================================================================= */
+
+/**
+ * Utility Classes
+ * Common styling utilities
+ */
+.error {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+/* Font Awesome Icons */
+i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+/* Hover Effects for Interactive Elements */
+.question-item:hover .question-header h3,
+.question-item:hover .question-meta,
+.question-item:hover .question-text {
+    color: var(--hover-color);
+}
+
+.answer-section:hover h4,
+.reasoning-section:hover h4 {
+    color: var(--hover-color);
+}
+
+/* =================================================================
+   16. RESPONSIVE DESIGN
+   ================================================================= */
+
+/**
+ * Mobile-First Responsive Design
+ * Breakpoints and mobile optimizations
+ */
 @media (max-width: 768px) {
+    /* Form Responsiveness */
     .form-row {
         flex-direction: column;
     }
 
+    /* Navigation Responsiveness */
     .nav-tabs {
         flex-direction: column;
     }
@@ -973,7 +1162,9 @@ i {
         margin: 5px 0;
     }
 
-    .grading-details {
+    /* Grid Layout Responsiveness */
+    .grading-details,
+    .rubric-section {
         grid-template-columns: 1fr;
     }
     
@@ -983,34 +1174,20 @@ i {
         padding-bottom: 20px;
     }
     
+    /* Question Header Responsiveness */
     .question-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
     
+    /* Table Responsiveness */
     .summary-table {
         display: block;
         overflow-x: auto;
     }
 }
 
-.print-button {
-    background: linear-gradient(45deg, #00c6ff, #0072ff);
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    margin: 10px 0;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
-  }
-  
-  .print-button:hover {
-    background: linear-gradient(45deg, #0072ff, #00c6ff);
-    transform: scale(1.05);
-    box-shadow: 0 6px 14px rgba(0, 114, 255, 0.4);
-  }
-  
+/* =================================================================
+   END OF STYLESHEET
+   ================================================================= */

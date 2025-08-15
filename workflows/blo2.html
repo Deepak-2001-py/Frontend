@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDFtoBlog AI | System Workflow Diagrams</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --accent: #4cc9f0;
+            --success: #4ade80;
+            --error: #f87171;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.9;
+        }
+
+        .page-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .diagram-container {
+            background: var(--light);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow: auto;
+        }
+
+        .mermaid {
+            min-width: 600px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 0 auto;
+            overflow: auto;
+        }
+
+        .diagram-description {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .diagram-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .wireframe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .wireframe-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .wireframe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .card-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .workflow-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 40px 0;
+        }
+
+        .workflow-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 200px;
+            text-align: center;
+            position: relative;
+        }
+
+        .step-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 15px;
+            z-index: 2;
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 35px;
+            left: calc(100% + 10px);
+            width: 50px;
+            height: 2px;
+            background: var(--primary);
+        }
+
+        .workflow-step:last-child .step-connector {
+            display: none;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .step-description {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-column h3 {
+            color: var(--accent);
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-links a {
+            color: var(--light-gray);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .workflow-step {
+                max-width: 100%;
+                width: 100%;
+                margin-bottom: 30px;
+            }
+            
+            .step-connector {
+                display: none;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mermaid {
+                min-width: 300px;
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- <header>
+        <div class="header-content">
+            <a href="#" class="logo">
+                <div class="logo-icon">PB</div>
+                <div class="logo-text">PDF<span>toBlog</span> AI</div>
+            </a>
+            <nav class="nav-links">
+                <a href="#" class="active">Workflows</a>
+                <a href="#">Components</a>
+                <a href="#">Auth</a>
+                <a href="#">API</a>
+                <a href="#">Diagrams</a>
+            </nav>
+        </div>
+    </header> -->
+
+    <!-- <div class="hero">
+        <h1>PDF to Blog AI: System Workflow Diagrams</h1>
+        <p>Comprehensive visualizations of how each page functions within the AI-powered PDF-to-Blog conversion system</p>
+    </div> -->
+
+    <div class="container">
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <h2 class="section-title">Home Page Workflow</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    A[Home Page] --> B[Navbar]
+                    A --> C[Hero Section]
+                    A --> D[Features Overview]
+                    A --> E[Demo Video]
+                    A --> F[Testimonials]
+                    A --> G[Call to Action]
+                    
+                    subgraph User Actions
+                    B --> H[Login/Signup]
+                    G --> H
+                    B --> I[About/Contact]
+                    end
+                    
+                    subgraph System Response
+                    H --> J[Authentication Pages]
+                    I --> K[Information Pages]
+                    end
+                </div>
+            </div>
+            
+            <div class="diagram-description">
+                <div class="diagram-title">Home Page Functionality</div>
+                <p>The home page serves as the entry point to the application. It showcases the product's value proposition and guides users to authentication pages. Key components include:</p>
+                <ul>
+                    <li><strong>Navbar</strong>: Provides navigation to all main sections</li>
+                    <li><strong>Hero Section</strong>: Explains core functionality with primary CTA</li>
+                    <li><strong>Features Overview</strong>: Highlights key capabilities of the system</li>
+                    <li><strong>Call to Action</strong>: Directs users to sign up or try the demo</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-sign-in-alt"></i>
+                </div>
+                <h2 class="section-title">Authentication Workflow</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    A[Login Page] --> B[Email Input]
+                    A --> C[Password Input]
+                    A --> D[Remember Me]
+                    A --> E[Submit Button]
+                    
+                    subgraph Validation
+                    B --> F[Email Format Check]
+                    C --> G[Password Strength Check]
+                    F --> H[Validation Errors]
+                    G --> H
+                    end
+                    
+                    subgraph API Interaction
+                    E --> I[POST /auth/login]
+                    I --> J{Success?}
+                    J -->|Yes| K[Store Token]
+                    J -->|Yes| L[Redirect to Dashboard]
+                    J -->|No| M[Display Error]
+                    end
+                    
+                    A --> N[Signup Link]
+                    N --> O[Signup Page]
+                    
+                    O --> P[Name Input]
+                    O --> Q[Email Input]
+                    O --> R[Password Input]
+                    O --> S[Terms Agreement]
+                    O --> T[Submit Button]
+                    
+                    T --> U[POST /auth/signup]
+                    U --> V{Success?}
+                    V -->|Yes| W[Store Token]
+                    V -->|Yes| X[Redirect to Dashboard]
+                    V -->|No| Y[Display Error]
+                </div>
+            </div>
+            
+            <div class="diagram-description">
+                <div class="diagram-title">Authentication Process</div>
+                <p>The authentication system handles user login and registration with robust validation:</p>
+                <ul>
+                    <li><strong>Login Page</strong>: Validates credentials and interacts with auth API</li>
+                    <li><strong>Signup Page</strong>: Collects user information with client-side validation</li>
+                    <li><strong>Token Management</strong>: Stores authentication token securely for future requests</li>
+                    <li><strong>Error Handling</strong>: Displays user-friendly error messages for failed attempts</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <h2 class="section-title">PDF Upload Workflow</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    A[Dashboard] --> B[Upload Button]
+                    B --> C[File Selection Dialog]
+                    
+                    subgraph File Handling
+                    C --> D[PDF File]
+                    D --> E[File Validation]
+                    E --> F{Valid?}
+                    F -->|Yes| G[Show Preview]
+                    F -->|No| H[Show Error]
+                    end
+                    
+                    subgraph AI Configuration
+                    G --> I[Tone Selection]
+                    G --> J[Length Options]
+                    G --> K[Audience Targeting]
+                    end
+                    
+                    subgraph Processing
+                    I --> L[Generate Button]
+                    L --> M[POST /api/process-pdf]
+                    M --> N[Backend Processing]
+                    N --> O[PDF Text Extraction]
+                    O --> P[AI Content Generation]
+                    P --> Q[Return Blog Draft]
+                    Q --> R[Display Loading State]
+                    R --> S[Show Generated Blog]
+                    end
+                </div>
+            </div>
+            
+            <div class="diagram-description">
+                <div class="diagram-title">PDF Processing Pipeline</div>
+                <p>The PDF upload and conversion process involves several stages:</p>
+                <ul>
+                    <li><strong>File Selection</strong>: User selects or drags PDF file into interface</li>
+                    <li><strong>Validation</strong>: Checks file type, size, and structure</li>
+                    <li><strong>Configuration</strong>: User customizes AI parameters for blog generation</li>
+                    <li><strong>Backend Processing</strong>: PDF is sent to backend for text extraction and AI conversion</li>
+                    <li><strong>Result Delivery</strong>: Generated blog content is displayed in the editor</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <h2 class="section-title">Blog Editing Workflow</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    A[Generated Blog] --> B[Editor Interface]
+                    B --> C[Title Editing]
+                    B --> D[Content Sections]
+                    B --> E[Formatting Tools]
+                    B --> F[Image Management]
+                    
+                    subgraph Editing Actions
+                    C --> G[Real-time Preview]
+                    D --> G
+                    E --> H[Text Formatting]
+                    F --> I[Add/Replace Images]
+                    end
+                    
+                    subgraph Enhancement
+                    H --> J[AI Rewrite Options]
+                    I --> K[Image Optimization]
+                    end
+                    
+                    subgraph Publishing
+                    J --> L[Save Draft]
+                    J --> M[Export Options]
+                    M --> N[HTML Export]
+                    M --> O[PDF Export]
+                    M --> P[WordPress Publish]
+                    M --> Q[Medium Integration]
+                    L --> R[Store in Database]
+                    end
+                    
+                    R --> S[Dashboard Access]
+                </div>
+            </div>
+            
+            <div class="diagram-description">
+                <div class="diagram-title">Blog Editing & Publishing</div>
+                <p>After blog generation, users can refine and publish their content:</p>
+                <ul>
+                    <li><strong>Real-time Editing</strong>: WYSIWYG editor with live preview</li>
+                    <li><strong>AI Enhancements</strong>: Contextual rewrite options for sections</li>
+                    <li><strong>Media Management</strong>: Add/replace images with optimization</li>
+                    <li><strong>Export Options</strong>: Multiple formats for download or publishing</li>
+                    <li><strong>Cloud Saving</strong>: Drafts saved automatically to user account</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <h2 class="section-title">Dashboard & History Workflow</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    A[Dashboard] --> B[Recent Activity]
+                    A --> C[Saved Drafts]
+                    A --> D[Published Blogs]
+                    
+                    subgraph Navigation
+                    B --> E[View Details]
+                    C --> F[Continue Editing]
+                    D --> G[View Analytics]
+                    end
+                    
+                    subgraph Actions
+                    E --> H[Reprocess with AI]
+                    F --> I[Open in Editor]
+                    G --> J[Traffic Stats]
+                    end
+                    
+                    subgraph Management
+                    C --> K[Delete Draft]
+                    D --> L[Unpublish]
+                    end
+                    
+                    subgraph New Creation
+                    A --> M[New Conversion]
+                    M --> N[Upload PDF Page]
+                    end
+                    
+                    subgraph Account
+                    A --> O[Account Settings]
+                    O --> P[Update Profile]
+                    O --> Q[Change Password]
+                    O --> R[Subscription]
+                    end
+                </div>
+            </div>
+            
+            <div class="diagram-description">
+                <div class="diagram-title">Dashboard Functionality</div>
+                <p>The user dashboard serves as the central hub for content management:</p>
+                <ul>
+                    <li><strong>Activity Tracking</strong>: Shows recent conversions and edits</li>
+                    <li><strong>Content Organization</strong>: Drafts, published blogs, and archives</li>
+                    <li><strong>Quick Actions</strong>: Continue editing, reprocess with AI, or delete</li>
+                    <li><strong>Analytics</strong>: View engagement metrics for published content</li>
+                    <li><strong>Account Management</strong>: Update profile and subscription settings</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="page-section">
+            <div class="section-header">
+                <div class="section-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <h2 class="section-title">Full System Architecture</h2>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="mermaid">
+                    graph TD
+                    A[Frontend] --> B[API Gateway]
+                    B --> C[Authentication Service]
+                    B --> D[PDF Processing Service]
+                    B --> E[AI Generation Service]
+                    B --> F[Blog Management Service]
+                    
+                    subgraph Frontend Components
+                    A --> G[Home Page]
+                    A --> H[Auth Pages]
+                    A --> I[PDF Upload]
+                    A --> J[Blog Editor]
+                    A --> K[Dashboard]
+                    end
+                    
+                    subgraph Backend Services
+                    C --> L[User Database]
+                    D --> M[PDF Storage]
+                    D --> N[Text Extraction]
+                    E --> O[LLM Integration]
+                    E --> P[Content Generation]
+                    F --> Q[Blog Database]
+                    F --> R[Publishing APIs]
+                    end
+                    
+                    subgraph External Services
+                    N --> S[OCR Service]
+                    O --> T[OpenAI API]
+                    R --> U[WordPress]
+                    R --> V[Medium]
+                    R --> W[Ghost]
+                    end
+                </div>
+            </div>
+            
+            <div class="diagram-description">
+                <div class="diagram-title">End-to-End System Flow</div>
+                <p>The complete architecture of the PDF-to-Blog AI system:</p>
+                <ul>
+                    <li><strong>Frontend</strong>: React-based UI with five main page types</li>
+                    <li><strong>API Gateway</strong>: Routes requests to appropriate microservices</li>
+                    <li><strong>PDF Processing</strong>: Handles file uploads, text extraction, and OCR</li>
+                    <li><strong>AI Generation</strong>: Leverages large language models for content creation</li>
+                    <li><strong>Blog Management</strong>: Stores content and handles publishing</li>
+                    <li><strong>External Integrations</strong>: Connects with publishing platforms and AI providers</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>PDFtoBlog AI</h3>
+                <p>Transform your documents into compelling blog content with our AI-powered conversion platform.</p>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Workflow Pages</h3>
+                <div class="footer-links">
+                    <a href="#">Home</a>
+                    <a href="#">Authentication</a>
+                    <a href="#">PDF Upload</a>
+                    <a href="#">Blog Editor</a>
+                    <a href="#">Dashboard</a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <div class="footer-links">
+                    <a href="#">API Documentation</a>
+                    <a href="#">Developer Guide</a>
+                    <a href="#">System Architecture</a>
+                    <a href="#">Example Workflows</a>
+                </div>
+            </div>
+            
+            <div class="footer-column">
+                <h3>Support</h3>
+                <div class="footer-links">
+                    <a href="#">Help Center</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Feature Requests</a>
+                    <a href="#">Status</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            &copy; 2023 PDFtoBlog AI. All rights reserved. This is a design documentation prototype.
+        </div>
+    </footer>
+    
+    <!-- Font Awesome Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>

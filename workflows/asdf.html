@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeAnt System Workflow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.xkcd@1.1/dist/chart.xkcd.min.js"></script>
+    <style>
+        :root {
+            --teacher-color: #3b82f6;
+            --student-color: #10b981;
+            --admin-color: #8b5cf6;
+            --system-color: #f59e0b;
+            --data-color: #ec4899;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+        
+        .workflow-container {
+            position: relative;
+            min-height: 100vh;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f0f7ff 0%, #f5f7fa 100%);
+        }
+        
+        .persona-card {
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border-top: 4px solid;
+        }
+        
+        .persona-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .system-component {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+            border-left: 3px solid;
+            margin: 1rem 0;
+        }
+        
+        .system-component:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        
+        .flow-arrow {
+            position: absolute;
+            stroke-width: 2;
+            stroke-linecap: round;
+            pointer-events: none;
+        }
+        
+        .flow-label {
+            position: absolute;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            z-index: 20;
+            white-space: nowrap;
+        }
+        
+        .persona-highlight {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: white;
+        }
+        
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .workflow-section {
+            border-radius: 1rem;
+            padding: 1.5rem;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e2e8f0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .timeline-item {
+            position: relative;
+            width: calc(50% - 40px);
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+        
+        .timeline-item:nth-child(even) {
+            left: calc(50% + 40px);
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .timeline-item:nth-child(odd)::after {
+            right: -50px;
+        }
+        
+        .timeline-item:nth-child(even)::after {
+            left: -50px;
+        }
+        
+        .interactive-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .interactive-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="workflow-container max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-3xl font-bold text-slate-800 mb-3">GradeAnt System Workflow</h1>
+            <p class="text-slate-600 max-w-3xl mx-auto mb-6">
+                Visualizing how teachers, students, and administrators interact with the platform's microservices architecture
+            </p>
+            
+            <!-- Legend -->
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <div class="legend-item">
+                    <div class="color-dot" style="background-color: var(--teacher-color);"></div>
+                    <span>Teacher Workflow</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-dot" style="background-color: var(--student-color);"></div>
+                    <span>Student Workflow</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-dot" style="background-color: var(--admin-color);"></div>
+                    <span>Admin Workflow</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-dot" style="background-color: var(--system-color);"></div>
+                    <span>System Processes</span>
+                </div>
+                <div class="legend-item">
+                    <div class="color-dot" style="background-color: var(--data-color);"></div>
+                    <span>Data Services</span>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 shadow-sm max-w-4xl mx-auto">
+                <div class="text-left">
+                    <h3 class="font-semibold text-lg mb-3">How to Use This Diagram</h3>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-circle text-xs mt-1.5 text-blue-500"></i>
+                            <span>Follow the colored lines to see each persona's workflow</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-mouse-pointer text-xs mt-1.5 text-blue-500"></i>
+                            <span>Hover over components to see detailed information</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fas fa-arrows-alt text-xs mt-1.5 text-blue-500"></i>
+                            <span>Click on any component to simulate interaction</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Persona Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- Teacher Card -->
+            <div class="persona-card" style="border-top-color: var(--teacher-color);">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                        <i class="fas fa-chalkboard-teacher text-blue-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Teacher</h3>
+                        <p class="text-sm text-slate-500">Creates assignments, grades work, tracks progress</p>
+                    </div>
+                </div>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                        <span>Upload assignments and rubrics</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                        <span>Review AI-generated grading</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                        <span>Monitor class performance</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                        <span>Provide personalized feedback</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Student Card -->
+            <div class="persona-card" style="border-top-color: var(--student-color);">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Student</h3>
+                        <p class="text-sm text-slate-500">Submits work, receives grades, tracks progress</p>
+                    </div>
+                </div>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                        <span>Submit assignments in PDF format</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                        <span>Receive instant grading feedback</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                        <span>Track performance over time</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                        <span>Access detailed answer explanations</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Admin Card -->
+            <div class="persona-card" style="border-top-color: var(--admin-color);">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                        <i class="fas fa-cogs text-purple-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg">Administrator</h3>
+                        <p class="text-sm text-slate-500">Manages system, users, and infrastructure</p>
+                    </div>
+                </div>
+                <ul class="space-y-2 text-sm">
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                        <span>Manage user accounts and permissions</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                        <span>Monitor system health and performance</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                        <span>Handle deployments and updates</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                        <span>Configure system-wide settings</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Workflow Visualization -->
+        <div class="relative bg-white rounded-2xl shadow-lg p-6 mb-12 min-h-[600px]">
+            <h2 class="text-xl font-bold text-slate-800 mb-6 text-center">System Workflow Diagram</h2>
+            
+            <!-- Diagram Elements -->
+            <div class="grid grid-cols-9 grid-rows-5 gap-4">
+                <!-- Row 1: Personas -->
+                <div class="col-span-3 row-span-1 flex flex-col items-center justify-center">
+                    <div class="interactive-card w-full max-w-xs text-center p-4 rounded-xl bg-blue-50 border border-blue-200" 
+                         data-persona="teacher">
+                        <i class="fas fa-chalkboard-teacher text-3xl text-blue-500 mb-2"></i>
+                        <h3 class="font-bold text-blue-700">Teacher</h3>
+                    </div>
+                </div>
+                
+                <div class="col-span-3 col-start-4 row-span-1 flex flex-col items-center justify-center">
+                    <div class="interactive-card w-full max-w-xs text-center p-4 rounded-xl bg-green-50 border border-green-200" 
+                         data-persona="student">
+                        <i class="fas fa-user-graduate text-3xl text-green-500 mb-2"></i>
+                        <h3 class="font-bold text-green-700">Student</h3>
+                    </div>
+                </div>
+                
+                <div class="col-span-3 col-start-7 row-span-1 flex flex-col items-center justify-center">
+                    <div class="interactive-card w-full max-w-xs text-center p-4 rounded-xl bg-purple-50 border border-purple-200" 
+                         data-persona="admin">
+                        <i class="fas fa-cogs text-3xl text-purple-500 mb-2"></i>
+                        <h3 class="font-bold text-purple-700">Administrator</h3>
+                    </div>
+                </div>
+                
+                <!-- Row 2: Entry Points -->
+                <div class="col-span-3 row-start-2 flex flex-col items-center justify-center">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--teacher-color);"
+                         data-component="assignment-creation">
+                        <h4 class="font-semibold text-slate-800">Assignment Creation</h4>
+                        <p class="text-sm text-slate-600 mt-1">Create assignments with rubrics</p>
+                    </div>
+                </div>
+                
+                <div class="col-span-3 col-start-4 row-start-2 flex flex-col items-center justify-center">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--student-color);"
+                         data-component="submission-portal">
+                        <h4 class="font-semibold text-slate-800">Submission Portal</h4>
+                        <p class="text-sm text-slate-600 mt-1">Upload assignment PDFs</p>
+                    </div>
+                </div>
+                
+                <div class="col-span-3 col-start-7 row-start-2 flex flex-col items-center justify-center">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--admin-color);"
+                         data-component="admin-console">
+                        <h4 class="font-semibold text-slate-800">Admin Console</h4>
+                        <p class="text-sm text-slate-600 mt-1">Manage users and settings</p>
+                    </div>
+                </div>
+                
+                <!-- Row 3: Core Processing -->
+                <div class="col-span-9 row-start-3 grid grid-cols-3 gap-4">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--system-color);"
+                         data-component="pdf-parser">
+                        <h4 class="font-semibold text-slate-800">PDF Parser</h4>
+                        <p class="text-sm text-slate-600 mt-1">Extract content from PDFs</p>
+                    </div>
+                    
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--system-color);"
+                         data-component="ai-grader">
+                        <h4 class="font-semibold text-slate-800">AI Grader</h4>
+                        <p class="text-sm text-slate-600 mt-1">Evaluate student work</p>
+                    </div>
+                    
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--system-color);"
+                         data-component="feedback-engine">
+                        <h4 class="font-semibold text-slate-800">Feedback Engine</h4>
+                        <p class="text-sm text-slate-600 mt-1">Generate personalized feedback</p>
+                    </div>
+                </div>
+                
+                <!-- Row 4: Data Services -->
+                <div class="col-span-9 row-start-4 grid grid-cols-3 gap-4">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--data-color);"
+                         data-component="s3-storage">
+                        <h4 class="font-semibold text-slate-800">S3 Storage</h4>
+                        <p class="text-sm text-slate-600 mt-1">Store assignments and results</p>
+                    </div>
+                    
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--data-color);"
+                         data-component="rds-database">
+                        <h4 class="font-semibold text-slate-800">RDS Database</h4>
+                        <p class="text-sm text-slate-600 mt-1">Persistent data storage</p>
+                    </div>
+                    
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--data-color);"
+                         data-component="dynamodb">
+                        <h4 class="font-semibold text-slate-800">DynamoDB</h4>
+                        <p class="text-sm text-slate-600 mt-1">Metadata and sessions</p>
+                    </div>
+                </div>
+                
+                <!-- Row 5: Outputs -->
+                <div class="col-span-3 row-start-5 flex flex-col items-center justify-center">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--teacher-color);"
+                         data-component="grading-dashboard">
+                        <h4 class="font-semibold text-slate-800">Grading Dashboard</h4>
+                        <p class="text-sm text-slate-600 mt-1">Review and adjust grades</p>
+                    </div>
+                </div>
+                
+                <div class="col-span-3 col-start-4 row-start-5 flex flex-col items-center justify-center">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--student-color);"
+                         data-component="results-portal">
+                        <h4 class="font-semibold text-slate-800">Results Portal</h4>
+                        <p class="text-sm text-slate-600 mt-1">View grades and feedback</p>
+                    </div>
+                </div>
+                
+                <div class="col-span-3 col-start-7 row-start-5 flex flex-col items-center justify-center">
+                    <div class="system-component interactive-card" 
+                         style="border-left-color: var(--admin-color);"
+                         data-component="monitoring-dashboard">
+                        <h4 class="font-semibold text-slate-800">Monitoring Dashboard</h4>
+                        <p class="text-sm text-slate-600 mt-1">System health and usage</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SVG for arrows -->
+            <svg id="workflow-arrows" class="absolute top-0 left-0 w-full h-full pointer-events-none"></svg>
+        </div>
+        
+        <!-- Workflow Details -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="workflow-section">
+                <div class="section-title" style="color: var(--teacher-color);">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h2>Teacher Workflow</h2>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item bg-blue-50 border border-blue-100">
+                        <div class="text-blue-700 font-semibold">1. Create Assignment</div>
+                        <p class="text-sm text-slate-600 mt-1">Set up assignment with rubric and instructions</p>
+                    </div>
+                    <div class="timeline-item bg-blue-50 border border-blue-100">
+                        <div class="text-blue-700 font-semibold">2. Review AI Grading</div>
+                        <p class="text-sm text-slate-600 mt-1">Evaluate AI-generated grades and feedback</p>
+                    </div>
+                    <div class="timeline-item bg-blue-50 border border-blue-100">
+                        <div class="text-blue-700 font-semibold">3. Adjust as Needed</div>
+                        <p class="text-sm text-slate-600 mt-1">Modify grades and add personalized comments</p>
+                    </div>
+                    <div class="timeline-item bg-blue-50 border border-blue-100">
+                        <div class="text-blue-700 font-semibold">4. Release to Students</div>
+                        <p class="text-sm text-slate-600 mt-1">Publish grades and feedback to students</p>
+                    </div>
+                    <div class="timeline-item bg-blue-50 border border-blue-100">
+                        <div class="text-blue-700 font-semibold">5. Analyze Class Performance</div>
+                        <p class="text-sm text-slate-600 mt-1">Review class-wide analytics and insights</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="workflow-section">
+                <div class="section-title" style="color: var(--student-color);">
+                    <i class="fas fa-user-graduate"></i>
+                    <h2>Student Workflow</h2>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item bg-green-50 border border-green-100">
+                        <div class="text-green-700 font-semibold">1. Access Assignment</div>
+                        <p class="text-sm text-slate-600 mt-1">View assignment details and instructions</p>
+                    </div>
+                    <div class="timeline-item bg-green-50 border border-green-100">
+                        <div class="text-green-700 font-semibold">2. Complete Work</div>
+                        <p class="text-sm text-slate-600 mt-1">Solve problems and prepare submission</p>
+                    </div>
+                    <div class="timeline-item bg-green-50 border border-green-100">
+                        <div class="text-green-700 font-semibold">3. Submit PDF</div>
+                        <p class="text-sm text-slate-600 mt-1">Upload completed assignment PDF</p>
+                    </div>
+                    <div class="timeline-item bg-green-50 border border-green-100">
+                        <div class="text-green-700 font-semibold">4. Receive Results</div>
+                        <p class="text-sm text-slate-600 mt-1">Get graded assignment with feedback</p>
+                    </div>
+                    <div class="timeline-item bg-green-50 border border-green-100">
+                        <div class="text-green-700 font-semibold">5. Review Feedback</div>
+                        <p class="text-sm text-slate-600 mt-1">Understand mistakes and improve</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="workflow-section">
+                <div class="section-title" style="color: var(--admin-color);">
+                    <i class="fas fa-cogs"></i>
+                    <h2>Admin Workflow</h2>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item bg-purple-50 border border-purple-100">
+                        <div class="text-purple-700 font-semibold">1. Manage Users</div>
+                        <p class="text-sm text-slate-600 mt-1">Create, update, and manage user accounts</p>
+                    </div>
+                    <div class="timeline-item bg-purple-50 border border-purple-100">
+                        <div class="text-purple-700 font-semibold">2. Monitor System</div>
+                        <p class="text-sm text-slate-600 mt-1">Track performance and resource usage</p>
+                    </div>
+                    <div class="timeline-item bg-purple-50 border border-purple-100">
+                        <div class="text-purple-700 font-semibold">3. Handle Deployments</div>
+                        <p class="text-sm text-slate-600 mt-1">Update services and infrastructure</p>
+                    </div>
+                    <div class="timeline-item bg-purple-50 border border-purple-100">
+                        <div class="text-purple-700 font-semibold">4. Configure Settings</div>
+                        <p class="text-sm text-slate-600 mt-1">Adjust system-wide configurations</p>
+                    </div>
+                    <div class="timeline-item bg-purple-50 border border-purple-100">
+                        <div class="text-purple-700 font-semibold">5. Generate Reports</div>
+                        <p class="text-sm text-slate-600 mt-1">Create usage and performance reports</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Metrics -->
+        <div class="workflow-section mb-12">
+            <div class="section-title" style="color: var(--system-color);">
+                <i class="fas fa-chart-line"></i>
+                <h2>System Performance Metrics</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-amber-50 p-4 rounded-xl">
+                    <div class="font-semibold text-amber-700 mb-2">Request Processing Time</div>
+                    <canvas id="processing-time-chart" width="300" height="150"></canvas>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-xl">
+                    <div class="font-semibold text-amber-700 mb-2">System Uptime</div>
+                    <canvas id="uptime-chart" width="300" height="150"></canvas>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-xl">
+                    <div class="font-semibold text-amber-700 mb-2">Resource Utilization</div>
+                    <canvas id="utilization-chart" width="300" height="150"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Draw workflow arrows
+        function drawWorkflowArrows() {
+            const svg = document.getElementById('workflow-arrows');
+            svg.innerHTML = '';
+            
+            // Teacher workflow arrows
+            drawArrow(svg, 'teacher', 'assignment-creation', 'Creates', 'var(--teacher-color)');
+            drawArrow(svg, 'assignment-creation', 'pdf-parser', 'Uploads', 'var(--teacher-color)');
+            drawArrow(svg, 'pdf-parser', 'ai-grader', 'Processes', 'var(--system-color)');
+            drawArrow(svg, 'ai-grader', 'grading-dashboard', 'Sends to', 'var(--teacher-color)');
+            drawArrow(svg, 'grading-dashboard', 'results-portal', 'Releases', 'var(--teacher-color)');
+            
+            // Student workflow arrows
+            drawArrow(svg, 'student', 'submission-portal', 'Submits', 'var(--student-color)');
+            drawArrow(svg, 'submission-portal', 'pdf-parser', 'Sends', 'var(--student-color)');
+            drawArrow(svg, 'pdf-parser', 'ai-grader', 'Analyzes', 'var(--system-color)');
+            drawArrow(svg, 'ai-grader', 'feedback-engine', 'Generates', 'var(--system-color)');
+            drawArrow(svg, 'feedback-engine', 'results-portal', 'Delivers', 'var(--student-color)');
+            
+            // Admin workflow arrows
+            drawArrow(svg, 'admin', 'admin-console', 'Manages', 'var(--admin-color)');
+            drawArrow(svg, 'admin-console', 's3-storage', 'Configures', 'var(--admin-color)');
+            drawArrow(svg, 'admin-console', 'rds-database', 'Manages', 'var(--admin-color)');
+            drawArrow(svg, 'admin-console', 'monitoring-dashboard', 'Monitors', 'var(--admin-color)');
+            
+            // Data flow arrows
+            drawArrow(svg, 'pdf-parser', 's3-storage', 'Stores', 'var(--data-color)');
+            drawArrow(svg, 'ai-grader', 'rds-database', 'Saves', 'var(--data-color)');
+            drawArrow(svg, 'feedback-engine', 'dynamodb', 'Records', 'var(--data-color)');
+        }
+        
+        // Draw arrow between elements
+        function drawArrow(svg, fromId, toId, label, color) {
+            const from = document.querySelector(`[data-component="${fromId}"]`) || 
+                         document.querySelector(`[data-persona="${fromId}"]`);
+            const to = document.querySelector(`[data-component="${toId}"]`) || 
+                       document.querySelector(`[data-persona="${toId}"]`);
+            
+            if (!from || !to) return;
+            
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+            const svgRect = svg.getBoundingClientRect();
+            
+            const fromX = fromRect.left + fromRect.width/2 - svgRect.left;
+            const fromY = fromRect.top + fromRect.height - svgRect.top;
+            const toX = toRect.left + toRect.width/2 - svgRect.left;
+            const toY = toRect.top - svgRect.top;
+            
+            // Draw line
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const d = `M ${fromX} ${fromY} C ${fromX} ${fromY + 50}, ${toX} ${toY - 50}, ${toX} ${toY}`;
+            path.setAttribute('d', d);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', color);
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-dasharray', '5,5');
+            svg.appendChild(path);
+            
+            // Draw arrowhead
+            const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            arrow.setAttribute('points', '0,0 8,4 0,8');
+            arrow.setAttribute('transform', `translate(${toX-4},${toY})`);
+            arrow.setAttribute('fill', color);
+            svg.appendChild(arrow);
+            
+            // Draw label
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            const midX = (fromX + toX) / 2;
+            const midY = (fromY + toY) / 2;
+            text.setAttribute('x', midX);
+            text.setAttribute('y', midY - 10);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('font-size', '12');
+            text.setAttribute('fill', color);
+            text.setAttribute('font-weight', '500');
+            text.textContent = label;
+            svg.appendChild(text);
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Processing time chart
+            const procCtx = document.getElementById('processing-time-chart').getContext('2d');
+            new chartXkcd.Line(procCtx, {
+                title: 'Average (ms)',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                    datasets: [{
+                        label: 'PDF Processing',
+                        data: [320, 295, 310, 285, 290],
+                    }, {
+                        label: 'Grading',
+                        data: [420, 410, 395, 380, 370],
+                    }],
+                },
+                options: {
+                    xTickCount: 5,
+                    yTickCount: 4,
+                    legendPosition: chartXkcd.config.positionType.upLeft,
+                    showLine: true,
+                    timeFormat: false,
+                    dotSize: 0.5,
+                }
+            });
+            
+            // Uptime chart
+            const uptimeCtx = document.getElementById('uptime-chart').getContext('2d');
+            new chartXkcd.Bar(uptimeCtx, {
+                title: 'Last 30 days',
+                data: {
+                    labels: ['API', 'Grading', 'Database', 'Storage'],
+                    datasets: [{
+                        data: [99.98, 99.95, 99.99, 100],
+                    }],
+                },
+                options: {
+                    xTickCount: 4,
+                    yTickCount: 4,
+                    legendPosition: chartXkcd.config.positionType.upLeft,
+                    dataColors: ['#f59e0b', '#ef4444', '#10b981', '#3b82f6'],
+                }
+            });
+            
+            // Utilization chart
+            const utilCtx = document.getElementById('utilization-chart').getContext('2d');
+            new chartXkcd.StackedBar(utilCtx, {
+                title: 'Current',
+                data: {
+                    labels: ['CPU', 'Memory', 'Storage'],
+                    datasets: [{
+                        label: 'Used',
+                        data: [65, 40, 75],
+                    }, {
+                        label: 'Free',
+                        data: [35, 60, 25],
+                    }],
+                },
+                options: {
+                    xTickCount: 3,
+                    yTickCount: 4,
+                    legendPosition: chartXkcd.config.positionType.upLeft,
+                    dataColors: ['#ef4444', '#10b981'],
+                }
+            });
+        }
+        
+        // Add interactivity
+        function setupInteractivity() {
+            // Highlight workflow when persona is clicked
+            document.querySelectorAll('.interactive-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const persona = this.getAttribute('data-persona');
+                    const component = this.getAttribute('data-component');
+                    
+                    if (persona) {
+                        // Highlight persona and their workflow
+                        document.querySelectorAll('.interactive-card').forEach(el => {
+                            el.classList.remove('persona-highlight');
+                        });
+                        this.classList.add('persona-highlight');
+                    }
+                    
+                    if (component) {
+                        // Show component details (simulated)
+                        alert(`Component: ${this.querySelector('h4').textContent}\n\n${this.querySelector('p').textContent}`);
+                    }
+                });
+            });
+        }
+        
+        // Initialize
+        window.addEventListener('load', function() {
+            drawWorkflowArrows();
+            initCharts();
+            setupInteractivity();
+            
+            // Redraw arrows on resize
+            window.addEventListener('resize', drawWorkflowArrows);
+        });
+    </script>
+</body>
+</html>
