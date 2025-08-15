@@ -67,6 +67,37 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    line-height: 1.6;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+      z-index: -1;
+      animation: backgroundFloat 20s ease-in-out infinite;
+    }
+    
+    @keyframes backgroundFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(1deg); }
+      66% { transform: translateY(20px) rotate(-1deg); }
+    }
 
 /* Enhanced Typography */
 h1, h2, h3, h4, h5, h6 {
@@ -116,7 +147,7 @@ a:hover {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 rem;
 }
 
 @media (max-width: 768px) {
@@ -128,8 +159,8 @@ a:hover {
 
 /* Upgraded Header */
 header {
-    background: white;
-    padding: 2rem 0;
+    background: ghostwhite;
+    padding: 1rem 1rem;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -434,7 +465,9 @@ header.scrolled {
 /* Enhanced How It Works Section */
 .how-it-works {
     padding: 5rem 0;
-    background-color: var(--background-alt);
+    background-color:         radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
     position: relative;
     overflow: hidden;
 }
@@ -774,7 +807,9 @@ header.scrolled {
 /* Enhanced Slideshow */
 .slideshow-section {
     padding: 5rem 0;
-    background-color: var(--background-color);
+    background-color:         radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
 }
 
 .slideshow-container {
