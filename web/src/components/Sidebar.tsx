@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useAuth } from '../auth/AuthContext'
@@ -11,8 +11,17 @@ interface NavItem {
   icon: string
   /** Other routes that should keep this item highlighted. */
   also?: string[]
+  /** Heading shown above this item (starts a new group). */
+  section?: string
 }
 
+/**
+ * Sidebar items per the website wireframes: teacher §02/§11 (Dashboard ·
+ * Assignments · Grading Queue · Students · Analytics · Settings) and student
+ * §12 (Dashboard · Assignments · Grades · Progress · Announcements). The
+ * teacher's "Tools" group keeps the grade lookup, manual correction workspace
+ * and assistant that already existed.
+ */
 const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; role: string; profile: string; cta: { to: string; label: string } }> = {
   student: {
     avatar: '/img/student.jpg',
@@ -20,9 +29,11 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
     profile: '/student/profile',
     cta: { to: '/student/assignments', label: 'Submit work' },
     items: [
-      { to: '/student/dashboard', label: 'Dashboard', icon: 'space_dashboard' },
-      { to: '/student/assignments', label: 'My Assignments', icon: 'assignment', also: ['/student/upload', '/student/answer-correction'] },
-      { to: '/student/grades', label: 'My Grades', icon: 'grade' },
+      { to: '/student/dashboard', label: 'Dashboard', icon: 'space_dashboard', section: 'Menu' },
+      { to: '/student/assignments', label: 'Assignments', icon: 'assignment', also: ['/student/upload', '/student/answer-correction'] },
+      { to: '/student/grades', label: 'Grades', icon: 'grade' },
+      { to: '/student/progress', label: 'Progress', icon: 'trending_up' },
+      { to: '/student/announcements', label: 'Announcements', icon: 'campaign' },
     ],
   },
   teacher: {
@@ -31,10 +42,14 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
     profile: '/teacher/profile',
     cta: { to: '/teacher/assignments/new', label: 'New assignment' },
     items: [
-      { to: '/teacher/dashboard', label: 'Dashboard', icon: 'space_dashboard' },
+      { to: '/teacher/dashboard', label: 'Dashboard', icon: 'space_dashboard', section: 'Menu' },
       { to: '/teacher/assignments', label: 'Assignments', icon: 'assignment', also: ['/teacher/upload', '/teacher/question-correction'] },
-      { to: '/teacher/grades', label: 'Students Grades', icon: 'leaderboard', also: ['/teacher/student-details'] },
-      { to: '/teacher/correction', label: 'Grading & Correction', icon: 'rate_review' },
+      { to: '/teacher/queue', label: 'Grading Queue', icon: 'inbox' },
+      { to: '/teacher/students', label: 'Students', icon: 'groups', also: ['/teacher/student-details'] },
+      { to: '/teacher/analytics', label: 'Analytics', icon: 'insights' },
+      { to: '/teacher/settings', label: 'Settings', icon: 'settings' },
+      { to: '/teacher/grades', label: 'Grade lookup', icon: 'leaderboard', section: 'Tools' },
+      { to: '/teacher/correction', label: 'Manual correction', icon: 'rate_review' },
       { to: '/teacher/assistant', label: 'GradeFlow Assistant', icon: 'auto_awesome' },
     ],
   },
@@ -64,10 +79,7 @@ export default function Sidebar() {
   }, [dropdownOpen])
 
   const isActive = (item: NavItem) =>
-    pathname === item.to ||
-    (item.to !== '/teacher/assignments' && pathname.startsWith(item.to + '/')) ||
-    (item.to === '/teacher/assignments' && pathname.startsWith('/teacher/assignments')) ||
-    !!item.also?.some((p) => pathname.startsWith(p))
+    pathname === item.to || pathname.startsWith(item.to + '/') || !!item.also?.some((p) => pathname.startsWith(p))
 
   return (
     <aside className="app-sidebar">
@@ -83,17 +95,19 @@ export default function Sidebar() {
         </button>
 
         <nav className={`nav-links${menuOpen ? ' active' : ''}`} aria-label="Main">
-          <span className="nav-section">Menu</span>
           {nav.items.map((item) => {
             const active = isActive(item)
             return (
-              <NavLink key={item.to} to={item.to} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
-                {active && <motion.span layoutId="side-active" className="nav-active-bg" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
-                <span className="material-icons" aria-hidden>
-                  {item.icon}
-                </span>
-                <span className="nav-label">{item.label}</span>
-              </NavLink>
+              <Fragment key={item.to}>
+                {item.section && <span className="nav-section">{item.section}</span>}
+                <NavLink to={item.to} className={active ? 'active' : ''} aria-current={active ? 'page' : undefined}>
+                  {active && <motion.span layoutId="side-active" className="nav-active-bg" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                  <span className="material-icons" aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span className="nav-label">{item.label}</span>
+                </NavLink>
+              </Fragment>
             )
           })}
           <Link to={nav.cta.to} className="sidebar-cta">

@@ -12,7 +12,7 @@ const ITEMS = {
   teacher: [
     { to: '/teacher/dashboard', icon: 'home', label: 'Home' },
     { to: '/teacher/assignments', icon: 'assignment', label: 'Assignments' },
-    { to: '/teacher/grades', icon: 'grade', label: 'Grades' },
+    { to: '/teacher/queue', icon: 'inbox', label: 'Queue' },
     { to: '/teacher/profile', icon: 'person', label: 'Profile' },
   ],
 }

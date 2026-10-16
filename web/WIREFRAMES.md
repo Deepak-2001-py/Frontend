@@ -120,6 +120,26 @@ by `lambda_python_files/workflow.py` (tested in `lambda_python_files/tests/`); u
 `/workflow` they show "The assignment workflow service isn't available yet". Still open: a Pricing
 page, a product video, and removing `/signup`.
 
+## 3a. Sidebar navigation (from the wireframes)
+
+| Role | Wireframe sidebar | Route |
+|---|---|---|
+| Teacher (§02, §11) | Dashboard | `/teacher/dashboard` |
+| | Assignments | `/teacher/assignments` (+ create, setup, grading run, submissions, per-assignment analytics) |
+| | Grading Queue | `/teacher/queue` |
+| | Students | `/teacher/students` |
+| | Analytics | `/teacher/analytics` |
+| | Settings | `/teacher/settings` |
+| | *Tools:* Grade lookup · Manual correction (§16) · GradeFlow Assistant (§04) | `/teacher/grades` · `/teacher/correction` · `/teacher/assistant` |
+| Student (§12) | Dashboard | `/student/dashboard` |
+| | Assignments | `/student/assignments` (+ upload, OCR check, re-check) |
+| | Grades | `/student/grades` |
+| | Progress | `/student/progress` |
+| | Announcements | `/student/announcements` |
+| Both (§08) | My Profile · Change Password · Request Password Reset · Logout | user menu at the bottom of the sidebar |
+
+Teachers post announcements from the **dashboard** (the wireframes show no teacher-side screen for them).
+
 ## 4. Shared design kit
 
 `styles/tokens.css` now carries the full wireframe token set (colour, grade scale, gradients,
@@ -156,3 +176,9 @@ student-details and profile pages keep their markup and get the same look from
 | `listStudentAssignments` | — | `{ assignments: StudentAssignment[] }` | §14 |
 | `requestRecheck` | `assignment_id, evaluation_id, items: [{question_number, subpart?, note}]` | `{ ok }` | §14 step 5 |
 | `askAssistant` | `assignment_id?, student_id?, messages` | `{ reply }` | §04 |
+| `getGradingQueue` | — | `{ queue: [{assignment, state, papers, graded, flagged…}], waiting }` | Grading Queue |
+| `listStudents` | — | `{ students: [{name, classes, submitted, average, at_risk, latest…}], classes }` | Students |
+| `getTeacherAnalytics` | `class_name?` | totals, grade distribution, weekly activity, per-assignment rows, hardest questions, insight, deadlines | Analytics |
+| `getTeacherSettings` / `updateTeacherSettings` | — / `settings` | `{ settings: {default_persona, partial_credit, notify_submissions, notify_flagged} }` | Settings (defaults feed `setGradingMethod`) |
+| `getProgress` | — | published results, average, by-class averages, due soon, streak, insight | Student Progress |
+| `postAnnouncement` / `listAnnouncements` / `deleteAnnouncement` | `class_name, title, message` / — / `announcement_id` | `{ announcement }` / `{ announcements }` / `{ ok }` | Announcements |

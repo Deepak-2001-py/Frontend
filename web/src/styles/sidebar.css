@@ -58,6 +58,9 @@
   gap: 4px;
 }
 
+.app-sidebar .nav-links { overflow-y: auto; min-height: 0; scrollbar-width: thin; }
+.app-sidebar .nav-section ~ .nav-section { margin-top: 14px; }
+
 .app-sidebar .nav-section {
   padding: 0 12px 6px;
   font-size: 10.5px;

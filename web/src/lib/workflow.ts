@@ -24,6 +24,8 @@ export interface Assignment {
   question_count?: number
   total_marks?: number
   method?: GradingMethod
+  persona?: Persona
+  partial_credit?: boolean
   qp_status?: QpStatus
   content_status?: ContentStatus
   grades_status?: GradesStatus
@@ -86,6 +88,9 @@ export interface AssistantMessage {
   content: string
 }
 
+/** How long a workflow read may be reused (quick back/forward navigation stays instant). */
+const READ_CACHE_MS = 15_000
+
 const READS = new Set([
   'listAssignments',
   'getAssignment',
@@ -95,6 +100,12 @@ const READS = new Set([
   'getGradingRun',
   'listFlagged',
   'listStudentAssignments',
+  'getGradingQueue',
+  'listStudents',
+  'getTeacherAnalytics',
+  'getTeacherSettings',
+  'getProgress',
+  'listAnnouncements',
 ])
 
 export async function workflowRequest<T>(operation: string, payload: Record<string, unknown> = {}, force = false): Promise<T> {
@@ -103,8 +114,13 @@ export async function workflowRequest<T>(operation: string, payload: Record<stri
     apiCache.clearPrefix('workflow:')
     return data
   }
-  return apiCache.withCache(`workflow:${operation}:${JSON.stringify(payload)}`, force, () =>
-    apiRequest<T>(WORKFLOW_PATH, { body: { operation, ...payload } }),
+  // Short-lived: other people's actions (a teacher publishing, a student submitting)
+  // change what these reads return, so don't keep them for the whole tab session.
+  return apiCache.withCache(
+    `workflow:${operation}:${JSON.stringify(payload)}`,
+    force,
+    () => apiRequest<T>(WORKFLOW_PATH, { body: { operation, ...payload } }),
+    READ_CACHE_MS,
   )
 }
 
@@ -195,3 +211,139 @@ export const requestRecheck = (
 
 export const askAssistant = (context: { assignment_id?: string; evaluation_id?: string; student_id?: string }, messages: AssistantMessage[]) =>
   workflowRequest<{ reply?: string }>('askAssistant', { ...context, messages }).then((d) => d?.reply ?? '')
+
+// ---- Teacher: grading queue, students, analytics, settings (§02, §11) ----
+
+export type QueueState = 'review' | 'ready' | 'grading' | 'collecting' | 'setup' | 'published'
+
+export interface QueueItem {
+  assignment_id: string
+  qp_id: string
+  title: string
+  class_name?: string
+  due_at?: string
+  state: QueueState
+  papers: number
+  graded: number
+  grading: number
+  flagged: number
+}
+
+export const getGradingQueue = (force = false) =>
+  workflowRequest<{ queue?: QueueItem[]; waiting?: number }>('getGradingQueue', {}, force).then((d) => ({
+    queue: d?.queue ?? [],
+    waiting: d?.waiting ?? 0,
+  }))
+
+export interface ClassStudent {
+  student_id: string
+  student_name?: string
+  email?: string
+  classes: string[]
+  assigned: number
+  submitted: number
+  late: number
+  average: number | null
+  at_risk: boolean
+  last_submitted_at: string | null
+  latest: { assignment_id: string; qp_id: string } | null
+}
+
+export const listStudents = (force = false) =>
+  workflowRequest<{ students?: ClassStudent[]; classes?: string[] }>('listStudents', {}, force).then((d) => ({
+    students: d?.students ?? [],
+    classes: d?.classes ?? [],
+  }))
+
+export interface TeacherAnalytics {
+  classes: string[]
+  class_name: string | null
+  totals: {
+    assignments: number
+    enrolled: number
+    submitted: number
+    submission_rate: number | null
+    graded: number
+    average: number | null
+    at_risk: number
+  }
+  distribution: Record<'A' | 'B' | 'C' | 'D' | 'F', number>
+  weekly: { date: string; label: string; count: number }[]
+  assignments: {
+    assignment_id: string
+    qp_id: string
+    title: string
+    class_name?: string
+    enrolled: number
+    submitted: number
+    graded: number
+    average: number | null
+    at_risk: number
+    grades_status?: GradesStatus
+  }[]
+  hardest: { assignment_id: string; title: string; label: string; average: number }[]
+  insight: string | null
+  upcoming: { assignment_id: string; title: string; class_name?: string; due_at: string }[]
+}
+
+export const getTeacherAnalytics = (className: string | null, force = false) =>
+  workflowRequest<TeacherAnalytics>('getTeacherAnalytics', className ? { class_name: className } : {}, force)
+
+export interface TeacherSettings {
+  default_persona: Persona
+  partial_credit: boolean
+  notify_submissions: boolean
+  notify_flagged: boolean
+}
+
+export const getTeacherSettings = (force = false) =>
+  workflowRequest<{ settings: TeacherSettings }>('getTeacherSettings', {}, force).then((d) => d.settings)
+
+export const updateTeacherSettings = (settings: Partial<TeacherSettings>) =>
+  workflowRequest<{ settings: TeacherSettings }>('updateTeacherSettings', { settings }).then((d) => d.settings)
+
+// ---- Student: progress + announcements (§03, §12) ----
+
+export interface ProgressResult {
+  assignment_id: string
+  qp_id: string
+  title: string
+  class_name?: string
+  marks: number
+  max: number
+  percent: number
+  date?: string
+  submitted_at?: string | null
+  due_at?: string
+  early?: boolean | null
+  on_time?: boolean | null
+}
+
+export interface Progress {
+  results: ProgressResult[]
+  average: number | null
+  by_class: { class_name: string; average: number; count: number }[]
+  todo: { assignment_id: string; qp_id: string; title: string; class_name?: string; due_at?: string }[]
+  streak: number
+  insight: string | null
+}
+
+export const getProgress = (force = false) => workflowRequest<Progress>('getProgress', {}, force)
+
+export interface Announcement {
+  announcement_id: string
+  class_name: string
+  title: string
+  message: string
+  author_name?: string
+  created_at: string
+}
+
+export const listAnnouncements = (force = false) =>
+  workflowRequest<{ announcements?: Announcement[] }>('listAnnouncements', {}, force).then((d) => d?.announcements ?? [])
+
+export const postAnnouncement = (input: { class_name: string; title: string; message: string }) =>
+  workflowRequest<{ announcement: Announcement }>('postAnnouncement', input).then((d) => d.announcement)
+
+export const deleteAnnouncement = (announcementId: string) =>
+  workflowRequest<{ ok: boolean }>('deleteAnnouncement', { announcement_id: announcementId })

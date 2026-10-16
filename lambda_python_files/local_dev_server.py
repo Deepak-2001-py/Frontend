@@ -72,6 +72,7 @@ table('assignment_grading', ('evaluation_id', 'HASH'),
       gsis=[('student_id-index', ('student_id',)), ('type-index', ('type',)), ('assignment_id-index', ('assignment_id',))])
 table('GradeAnt_Assignments', ('assignment_id', 'HASH'), gsis=[('teacher_id-index', ('teacher_id',))])
 table('GradeAnt_Submissions', ('assignment_id', 'HASH'), ('student_id', 'RANGE'), gsis=[('student_id-index', ('student_id',))])
+table('GradeAnt_Announcements', ('announcement_id', 'HASH'))
 for name, pk in [('GradeAnt_Users', 'user_id'), ('GradeAnt_ResetRequests', 'request_id'), ('GradeAnt_Content', 'post_id'),
                  ('GradeAnt_Tickets', 'ticket_id'), ('GradeAnt_AuditLogs', 'log_id'), ('GradeAnt_Settings', 'setting_key'),
                  ('GradeAnt_Invites', 'token'), ('GradeAnt_Analytics', 'metric_key')]:
@@ -120,7 +121,11 @@ def seed():
     a_id, qp = 'A-thermo', 'QP-thermo'
     ddb.Table('GradeAnt_Assignments').put_item(Item={
         'assignment_id': a_id, 'qp_id': qp, 'title': 'Thermodynamics HW', 'class_name': 'PHY-204', 'teacher_id': 'T1',
-        'qp_status': 'qp_parsed', 'content_status': 'published', 'grades_status': 'not_started', 'created_at': now,
+        'method': 'standard', 'persona': 'balanced', 'partial_credit': True,
+        'qp_status': 'rubric_reviewed', 'content_status': 'published', 'grades_status': 'teacher_reviewing', 'created_at': now,
+        'rubric': [{'question_number': 1, 'max_marks': 5, 'title': 'Internal energy', 'criteria': 'Defines U as the total energy of the system; unit J.'},
+                   {'question_number': 2, 'max_marks': 5, 'title': 'First law', 'criteria': 'ΔU = Q − W with a stated sign convention.'},
+                   {'question_number': 3, 'max_marks': 10, 'title': 'Isothermal work', 'criteria': 'W = nRT ln(V2/V1) ≈ 1729 J; correct sign and units.'}],
         'due_at': time.strftime('%Y-%m-%d', time.localtime(time.time() + 3 * 86400)),
     })
     questions = [
@@ -136,6 +141,11 @@ def seed():
                (5, 'ΔU = Q − W for a closed system', 'Correct.', 0.96),
                (4, 'W = 8.314*300*ln2 = 1.7 kJ (sign?)', 'Method right; sign of work unclear.', 0.61)],
     }
+    ddb.Table('GradeAnt_Announcements').put_item(Item={
+        'announcement_id': 'N-welcome', 'class_name': 'PHY-204', 'title': 'Welcome to PHY-204',
+        'message': 'Thermodynamics HW is open. Photograph every page of your working and upload it before the due date.',
+        'author_id': 'T1', 'author_name': 'Dr. Priya Nair', 'created_at': now,
+    })
     t = ddb.Table('assignment_grading')
     ts = int(time.time()) - 3600
     for sid, rows in results.items():

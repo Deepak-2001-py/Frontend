@@ -27,6 +27,12 @@ const GradingRun = lazy(() => import('./pages/teacher/GradingRun'))
 const Submissions = lazy(() => import('./pages/teacher/Submissions'))
 const CohortAnalytics = lazy(() => import('./pages/teacher/CohortAnalytics'))
 const Assistant = lazy(() => import('./pages/teacher/Assistant'))
+const GradingQueue = lazy(() => import('./pages/teacher/GradingQueue'))
+const Students = lazy(() => import('./pages/teacher/Students'))
+const Analytics = lazy(() => import('./pages/teacher/Analytics'))
+const TeacherSettings = lazy(() => import('./pages/teacher/Settings'))
+const Progress = lazy(() => import('./pages/student/Progress'))
+const Announcements = lazy(() => import('./pages/student/Announcements'))
 const AssignmentInbox = lazy(() => import('./pages/student/AssignmentInbox'))
 const Recheck = lazy(() => import('./pages/student/Recheck'))
 
@@ -85,6 +91,8 @@ export default function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="assignments" element={<AssignmentInbox />} />
+          <Route path="progress" element={<Progress />} />
+          <Route path="announcements" element={<Announcements />} />
           <Route path="assignments/:id/recheck" element={<Recheck />} />
           <Route path="upload" element={<StudentUpload />} />
           <Route path="grades" element={<StudentGrade />} />
@@ -104,6 +112,10 @@ export default function App() {
           <Route path="assignments/:id/submissions" element={<Submissions />} />
           <Route path="assignments/:id/analytics" element={<CohortAnalytics />} />
           <Route path="assistant" element={<Assistant />} />
+          <Route path="queue" element={<GradingQueue />} />
+          <Route path="students" element={<Students />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="settings" element={<TeacherSettings />} />
           <Route path="upload" element={<TeacherUpload />} />
           <Route path="grades" element={<TeacherViewGrade />} />
           <Route path="student-details" element={<StudentDetails />} />

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
 import WorkflowPage from '../../components/WorkflowPage'
+import TeacherAnnouncements from '../../components/app/TeacherAnnouncements'
 import { ActionTile, AppHero, AppStat, Panel, Stagger } from '../../components/app/AppKit'
 import { fadeUp } from '../../components/landing/motion'
 import { EmptyState, Notice, Pill, StatusPill } from '../../components/ui'
@@ -118,8 +119,8 @@ export default function TeacherDashboard() {
 
       <Stagger className="app-tiles">
         <ActionTile to="/teacher/assignments/new" icon="post_add" title="Create assignment" text="Upload a question paper and pick AI or solution-key grading." tone="brand" />
-        <ActionTile to="/teacher/grades" icon="leaderboard" title="Students grades" text="Look up class results and individual papers." tone="sky" />
-        <ActionTile to="/teacher/correction" icon="rate_review" title="Grading & correction" text="Annotate, adjust rubric scores and finalise." tone="accent" />
+        <ActionTile to="/teacher/queue" icon="inbox" title="Grading queue" text="Batches waiting on a spot-check or publish." tone="accent" />
+        <ActionTile to="/teacher/analytics" icon="insights" title="Class analytics" text="Scores, submission rates and tough questions." tone="sky" />
         <ActionTile to="/teacher/assistant" icon="auto_awesome" title="GradeFlow assistant" text="Ask who struggled and what to re-teach." tone="ink" />
       </Stagger>
 
@@ -205,6 +206,7 @@ export default function TeacherDashboard() {
             </div>
           </Panel>
           <motion.div variants={fadeUp}>
+            <TeacherAnnouncements classes={[...new Set(assignments.map((a) => a.class_name).filter((c): c is string => !!c))]} />
             <Panel title="How GradeAnt grades">
               <ol className="app-steps">
                 <li>

@@ -43,11 +43,25 @@ function clearAll(): void {
   clearPrefix('')
 }
 
-/** Returns the cached value unless `force` or nothing cached; `fetcher` must throw on failure. */
-async function withCache<T>(key: string, force: boolean, fetcher: () => Promise<T>): Promise<T> {
+/** Age in ms of a cached entry, or undefined if absent. */
+function ageOf(key: string): number | undefined {
+  try {
+    const raw = sessionStorage.getItem(PREFIX + key)
+    return raw ? Date.now() - ((JSON.parse(raw) as { cachedAt?: number }).cachedAt ?? 0) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Returns the cached value unless `force`, nothing cached, or (when given) the
+ * entry is older than `maxAgeMs`; `fetcher` must throw on failure.
+ */
+async function withCache<T>(key: string, force: boolean, fetcher: () => Promise<T>, maxAgeMs?: number): Promise<T> {
   if (!force) {
     const cached = get<T>(key)
-    if (cached !== undefined) return cached
+    const age = ageOf(key)
+    if (cached !== undefined && (maxAgeMs === undefined || (age !== undefined && age <= maxAgeMs))) return cached
   }
   const data = await fetcher()
   set(key, data)

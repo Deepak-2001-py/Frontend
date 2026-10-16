@@ -496,8 +496,9 @@ function RubricStep({
 }) {
   const rubric = useAsync((force) => getRubric(assignment.assignment_id, force), [assignment.assignment_id])
   const [items, setItems] = useState<RubricItem[] | null>(null)
-  const [persona, setPersona] = useState<Persona>('balanced')
-  const [partial, setPartial] = useState(true)
+  // Defaults come from the teacher's Settings (applied by the API when the method was chosen).
+  const [persona, setPersona] = useState<Persona>((assignment.persona as Persona | undefined) ?? 'balanced')
+  const [partial, setPartial] = useState(assignment.partial_credit ?? true)
   const [busy, setBusy] = useState(false)
   const rows = items ?? rubric.data?.rubric ?? []
   const generating = rubric.data?.qp_status === 'rubric_generating' || (!rubric.data?.rubric?.length && !rubric.error)

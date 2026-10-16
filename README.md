@@ -86,7 +86,7 @@ docker run -p 8080:80 gradeant-web
 | `POST /correctanswer` | `lambda_python_files/correct_questions_answer.py` | `assignment_grading`, `Users` |
 | `POST /updatedb` | `lambda_python_files/update_db.py` | `assignment_grading`, `Users` |
 | `POST /admin` | `admin/lambda_admin.py` | `GradeAnt_*` admin tables, `Users` |
-| `POST /workflow` | `lambda_python_files/workflow.py` | `GradeAnt_Assignments`, `GradeAnt_Submissions`, `assignment_grading`, `Users`; Claude on Amazon Bedrock |
+| `POST /workflow` | `lambda_python_files/workflow.py` | `GradeAnt_Assignments`, `GradeAnt_Submissions`, `GradeAnt_Announcements`, `assignment_grading`, `Users`; Claude on Amazon Bedrock |
 | `POST /uploadpdf` | *(not in this repo)* | S3 presigned uploads |
 
 Dependencies for the Lambdas are in `lambda_python_files/requirements.txt` (bundle them as a layer). Each file's header documents its environment variables, table keys and IAM permissions; `workflow.py` also lists the two new tables and the recommended `assignment_id-index` on `assignment_grading`.

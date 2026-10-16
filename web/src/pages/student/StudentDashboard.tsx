@@ -8,7 +8,8 @@ import { useDisplayName } from '../../hooks/useDisplayName'
 import { isRouteMissing } from '../../lib/api'
 import { gradesRequest, toNumber, type GradeResult } from '../../lib/grading'
 import { isPublished, reached } from '../../lib/status'
-import { listStudentAssignments, type StudentAssignment } from '../../lib/workflow'
+import { formatWhen } from '../../lib/dates'
+import { listAnnouncements, listStudentAssignments, type StudentAssignment } from '../../lib/workflow'
 
 interface Result {
   a: StudentAssignment
@@ -64,6 +65,7 @@ export default function StudentDashboard() {
     [studentId],
   )
 
+  const notes = useAsync((force) => listAnnouncements(force), [])
   const has = !!data.data
   const all = data.data?.assignments ?? []
   const results = data.data?.results ?? []
@@ -130,8 +132,8 @@ export default function StudentDashboard() {
 
       <Stagger className="app-tiles">
         <ActionTile to="/student/assignments" icon="assignment" title="My assignments" text="See what's due and track grading." tone="brand" />
-        <ActionTile to="/student/upload" icon="upload_file" title="Upload answers" text="Scan or photograph your pages as a PDF." tone="sky" />
-        <ActionTile to="/student/answer-correction" icon="spellcheck" title="Check OCR text" text="Fix anything GradeAnt misread before grading." tone="accent" />
+        <ActionTile to="/student/progress" icon="trending_up" title="My progress" text="Your grade trend and what's helping." tone="sky" />
+        <ActionTile to="/student/announcements" icon="campaign" title="Announcements" text="News and deadlines from your teachers." tone="accent" />
         <ActionTile to="/student/grades" icon="grade" title="Grades & feedback" text="Per-question marks and comments." tone="ink" />
       </Stagger>
 
@@ -176,6 +178,33 @@ export default function StudentDashboard() {
             })}
           </div>
         </Panel>
+        <div>
+        <Panel
+          title="Announcements"
+          action={
+            <Link to="/student/announcements" className="ga-btn ga-btn-ghost ga-btn-sm">
+              All →
+            </Link>
+          }
+        >
+          {notes.data && notes.data.length === 0 && <p className="ga-muted">No announcements right now.</p>}
+          {!notes.data && <p className="ga-muted">{notes.error ? 'Unavailable until the workflow API is connected.' : 'Loading…'}</p>}
+          <div className="app-rows">
+            {(notes.data ?? []).slice(0, 2).map((n) => (
+              <Link key={n.announcement_id} to="/student/announcements" className="app-row app-tone-sky">
+                <span className="app-row-icon material-icons" aria-hidden>
+                  campaign
+                </span>
+                <span className="app-row-main">
+                  <span className="app-row-title">{n.title}</span>
+                  <span className="app-row-meta">
+                    {n.class_name} · {formatWhen(n.created_at)}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </Panel>
         <Panel title="Recent results">
           {has && results.length === 0 && <p className="ga-muted">Published grades will show up here.</p>}
           {!has && <p className="ga-muted">—</p>}
@@ -196,6 +225,7 @@ export default function StudentDashboard() {
             ))}
           </div>
         </Panel>
+        </div>
       </Stagger>
     </WorkflowPage>
   )
