@@ -5,238 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GradeAnt | About Us</title>
   <link rel="stylesheet" href="styles.css">
-      <style>
-
-
-        /* Section Title */
-        .section-title {
-            text-align: center;
-            font-size: 2.5em;
-            color: #2c3e50; /* Dark blue/gray */
-            margin-bottom: 50px;
-            font-weight: 700;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 4px;
-            background-color: #007bff; /* Accent blue */
-            margin: 15px auto 0;
-            border-radius: 2px;
-        }
-
-        /* Team Grid */
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive columns */
-            gap: 30px; /* Space between cards */
-        }
-
-        /* Team Member Card */
-        .team-member {
-            background-color: #ffffff; /* White background for cards */
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow */
-            padding: 30px;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .team-member:hover {
-            transform: translateY(-5px); /* Slight lift on hover */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-        }
-
-        .team-member img {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%; /* Circular image */
-            object-fit: cover; /* Cover the area */
-            border: 4px solid #e9ecef; /* Light border around image */
-            margin-bottom: 25px;
-        }
-
-        .team-member h3 {
-            font-size: 1.6em;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .team-member .member-title {
-            font-size: 1em;
-            color: #6c757d; /* Gray for titles */
-            margin-bottom: 15px;
-        }
-
-        .team-member h4 {
-            font-size: 1.1em;
-            color: #495057;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-
-        .team-member .expertise {
-            font-size: 0.95em;
-            color: #007bff; /* Accent blue for expertise */
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
-
-        .team-member p {
-            font-size: 0.9em;
-            color: #555;
-            line-height: 1.7;
-            text-align: center; /* Adjust as per preference, can be left */
-            flex-grow: 1; /* Allows 'About' section to take available space */
-        }
-
-        /* Optional: Categorization within the grid */
-        .team-category-title {
-            width: 100%;
-            text-align: center;
-            font-size: 1.8em;
-            color: #34495e;
-            margin-top: 40px;
-            margin-bottom: 30px;
-            font-weight: 600;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .section-title {
-                font-size: 2em;
-            }
-            .team-grid {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 20px;
-            }
-            .team-member {
-                padding: 25px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .team-grid {
-                grid-template-columns: 1fr; /* Single column on small screens */
-            }
-            .team-member img {
-                width: 120px;
-                height: 120px;
-            }
-            .team-member h3 {
-                font-size: 1.4em;
-            }
-        }
-
-                /* Section Title (consistent with Team Section) */
-        .section-title {
-            text-align: center;
-            font-size: 2.5em;
-            color: #2c3e50; /* Dark blue/gray */
-            margin-bottom: 50px;
-            font-weight: 700;
-            position: relative;
-        }
-
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 80px;
-            height: 4px;
-            background-color: #007bff; /* Accent blue */
-            margin: 15px auto 0;
-            border-radius: 2px;
-        }
-
-        /* Values Grid */
-        .values-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive columns */
-            gap: 30px; /* Space between cards */
-            padding-bottom: 50px; /* Add some padding at the bottom of the grid */
-        }
-
-        /* Value Card */
-        .value-card {
-            background-color: #ffffff; /* White background for cards */
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Subtle shadow */
-            padding: 40px 30px; /* More vertical padding for a spacious feel */
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center content vertically and horizontally */
-            justify-content: flex-start; /* Align content to the top */
-        }
-
-        .value-card:hover {
-            transform: translateY(-5px); /* Slight lift on hover */
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-        }
-
-        .value-icon {
-            font-size: 3em; /* Larger icon size */
-            margin-bottom: 20px;
-            line-height: 1; /* Prevents extra space around emoji */
-            color: #007bff; /* Optional: If using FontAwesome, color the icon */
-        }
-
-        .value-card h3 {
-            font-size: 1.6em;
-            color: #2c3e50;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .value-card p {
-            font-size: 0.95em;
-            color: #555;
-            line-height: 1.7;
-            text-align: center;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .section-title {
-                font-size: 2em;
-            }
-            .values-grid {
-                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Slightly smaller min-width */
-                gap: 20px;
-            }
-            .value-card {
-                padding: 30px 20px;
-            }
-            .value-icon {
-                font-size: 2.5em;
-                margin-bottom: 15px;
-            }
-            .value-card h3 {
-                font-size: 1.4em;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .values-grid {
-                grid-template-columns: 1fr; /* Single column on small screens */
-            }
-            .value-card {
-                padding: 25px 15px;
-            }
-            .value-icon {
-                font-size: 2.2em;
-            }
-        }
-    </style>
 </head>
 <body>
   <!-- Navbar -->
@@ -261,9 +29,10 @@
     </div>
   </nav>
 
-  <!-- About Hero Section -->
-  <section class="page-hero about-hero">
+  <!-- About Hero / Mission Banner -->
+  <section class="page-hero mission-banner about-hero">
     <div class="container">
+      <span class="eyebrow">Our Mission</span>
       <h1>About GradeAnt</h1>
       <p>Our mission is to empower educators with intelligent tools that save time and improve student outcomes.</p>
     </div>
@@ -291,7 +60,7 @@
       <div class="team-grid">
 
         <div class="team-member">
-          <img src="..\img\shradha.jpg" alt="Team Member">
+          <span class="team-avatar">SA</span>
           <h3>Dr. Shradha Agarwal</h3>
           <p class="member-title">Head of AI</p>
           <h4>Subject Matter Expert: </h4>
@@ -300,7 +69,7 @@
           <p>Head of ML/AI at a stealth startup. Leads advanced LLM projects including RAG, prompt engineering, subject classification, and OCR-based image analysis. Specialized in NLP, Computer Vision, and Generative AI with deep expertise in GANs, transformers, and diffusion models.</p>
         </div>
                 <div class="team-member">
-          <img src="..\img\nirlanjan_chakarborty.jpg" alt="Team Member">
+          <span class="team-avatar">NC</span>
           <h3>Dr. Nilanjan Chakraborty</h3>
           <p class="member-title">Assistant Professor Mathematics and Statistics</p>
           <h4>Subject Matter Expert: </h4>
@@ -309,7 +78,7 @@
           <p>Assistant Professor of Mathematics and Statistics at Missouri S&T, focusing on advanced statistical inference and AI.</p>
         </div>
         <div class="team-member">
-          <img src="..\img\Don_Wunsh.jpg" alt="Team Member">
+          <span class="team-avatar">DW</span>
           <h3>Dr. Donald C. Wunsch</h3>
           <p class="member-title">Professor Electrical and Computer Engineering</p>
           <h4>Subject Matter Expert: </h4>
@@ -318,7 +87,7 @@
           <p>A distinguished professor and director of the Kummer Centre at Missouri S&T, specializing in neural networks, reinforcement learning, and XAI.</p>
         </div>
         <div class="team-member">
-          <img src="..\img\Kania_beth.jpg" alt="Team Member">
+          <span class="team-avatar">BK</span>
           <h3>Dr. Beth Kania-Gosche</h3>
           <p class="member-title">Professor</p>
           <h4>Subject Matter Expert: </h4>
@@ -327,19 +96,19 @@
           <p>Chair of Education at Missouri S&T, with expertise in STEM education and teacher preparation programs.</p>
         </div>
         <div class="team-member">
-          <img src="..\img\tariq.jpg" alt="Team Member">
+          <span class="team-avatar">TJ</span>
           <h3>Tariq Jamil</h3>
           <p class="member-title">Head of Pedagogy</p>
           <p>Former principal and curriculum specialist focused on assessment strategies.</p>
         </div>
                 <div class="team-member">
-          <img src="..\img\deepak.jpg" alt="Team Member">
+          <span class="team-avatar">DR</span>
           <h3>Deepak Rajbhar</h3>
           <p class="member-title">AI Engineer</p>
           <p>AI/ML Engineer for EdTech and AI.</p>
         </div>
         <div class="team-member">
-          <img src="..\img\narayan.jpg" alt="Team Member">
+          <span class="team-avatar">NA</span>
           <h3>Narayan Adhikari</h3>
           <p class="member-title">AI Engineer</p>
           <p>AI researcher specializing in natural language processing and education.</p>

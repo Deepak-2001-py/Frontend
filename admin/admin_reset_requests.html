@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt Admin | Reset Requests</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../css/asthetic_style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="admin_dashboard.html" class="admin-sidebar-logo">
+        <span class="logo-mark"></span>
+        <span class="logo-word">GradeAnt</span>
+        <span class="admin-badge">ADMIN</span>
+      </a>
+      <a href="admin_dashboard.html" class="admin-nav-link"><span class="material-icons">dashboard</span>Overview</a>
+      <a href="admin_users.html" class="admin-nav-link"><span class="material-icons">group</span>Users</a>
+      <a href="admin_reset_requests.html" class="admin-nav-link"><span class="material-icons">lock_reset</span>Reset Requests</a>
+      <a href="admin_content.html" class="admin-nav-link"><span class="material-icons">article</span>Content &amp; Blog</a>
+      <a href="admin_analytics.html" class="admin-nav-link"><span class="material-icons">bar_chart</span>Analytics</a>
+      <a href="admin_tickets.html" class="admin-nav-link"><span class="material-icons">confirmation_number</span>Support Tickets</a>
+      <a href="admin_audit_logs.html" class="admin-nav-link"><span class="material-icons">history</span>Audit Logs</a>
+      <a href="admin_settings.html" class="admin-nav-link"><span class="material-icons">settings</span>System Settings</a>
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card" id="adminUserCard">
+          <span class="admin-user-avatar"></span>
+          <div class="admin-user-meta">
+            <div class="admin-user-name" id="adminUserName">Admin</div>
+            <div class="admin-user-role">Administrator</div>
+          </div>
+          <div class="admin-user-menu" id="adminUserMenu">
+            <a href="admin_profile.html"><span class="material-icons" style="font-size:16px;">person</span>My Profile</a>
+            <a href="#" id="adminLogoutBtn" class="danger"><span class="material-icons" style="font-size:16px;">logout</span>Logout</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Password reset requests</div>
+          <div class="admin-page-subtitle">Approve &amp; issue temp password</div>
+        </div>
+      </div>
+
+      <span id="adminAlert" class="status-pill" style="display:none;"></span>
+
+      <div class="admin-rule-banner">
+        Rule: teachers &amp; students <b>cannot self-reset</b> passwords. They submit a request → admin approves → temp password issued → forced change on next login.
+      </div>
+
+      <div class="admin-workflow">
+        <div class="admin-workflow-step">
+          <div class="admin-workflow-icon"></div>
+          <div class="admin-workflow-step-title">Forgot password</div>
+          <div class="admin-workflow-step-sub">User submits request</div>
+        </div>
+        <span class="admin-workflow-arrow">→</span>
+        <div class="admin-workflow-step sky">
+          <div class="admin-workflow-icon"></div>
+          <div class="admin-workflow-step-title">Admin notified</div>
+          <div class="admin-workflow-step-sub">Verifies user</div>
+        </div>
+        <span class="admin-workflow-arrow">→</span>
+        <div class="admin-workflow-step">
+          <div class="admin-workflow-icon"></div>
+          <div class="admin-workflow-step-title">Admin resets</div>
+          <div class="admin-workflow-step-sub">Temp password generated</div>
+        </div>
+        <span class="admin-workflow-arrow">→</span>
+        <div class="admin-workflow-step teal">
+          <div class="admin-workflow-icon"></div>
+          <div class="admin-workflow-step-title">User logs in</div>
+          <div class="admin-workflow-step-sub">With temp password</div>
+        </div>
+        <span class="admin-workflow-arrow">→</span>
+        <div class="admin-workflow-step">
+          <div class="admin-workflow-icon"></div>
+          <div class="admin-workflow-step-title">Forced change</div>
+          <div class="admin-workflow-step-sub">System requires new pw</div>
+        </div>
+        <span class="admin-workflow-arrow">→</span>
+        <div class="admin-workflow-step brand">
+          <div class="admin-workflow-icon"></div>
+          <div class="admin-workflow-step-title">Dashboard</div>
+          <div class="admin-workflow-step-sub">Access granted</div>
+        </div>
+      </div>
+
+      <div class="admin-analytics-row" style="grid-template-columns: 1.5fr 1fr; align-items: start;">
+        <div>
+          <div class="admin-filter-pills" id="requestFilterPills">
+            <span class="admin-filter-pill active" data-filter="pending">Pending</span>
+            <span class="admin-filter-pill" data-filter="approved">Approved</span>
+            <span class="admin-filter-pill" data-filter="rejected">Rejected</span>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>User</th><th>Role</th><th>Requested</th><th>Action</th></tr></thead>
+              <tbody id="resetRequestsBody">
+                <tr><td colspan="4">Loading requests…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-panel">
+          <div class="admin-panel-title">Permissions by role</div>
+          <div class="admin-matrix" id="permissionMatrix">
+            <div class="head">Feature</div>
+            <div class="head role-admin">Admin</div>
+            <div class="head role-teacher">Teacher</div>
+            <div class="head role-student">Student</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Generate Temp Password confirmation -->
+  <div class="admin-modal-overlay" id="tempPasswordOverlay">
+    <div class="admin-modal" style="max-width: 420px;">
+      <div class="admin-modal-header">
+        <span class="admin-modal-title">Temporary password issued</span>
+        <button type="button" class="admin-modal-close" id="tempPasswordCloseBtn">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <p class="form-text" style="margin-bottom: 10px;">Share this with the user through a verified channel (not email/chat where it could be intercepted). It must be changed on their next login.</p>
+        <div class="admin-callout-warning" style="font-family: var(--font-mono); font-size: 15px; text-align:center;" id="tempPasswordValue">••••••••</div>
+      </div>
+      <div class="admin-modal-footer" style="justify-content:flex-end;">
+        <button type="button" class="btn btn-primary" id="tempPasswordDoneBtn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/admin-common.js"></script>
+  <script src="../javascript/admin-reset-requests.js"></script>
+</body>
+</html>

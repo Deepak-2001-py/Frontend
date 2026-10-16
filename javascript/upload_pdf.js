@@ -297,6 +297,30 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedFiles.clear();
     }
 
+    // Sends the uploader straight to the post-upload correction workspace
+    // (student_answer_correction.html for a student's own assignment,
+    // teacher_question_correction.html for a teacher's question paper or
+    // solution key) so they can fix whatever GradeAnt's OCR misread once
+    // it's done processing. A short delay lets the "uploaded successfully"
+    // toast above register before the page navigates away.
+    function redirectToCorrectionWorkspace(uploadType, assignmentId, qpId) {
+        if (!assignmentId) return;
+        const params = new URLSearchParams({ assignment_id: assignmentId });
+        if (qpId) params.set('qp_id', qpId);
+
+        let target = null;
+        if (uploadType === 'student') {
+            target = `student_answer_correction.html?${params.toString()}`;
+        } else if (uploadType === 'teacher' || uploadType === 'answer') {
+            target = `teacher_question_correction.html?${params.toString()}`;
+        }
+        if (!target) return;
+
+        setTimeout(() => {
+            window.location.href = target;
+        }, 1500);
+    }
+
     const uploadTypeSelect = document.getElementById('upload-type');
     if (uploadTypeSelect) {
         uploadTypeSelect.addEventListener('change', function() {
@@ -491,6 +515,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (failedFiles === 0) {
                 UIManager.showAlert('All files uploaded successfully!', 'success');
                 resetForm();
+                // New submission's OCR runs asynchronously, but sending the
+                // student/teacher straight to the correction workspace (see
+                // student_answer_correction.js / teacher_question_correction.js)
+                // means it's already there — with a "still processing" state
+                // — as soon as OCR finishes.
+                redirectToCorrectionWorkspace(uploadType, metadata.assignmentId, metadata.courseId);
             } else {
                 UIManager.showAlert(`Upload completed with ${failedFiles} failed file(s) out of ${totalFiles}`, 'warning');
             }
@@ -668,11 +698,18 @@ async function processFileUpload(filesToUpload, metadata) {
     const results = await Promise.all(uploadPromises);
     if (failedFiles === 0) {
         const uploadType = metadata.uploadType;
-        const successMessage = uploadType === 'answer' 
-            ? 'All answer sheets uploaded successfully!' 
+        const successMessage = uploadType === 'answer'
+            ? 'All answer sheets uploaded successfully!'
             : 'All files uploaded successfully!';
         UIManager.showAlert(successMessage, 'success');
+        // New submission — cached assignment lists/grades no longer reflect
+        // the current state, so the next dashboard/grades view re-fetches.
+        if (window.apiCache) {
+            apiCache.clearPrefix('student-data:');
+            apiCache.clearPrefix('grades:');
+        }
         resetForm();
+        redirectToCorrectionWorkspace(metadata.uploadType, metadata.assignmentId, metadata.qpId || metadata.courseId);
     } else {
         UIManager.showAlert(`Upload completed with ${failedFiles} failed file(s) out of ${totalFiles}`, 'warning');
     }
@@ -731,7 +768,6 @@ async function processFileUpload(filesToUpload, metadata) {
             tryUpload();
         });
     }
-    setupNavLinkHighlighting();
     function updateTotalProgress(completed, failed, total) {
         const percentComplete = Math.round(((completed + failed) / total) * 100);
         progressBar.style.width = percentComplete + '%';

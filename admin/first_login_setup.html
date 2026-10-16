@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | Finish Setting Up Your Account</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../css/asthetic_style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="firstlogin-page">
+  <header class="firstlogin-topbar">
+    <a href="../index.html" style="display:inline-flex; align-items:center; gap:9px; text-decoration:none;">
+      <span class="logo-mark"></span>
+      <span class="logo-word" style="color: var(--ink-900);">GradeAnt</span>
+    </a>
+    <div class="admin-stepper">
+      <span class="step done"><span class="dot">✓</span>Roles</span>
+      <span class="sep">›</span>
+      <span class="step current"><span class="dot">3</span>First login</span>
+    </div>
+  </header>
+
+  <main class="firstlogin-main">
+    <div class="firstlogin-grid">
+      <div class="firstlogin-form-col">
+        <div style="font-family: var(--font-display); font-weight:700; font-size:18px; color:var(--ink-900); margin-bottom:2px;">Set your password &amp; profile</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">
+          You were invited as a <b style="color:var(--brand);" id="inviteRoleLabel">Teacher</b> for <b id="inviteClassLabel">—</b>.
+        </div>
+
+        <span id="firstLoginAlert" class="status-pill" style="display:none; margin-bottom:14px;"></span>
+
+        <div class="form">
+          <div class="form-group">
+            <label for="createPassword">Create password</label>
+            <input type="password" class="form-control" id="createPassword" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm password</label>
+            <input type="password" class="form-control" id="confirmPassword" placeholder="••••••••">
+          </div>
+          <label style="display:flex; align-items:center; gap:9px; font-size:12px; color:var(--ink-700);">
+            <input type="checkbox" id="agreePolicy">
+            I agree to the acceptable-use &amp; privacy policy.
+          </label>
+        </div>
+      </div>
+
+      <div class="firstlogin-side-col">
+        <div class="firstlogin-side-title">Your account</div>
+        <div style="flex:1;">
+          <div class="firstlogin-side-row"><span class="label">Name</span><span class="value" id="sideName">—</span></div>
+          <div class="firstlogin-side-row"><span class="label">Role</span><span class="value" id="sideRole" style="color:var(--brand);">—</span></div>
+          <div class="firstlogin-side-row"><span class="label">Class</span><span class="value" id="sideClass">—</span></div>
+        </div>
+        <div class="admin-callout-warning">→ On finish you land on your <b style="color:var(--brand);" id="sideDashboardLabel">Dashboard</b>.</div>
+        <button type="button" class="btn btn-primary" style="width:100%;" id="finishBtn">Finish &amp; go to dashboard →</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/first-login-setup.js"></script>
+</body>
+</html>

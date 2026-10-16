@@ -5,43 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GradeAnt | Sign Up</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    /* Additional styles for role selection */
-    .role-selector {
-      display: flex;
-      margin-bottom: 20px;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid #ddd;
-    }
-    
-    .role-option {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      background-color: #f5f5f5;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    
-    .role-option.active {
-      background-color: #4a6cf7;
-      color: white;
-      font-weight: bold;
-    }
-    
-    .role-option:first-child {
-      border-right: 1px solid #ddd;
-    }
-
-    .student-fields, .teacher-fields {
-      display: none;
-    }
-
-    .student-fields.active, .teacher-fields.active {
-      display: block;
-    }
-  </style>
 </head>
 <body class="auth-page">
   <!-- Navbar -->
@@ -71,9 +34,13 @@
     <div class="container">
       <div class="auth-container">
         <div class="auth-form-container">
+          <div class="auth-brand-row">
+            <span class="auth-logo-mark"></span>
+            <span class="auth-logo-word">GradeAnt</span>
+          </div>
           <h1>Create Your Account</h1>
           <p class="auth-subtitle">Join thousands of users on GradeAnt</p>
-          
+
           <form class="auth-form" id="signupForm">
             <!-- Role Selection -->
             <div class="form-group">

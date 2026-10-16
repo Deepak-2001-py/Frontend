@@ -1,83 +1,23 @@
-   // Check user type and show appropriate navbar
-   document.addEventListener('DOMContentLoaded', function() {
-    // Get user type from storage (localStorage or sessionStorage)
-    const userType = localStorage.getItem('userType') || sessionStorage.getItem('userType') || 'student';
-    
-    // Show the appropriate navbar based on user type
-    if (userType === 'teacher') {
-      document.getElementById('studentNavbar').style.display = 'none';
-      document.getElementById('teacherNavbar').style.display = 'block';
-    } else {
-      document.getElementById('studentNavbar').style.display = 'block';
-      document.getElementById('teacherNavbar').style.display = 'none';
-    }
-    
-    // Mobile menu toggle for student navbar
-    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
-      document.getElementById('navLinks').classList.toggle('active');
-    });
-    
-    // Mobile menu toggle for teacher navbar
-    document.getElementById('teacherMobileMenuBtn').addEventListener('click', function() {
-      document.getElementById('teacherNavLinks').classList.toggle('active');
-    });
-    
-    // User dropdown toggle for student
-    document.getElementById('userDropdownToggle').addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.getElementById('userDropdownMenu').classList.toggle('show');
-    });
-    
-    // User dropdown toggle for teacher
-    document.getElementById('teacherUserDropdownToggle').addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.getElementById('teacherUserDropdownMenu').classList.toggle('show');
-    });
-    
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', function() {
-      document.getElementById('userDropdownMenu').classList.remove('show');
-      document.getElementById('teacherUserDropdownMenu').classList.remove('show');
-    });
-    
-    // Logout functionality for student
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-      e.preventDefault();
-      // Clear storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userType');
-      sessionStorage.removeItem('authToken');
-      sessionStorage.removeItem('userId');
-      sessionStorage.removeItem('userType');
-      
-      // Redirect to login page
-      window.location.href = '../auth/login.html';
-    });
-    
-    // Logout functionality for teacher
-    document.getElementById('teacherLogoutBtn').addEventListener('click', function(e) {
-      e.preventDefault();
-      // Clear storage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('userType');
-      sessionStorage.removeItem('authToken');
-      sessionStorage.removeItem('userId');
-      sessionStorage.removeItem('userType');
-      
-      // Redirect to login page
-      window.location.href = '../auth/login.html';
-    });
-  });
+        // NOTE: navbar show/hide by role, mobile menu toggle, user dropdown
+        // toggle, outside-click-to-close, and logout are all already wired
+        // up by nav.html's own script once it's injected via
+        // component-loader.js. A duplicate DOMContentLoaded block used to
+        // redo all of that here, unguarded (no null checks) — since it ran
+        // synchronously before nav.html's async fetch had injected the
+        // sidebar, `document.getElementById('studentNavbar').style` threw
+        // on a null element on every page load, aborting the rest of that
+        // handler (including its own dropdown-toggle and logout wiring, so
+        // they were dead code anyway). Removed rather than reconciled,
+        // since nav.html's copy already does the job correctly and safely.
+
         // API Base URL - Same as in login page
         const API_BASE_URL = 'https://rus9nultj9.execute-api.eu-north-1.amazonaws.com/dev';
-        
-        // Mobile menu toggle
-        document.getElementById('mobileMenuBtn').addEventListener('click', function() {
-          document.getElementById('navLinks').classList.toggle('active');
-        });
-        
+
+        // (Mobile menu toggle is handled by nav.html's own script — see the
+        // NOTE above. This used to be a second, unguarded copy that ran as
+        // top-level code before nav.html had injected #mobileMenuBtn,
+        // throwing on every page load.)
+
         // Show/hide loading spinner
         function toggleLoading(show) {
           document.getElementById('loadingSpinner').style.display = show ? 'flex' : 'none';
@@ -120,11 +60,17 @@
           return {token, userId};
         }
         
-        // Fetch user data from API
-        async function fetchUserData(userId, token) {
+        // Fetch user data from API — cached per userId for the tab session,
+        // so navigating back to the dashboard doesn't re-hit the backend.
+        async function fetchUserData(userId, token, forceRefresh) {
+          const cacheKey = `user:${userId}`;
+          if (!forceRefresh) {
+            const cached = apiCache.get(cacheKey);
+            if (cached !== undefined) return cached;
+          }
           try {
             toggleLoading(true);
-            
+
             const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
               method: 'GET',
               headers: {
@@ -133,14 +79,15 @@
                 'Origin': window.location.origin
               }
             });
-            
+
             if (!response.ok) {
               throw new Error('Failed to fetch user data');
             }
-            
+
             const userData = await response.json();
+            apiCache.set(cacheKey, userData);
             return userData;
-            
+
           } catch (error) {
             console.error('Error fetching user data:', error);
             return null;
@@ -148,12 +95,18 @@
             toggleLoading(false);
           }
         }
-        
-        // Fetch student's assignments and grades from API
-        async function fetchStudentData(userId, token) {
+
+        // Fetch student's assignments and grades from API — cached per
+        // userId so re-visiting the dashboard reuses the last fetch.
+        async function fetchStudentData(userId, token, forceRefresh) {
+          const cacheKey = `student-data:${userId}`;
+          if (!forceRefresh) {
+            const cached = apiCache.get(cacheKey);
+            if (cached !== undefined) return cached;
+          }
           try {
             toggleLoading(true);
-            
+
             // Fetch assignments
             const assignmentsResponse = await fetch(`${API_BASE_URL}/students/${userId}/assignments`, {
               method: 'GET',
@@ -163,13 +116,13 @@
                 'Origin': window.location.origin
               }
             });
-            
+
             if (!assignmentsResponse.ok) {
               throw new Error('Failed to fetch assignments data');
             }
-            
+
             const assignmentsData = await assignmentsResponse.json();
-            
+
             // Fetch grades
             const gradesResponse = await fetch(`${API_BASE_URL}/students/${userId}/grades`, {
               method: 'GET',
@@ -179,18 +132,20 @@
                 'Origin': window.location.origin
               }
             });
-            
+
             if (!gradesResponse.ok) {
               throw new Error('Failed to fetch grades data');
             }
-            
+
             const gradesData = await gradesResponse.json();
-            
-            return {
+
+            const studentData = {
               assignments: assignmentsData,
               grades: gradesData
             };
-            
+            apiCache.set(cacheKey, studentData);
+            return studentData;
+
           } catch (error) {
             console.error('Error fetching student data:', error);
             return null;
@@ -209,27 +164,32 @@
             userName.textContent = 'Student';
           }
           
-          // Update auth buttons
+          // Update auth buttons — #authButtons doesn't exist on the current
+          // student_dashboard_.html (the sidebar's own "My Profile"/"Log
+          // Out" controls, wired up by nav.html, cover this already); guard
+          // so a missing element here can't abort the rest of
+          // initDashboard() (e.g. the "View Assignments" button below).
           const authButtons = document.getElementById('authButtons');
-          authButtons.innerHTML = `
-            <a href="student_profile.html" class="btn btn-secondary">My Profile</a>
-            <button id="logoutBtn" class="btn btn-primary">Log Out</button>
-          `;
-          
-          // Add logout functionality
-          document.getElementById('logoutBtn').addEventListener('click', function() {
-            // Clear storage
-            sessionStorage.removeItem('authToken');
-            sessionStorage.removeItem('userId');
-            sessionStorage.removeItem('loginTime');
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('name');
-            localStorage.removeItem('loginTime');
-            
-            // Redirect to login page
-            window.location.href = '../auth/login.html';
-          });
+          if (authButtons) {
+            authButtons.innerHTML = `
+              <a href="student_profile.html" class="btn btn-secondary">My Profile</a>
+              <button id="logoutBtn" class="btn btn-primary">Log Out</button>
+            `;
+
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+              // Clear storage
+              sessionStorage.removeItem('authToken');
+              sessionStorage.removeItem('userId');
+              sessionStorage.removeItem('loginTime');
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('userId');
+              localStorage.removeItem('name');
+              localStorage.removeItem('loginTime');
+
+              // Redirect to login page
+              window.location.href = '../auth/login.html';
+            });
+          }
         }
         
         // Update dashboard with student data

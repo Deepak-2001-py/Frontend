@@ -16,665 +16,90 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="../teacher/teacher_grade.css" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <script src="../component-loader.js"></script>
+  <script src="../component-loader.js"></script>
 </head>
 <body>
-
-  <!-- Navigation will be loaded here -->
-  <div id="nav"></div>
-  <main class="main-content">
-    <div class="container">
-  
-      <section id="grades-section" class="tab-content" role="tabpanel">
-        <div class="card">
-          <div class="card-header">
-            <h2><i class="fas fa-chart-bar"></i> View Grades</h2>
-          </div>
-          <div class="card-body">
-            <nav class="secondary-nav" aria-label="User Type Navigation">
-              <ul class="nav-tabs" role="tablist">
-                <li role="presentation">
-                  <button class="tab-btn active" id="student-view-btn" data-tab="student-view" aria-selected="true">
-                    <i class="fas fa-user-graduate"></i> Single Student's Assignment Info View
-                  </button>
-                </li>
-              </ul>
-            </nav>
-            
-            <h1>Student Assignment Details</h1>
-            
-            <div id="student-view" class="sub-tab-content active">
-              <div class="loader-container" id="student-loader-container">
-                <div class="loader" id="student-loader"></div>
+  <div class="app-shell">
+    <!-- Navigation will be loaded here -->
+    <div id="nav"></div>
+    <main class="app-main">
+      <main class="main-content">
+        <div class="container">
+          <section id="grades-section" class="tab-content active" role="tabpanel">
+            <div class="card">
+              <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> View Grades</h2>
               </div>
-                            <h4>Question Breakdown</h4>
-                <div id="questions-container"></div>
-                
-                <button class="print-button" onclick="window.print()">print</button>
-    <style>
-/* ========================================
-   Professional Grade Management System Styles
-   ======================================== */
-
-:root {
-  --primary-color: #3db6ee;
-  --primary-hover: #1d4ed8;
-  --success-color: #15c98d;
-  --success-hover: #059669;
-  --warning-color: #f59e0b;
-  --warning-hover: #d97706;
-  --danger-color: #ef4444;
-  --danger-hover: #dc2626;
-  --neutral-50: #f8fafc;
-  --neutral-100: #f1f5f9;
-  --neutral-200: #e2e8f0;
-  --neutral-300: #cbd5e1;
-  --neutral-400: #94a3b8;
-  --neutral-500: #64748b;
-  --neutral-600: #475569;
-  --neutral-700: #334155;
-  --neutral-800: #ff7b00;
-  --neutral-900: #0f172a;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-danger: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-/* Base Layout Improvements */
-.result-container {
-  margin: 32px auto;
-  max-width: 1400px;
-  padding: 32px;
-  border: none;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: var(--shadow-xl);
-  position: relative;
-  overflow: hidden;
-  animation: slideInUp 0.6s ease-out;
-}
-
-.result-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
-  animation: shimmer 2s ease-in-out infinite;
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes shimmer {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
-
-/* Enhanced Summary Table */
-.summary-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin: 32px 0;
-  background: linear-gradient(145deg, #ffffff, #f8fafc);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: var(--shadow-lg);
-  animation: fadeInScale 0.8s ease-out 0.2s both;
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.summary-table th {
-  background: var(--gradient-primary);
-  color: white;
-  font-weight: 700;
-  padding: 20px 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 13px;
-  border: none;
-  position: relative;
-  overflow: hidden;
-}
-
-.summary-table th::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-
-.summary-table th:hover::before {
-  left: 100%;
-}
-
-.summary-table td {
-  padding: 20px 16px;
-  border-bottom: 1px solid var(--neutral-200);
-  transition: all 0.3s ease;
-  position: relative;
-}
-
-.summary-table tr {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.summary-table tbody tr:hover {
-  background: linear-gradient(90deg, var(--neutral-50), white);
-  transform: translateX(4px);
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
-}
-
-.summary-table tbody tr:hover td {
-  border-color: var(--primary-color);
-}
-
-/* Sophisticated Input Styling */
-.marks-input {
-  width: 100px;
-  padding: 12px 16px;
-  border: 2px solid var(--neutral-200);
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  background: linear-gradient(145deg, #ffffff, #f8fafc);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-sm);
-  text-align: center;
-}
-
-.marks-input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1), var(--shadow-md);
-  transform: translateY(-2px);
-  background: white;
-}
-
-.marks-input:hover {
-  border-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-/* Premium Button Styles */
-.edit-marks-btn, .edit-question-marks-btn {
-  background: var(--gradient-primary);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-md);
-  position: relative;
-  overflow: hidden;
-}
-
-.edit-marks-btn::before, .edit-question-marks-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s;
-}
-
-.edit-marks-btn:hover, .edit-question-marks-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: var(--shadow-xl);
-}
-
-.edit-marks-btn:hover::before, .edit-question-marks-btn:hover::before {
-  left: 100%;
-}
-
-.edit-marks-btn.save-mode, .edit-question-marks-btn.save-mode {
-  background: var(--gradient-success);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { box-shadow: var(--shadow-md); }
-  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4), var(--shadow-md); }
-}
-
-.edit-marks-btn:active, .edit-question-marks-btn:active {
-  transform: translateY(-1px) scale(1.02);
-  transition: all 0.1s ease;
-}
-
-/* Hero Action Buttons */
-.print-button, .update-marks-button {
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  letter-spacing: 1px;
-  margin: 24px 12px 24px 0;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-  overflow: hidden;
-  min-width: 180px;
-}
-
-.print-button::before, .update-marks-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.6s;
-}
-
-.print-button:hover, .update-marks-button:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: var(--shadow-xl), 0 0 30px rgba(16, 185, 129, 0.3);
-}
-
-
-
-.print-button:hover::before, .update-marks-button:hover::before {
-  left: 100%;
-}
-
-.print-button:disabled, .update-marks-button:disabled {
-  background: linear-gradient(135deg, var(--neutral-400), var(--neutral-500));
-  cursor: not-allowed;
-  transform: none;
-  animation: none;
-}
-
-/* Stunning Alert System */
-.custom-alert {
-  padding: 20px 24px;
-  border-radius: 16px;
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
-  border: none;
-  position: relative;
-  overflow: hidden;
-  animation: slideInRight 0.5s ease-out;
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.custom-alert::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  animation: expandHeight 0.5s ease-out 0.1s both;
-}
-
-@keyframes expandHeight {
-  from { height: 0; }
-  to { height: 100%; }
-}
-
-.alert-success {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: var(--success-hover);
-  border-left: 4px solid var(--success-color);
-}
-
-.alert-success::before {
-  background: var(--success-color);
-}
-
-.alert-danger {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: var(--danger-hover);
-  border-left: 4px solid var(--danger-color);
-}
-
-.alert-danger::before {
-  background: var(--danger-color);
-}
-
-.alert-warning {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: var(--warning-hover);
-  border-left: 4px solid var(--warning-color);
-}
-
-.alert-warning::before {
-  background: var(--warning-color);
-}
-
-.alert-info {
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-  color: var(--primary-hover);
-  border-left: 4px solid var(--primary-color);
-}
-
-.alert-info::before {
-  background: var(--primary-color);
-}
-
-.alert-close {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 0;
-  margin-left: 16px;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  backdrop-filter: blur(10px);
-}
-
-.alert-close:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(90deg) scale(1.1);
-}
-
-/* Enhanced Typography */
-h4 {
-  color: #ff7b00;
-  margin-bottom: 24px;
-  font-size: 20px;
-  font-weight: 800;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  position: relative;
-  display: inline-block;
-}
-
-h4::after {
-  content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
-  width: 60px;
-  height: 4px;
-  background: var(--gradient-primary);
-  border-radius: 2px;
-  animation: expandWidth 0.8s ease-out 0.3s both;
-}
-
-@keyframes expandWidth {
-  from { width: 0; }
-  to { width: 60px; }
-}
-
-/* Sophisticated Marks Display */
-.marks-display {
-  font-weight: 800;
-  font-size: 18px;
-  color: var(--primary-color);
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
-  transition: all 0.3s ease;
-}
-
-.obtained-marks-container {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: linear-gradient(145deg, var(--neutral-50), white);
-  border-radius: 12px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-  min-width: 80px;
-  justify-content: center;
-}
-
-.obtained-marks-container:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-/* Question Item Enhancements */
-.question-item {
-  background: linear-gradient(145deg, #ffffff, #f8fafc);
-  border-radius: 20px;
-  padding: 32px;
-  margin-bottom: 32px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--neutral-200);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.question-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--gradient-primary);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.3s ease;
-}
-
-.question-item:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--primary-color);
-}
-
-.question-item:hover::before {
-  transform: scaleX(1);
-}
-
-.question-header h3 {
-  color: var(--neutral-800);
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.question-meta {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 24px;
-  padding: 16px;
-  background: linear-gradient(135deg, var(--neutral-50), white);
-  border-radius: 12px;
-  border-left: 4px solid var(--primary-color);
-}
-
-.timestamp {
-  font-size: 14px;
-  color: var(--neutral-500);
-  font-weight: 500;
-  padding: 6px 12px;
-  background: var(--neutral-100);
-  border-radius: 20px;
-}
-
-/* Loading Animation */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--neutral-200);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 20px auto;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .result-container {
-    margin: 16px;
-    padding: 24px 16px;
-    border-radius: 16px;
-  }
-  
-  .summary-table {
-    font-size: 14px;
-  }
-  
-  .summary-table th,
-  .summary-table td {
-    padding: 12px 8px;
-  }
-  
-  .print-button, .update-marks-button {
-    width: 100%;
-    margin: 12px 0;
-  }
-  
-  .question-item {
-    padding: 20px 16px;
-    margin-bottom: 20px;
-  }
-  
-  .question-meta {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
-
-/* Accessibility Improvements */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --neutral-50: #0f172a;
-    --neutral-100: #1e293b;
-    --neutral-200: #334155;
-    --neutral-800: #659fda;
-    --neutral-900: #f8fafc;
-  }
-  
-  .result-container,
-  .summary-table,
-  .question-item {
-    background: linear-gradient(145deg, #1e293b, #334155);
-    color: var(--neutral-100);
-  }
-}
-    </style>
-</head>
-<body>
-    <div class="result-container" id="student-result" style="display: none;">
-        <h4>Your Assignment Summary</h4>
-        <table id="summary-table" class="summary-table">
-            <thead>
-                <tr>
-                    <th>Student ID</th>
-                    <th>Assignment ID</th>
-                    <th>Total Marks</th>
-                    <th>Evaluation ID</th>
-                    <th>QP ID</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="summary-body"></tbody>
-        </table>
-        <button class="update-marks-button" onclick=handleUpdateMarks()>Update Marks</button>
+              <div class="card-body">
+                <nav class="secondary-nav" aria-label="User Type Navigation">
+                  <ul class="nav-tabs" role="tablist">
+                    <li role="presentation">
+                      <button class="tab-btn active" id="student-view-btn" data-tab="student-view" aria-selected="true">
+                        <i class="fas fa-user-graduate"></i> Single Student's Assignment Info View
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+
+                <h1>Student Assignment Details</h1>
+
+                <div id="student-view" class="sub-tab-content active">
+                  <div class="loader-container" id="student-loader-container">
+                    <div class="loader" id="student-loader"></div>
+                  </div>
+
+                  <div class="result-container" id="student-result" style="display: none;">
+                    <div class="score-hero" id="score-hero" hidden></div>
+                    <h4>Your Assignment Summary</h4>
+                    <table id="summary-table" class="summary-table">
+                      <thead>
+                        <tr>
+                          <th>Student ID</th>
+                          <th>Assignment ID</th>
+                          <th>Total Marks</th>
+                          <th>Evaluation ID</th>
+                          <th>QP ID</th>
+                          <th>Date</th>
+                          <th class="actions-col">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="summary-body"></tbody>
+                    </table>
+                    <button class="update-marks-button" onclick="handleUpdateMarks()">Update Marks</button>
+                  </div>
+
+                  <div class="questions-toolbar">
+                    <h4>Question Breakdown</h4>
+                    <button type="button" class="preview-toggle-btn" id="preview-toggle-btn" onclick="toggleStudentPreview()">
+                      <i class="fas fa-eye"></i> Preview as Student
+                    </button>
+                  </div>
+                  <div class="preview-banner" id="preview-banner" style="display: none;">
+                    <i class="fas fa-eye"></i> Student preview — this is exactly what the student sees for this assignment (no edit controls).
+                  </div>
+                  <div class="q-path-nav" id="q-path-nav"></div>
+                  <div class="q-count" id="q-count"></div>
+                  <div id="questions-container"></div>
+
+                  <button class="print-button" onclick="window.print()">Print</button>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 GradeAnt. All rights reserved.</p>
     </div>
+  </footer>
 
-<script src="../javascript/student-details.js"></script>
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/grade_display.js"></script>
+  <script src="../javascript/student-details.js"></script>
 </body>
 </html>

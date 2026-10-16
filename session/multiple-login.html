@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | New Sign-In Detected</title>
+  <link rel="stylesheet" href="session.css">
+  <script src="../javascript/api-cache.js"></script>
+</head>
+<body class="state-page">
+  <header class="state-topbar">
+    <a href="../index.html" class="state-brand">
+      <span class="state-logo-mark"></span>
+      <span class="state-logo-word">GradeAnt</span>
+    </a>
+  </header>
+
+  <main class="state-main">
+    <div class="state-card" style="align-items: stretch; text-align: left;">
+      <div class="state-icon state-icon--info">⚠</div>
+      <div class="state-title" style="text-align: left;">New sign-in detected</div>
+      <p class="state-text" style="text-align: left;">Your account was just signed in on another device.</p>
+      <div class="device-box">
+        <div class="device-name" id="deviceName">Chrome · Windows</div>
+        <div class="device-meta" id="deviceMeta">192.168.4.21 · just now</div>
+      </div>
+      <div class="state-actions">
+        <button type="button" class="state-btn state-btn--primary" id="thisWasMeBtn">This Was Me</button>
+        <button type="button" class="link-danger" id="endSessionsBtn">End other sessions &amp; reset password</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('thisWasMeBtn').addEventListener('click', function () {
+      var userType = localStorage.getItem('userType') || sessionStorage.getItem('userType');
+      if (userType === 'teacher') {
+        window.location.href = '../dashboards/teacher_dashboard.html';
+      } else if (userType === 'student') {
+        window.location.href = '../dashboards/student_dashboard_.html';
+      } else {
+        window.location.href = '../index.html';
+      }
+    });
+
+    document.getElementById('endSessionsBtn').addEventListener('click', function () {
+      ['authToken', 'userId', 'userType', 'userName', 'userData', 'loginTime'].forEach(function (key) {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+      apiCache.clearAll();
+      window.location.href = '../auth/login.html';
+    });
+  </script>
+</body>
+</html>

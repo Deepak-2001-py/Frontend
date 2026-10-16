@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | Session Expired</title>
+  <link rel="stylesheet" href="session.css">
+  <script src="../javascript/api-cache.js"></script>
+</head>
+<body class="state-page">
+  <header class="state-topbar">
+    <a href="../index.html" class="state-brand">
+      <span class="state-logo-mark"></span>
+      <span class="state-logo-word">GradeAnt</span>
+    </a>
+  </header>
+
+  <main class="state-main">
+    <div class="state-card">
+      <div class="state-icon state-icon--warn">⏱</div>
+      <div class="state-title">Your session has expired</div>
+      <p class="state-text">For your security you've been signed out after 30 minutes of inactivity.</p>
+      <button type="button" class="state-btn state-btn--primary" id="loginAgainBtn">Log In Again</button>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('loginAgainBtn').addEventListener('click', function () {
+      ['authToken', 'userId', 'userType', 'userName', 'userData', 'loginTime'].forEach(function (key) {
+        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
+      });
+      apiCache.clearAll();
+      var returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      window.location.href = '../auth/login.html' + (returnTo ? ('?returnTo=' + encodeURIComponent(returnTo)) : '');
+    });
+  </script>
+</body>
+</html>

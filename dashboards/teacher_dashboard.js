@@ -266,11 +266,17 @@ function checkAuthStatus() {
   return {token, userId};
 }
 
-// Fetch user data from API
-async function fetchUserData(userId, token) {
+// Fetch user data from API — cached per userId for the tab session, so
+// navigating back to the dashboard doesn't re-hit the backend.
+async function fetchUserData(userId, token, forceRefresh) {
+  const cacheKey = `user:${userId}`;
+  if (!forceRefresh) {
+    const cached = apiCache.get(cacheKey);
+    if (cached !== undefined) return cached;
+  }
   try {
     toggleLoading(true);
-    
+
     const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
       method: 'GET',
       headers: {
@@ -279,14 +285,15 @@ async function fetchUserData(userId, token) {
         'Origin': window.location.origin
       }
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to fetch user data');
     }
-    
+
     const userData = await response.json();
+    apiCache.set(cacheKey, userData);
     return userData;
-    
+
   } catch (error) {
     console.error('Error fetching user data:', error);
     return null;
@@ -374,101 +381,17 @@ async function initDashboard() {
     button.disabled = true;
     button.title = "Coming soon!";
   });
-  
-  setupNavigation();
 }
 
-// Setup navigation elements
-function setupNavigation() {
-  // Get user type from storage
-  const userType = localStorage.getItem('userType') || sessionStorage.getItem('userType') || 'teacher';
-  
-  // Show the appropriate navbar based on user type
-  const studentNavbar = document.getElementById('studentNavbar');
-  const teacherNavbar = document.getElementById('teacherNavbar');
-  
-  if (studentNavbar && teacherNavbar) {
-    if (userType === 'teacher') {
-      studentNavbar.style.display = 'none';
-      teacherNavbar.style.display = 'block';
-    } else {
-      studentNavbar.style.display = 'block';
-      teacherNavbar.style.display = 'none';
-    }
-  }
-  
-  // Setup mobile menu toggles
-  const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-  const navLinks = document.getElementById('navLinks');
-  if (mobileMenuBtn && navLinks) {
-    mobileMenuBtn.addEventListener('click', function() {
-      navLinks.classList.toggle('active');
-    });
-  }
-  
-  const teacherMobileMenuBtn = document.getElementById('teacherMobileMenuBtn');
-  const teacherNavLinks = document.getElementById('teacherNavLinks');
-  if (teacherMobileMenuBtn && teacherNavLinks) {
-    teacherMobileMenuBtn.addEventListener('click', function() {
-      teacherNavLinks.classList.toggle('active');
-    });
-  }
-  
-  // User dropdown toggle for student
-  const userDropdownToggle = document.getElementById('userDropdownToggle');
-  const userDropdownMenu = document.getElementById('userDropdownMenu');
-  if (userDropdownToggle && userDropdownMenu) {
-    userDropdownToggle.addEventListener('click', function(e) {
-      e.stopPropagation();
-      userDropdownMenu.classList.toggle('show');
-    });
-  }
-  
-  // User dropdown toggle for teacher
-  const teacherUserDropdownToggle = document.getElementById('teacherUserDropdownToggle');
-  const teacherUserDropdownMenu = document.getElementById('teacherUserDropdownMenu');
-  if (teacherUserDropdownToggle && teacherUserDropdownMenu) {
-    teacherUserDropdownToggle.addEventListener('click', function(e) {
-      e.stopPropagation();
-      teacherUserDropdownMenu.classList.toggle('show');
-    });
-  }
-  
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', function() {
-    if (userDropdownMenu) userDropdownMenu.classList.remove('show');
-    if (teacherUserDropdownMenu) teacherUserDropdownMenu.classList.remove('show');
-  });
-  
-  // Logout functionality
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      performLogout();
-    });
-  }
-  
-  const teacherLogoutBtn = document.getElementById('teacherLogoutBtn');
-  if (teacherLogoutBtn) {
-    teacherLogoutBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      performLogout();
-    });
-  }
-  
-  // Set active nav item based on stored value
-  const activeNavId = sessionStorage.getItem('activeNavLink');
-  if (activeNavId) {
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-      link.classList.remove('active');
-      if (link.id === activeNavId) {
-        link.classList.add('active');
-      }
-    });
-  }
-}
+// NOTE: navbar show/hide by role, mobile menu toggle, user dropdown toggle,
+// outside-click-to-close, and logout are all already wired up by nav.html's
+// own script once it's injected via component-loader.js. A setupNavigation()
+// used to duplicate all of that here — since it ran only after the awaited
+// fetchUserData() call above, nav.html had always finished loading by then,
+// so its dropdown-toggle listeners doubled up with nav.html's and canceled
+// each other out (classList.toggle('show') fired twice per click), which is
+// why the profile dropdown never opened. Removed rather than reconciled,
+// since nav.html's copy already does the job correctly.
 
 // Call initialization function when page loads
 document.addEventListener('DOMContentLoaded', initDashboard);

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt Admin | My Profile</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../css/asthetic_style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="admin_dashboard.html" class="admin-sidebar-logo">
+        <span class="logo-mark"></span>
+        <span class="logo-word">GradeAnt</span>
+        <span class="admin-badge">ADMIN</span>
+      </a>
+      <a href="admin_dashboard.html" class="admin-nav-link"><span class="material-icons">dashboard</span>Overview</a>
+      <a href="admin_users.html" class="admin-nav-link"><span class="material-icons">group</span>Users</a>
+      <a href="admin_reset_requests.html" class="admin-nav-link"><span class="material-icons">lock_reset</span>Reset Requests</a>
+      <a href="admin_content.html" class="admin-nav-link"><span class="material-icons">article</span>Content &amp; Blog</a>
+      <a href="admin_analytics.html" class="admin-nav-link"><span class="material-icons">bar_chart</span>Analytics</a>
+      <a href="admin_tickets.html" class="admin-nav-link"><span class="material-icons">confirmation_number</span>Support Tickets</a>
+      <a href="admin_audit_logs.html" class="admin-nav-link"><span class="material-icons">history</span>Audit Logs</a>
+      <a href="admin_settings.html" class="admin-nav-link"><span class="material-icons">settings</span>System Settings</a>
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card" id="adminUserCard">
+          <span class="admin-user-avatar"></span>
+          <div class="admin-user-meta">
+            <div class="admin-user-name" id="adminUserName">Admin</div>
+            <div class="admin-user-role">Administrator</div>
+          </div>
+          <div class="admin-user-menu" id="adminUserMenu">
+            <a href="admin_profile.html"><span class="material-icons" style="font-size:16px;">person</span>My Profile</a>
+            <a href="#" id="adminLogoutBtn" class="danger"><span class="material-icons" style="font-size:16px;">logout</span>Logout</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <div class="admin-page-title">My profile</div>
+      </div>
+
+      <span id="adminAlert" class="status-pill" style="display:none;"></span>
+
+      <div class="admin-panel" style="max-width: 640px; padding:0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; padding: 18px 22px; border-bottom: 1px solid var(--border-subtle);">
+          <span class="admin-panel-title" style="margin:0;">My profile</span>
+          <span class="status-pill warning">Administrator</span>
+        </div>
+        <div style="padding: 22px;">
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+            <span style="width:64px; height:64px; border-radius:50%; background: var(--gradient-brand); display:block;"></span>
+            <div>
+              <div style="font-family: var(--font-display); font-weight:700; font-size:16px; color:var(--ink-900);" id="profileDisplayName">Alex Morgan</div>
+              <div style="font-size:12px; color:var(--text-subtle); font-family: var(--font-mono);" id="profileUsernameTag">admin01 · super-admin</div>
+              <span style="display:inline-block; margin-top:6px; font-size:12px; font-weight:600; color: var(--text-link); cursor:pointer;">Change photo</span>
+            </div>
+          </div>
+
+          <div class="form">
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+              <input type="text" class="form-control" id="fullName">
+            </div>
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" class="form-control" id="username">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input type="text" class="form-control" id="email">
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone</label>
+                <input type="text" class="form-control" id="phone">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top:20px;">
+            <button type="button" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+            <button type="button" class="btn btn-secondary" id="changePasswordBtn">Change Password</button>
+          </div>
+          <div style="margin-top:14px; font-size:12px; color:var(--text-subtle); line-height:1.4;">
+            Admin may edit any field including username, and change their own password directly — unlike teachers/students, who must go through the reset-request workflow on the Reset Requests page.
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Change password (admin changes their own directly — no request/approval needed) -->
+  <div class="admin-modal-overlay" id="changePasswordOverlay">
+    <div class="admin-modal" style="max-width: 420px;">
+      <div class="admin-modal-header">
+        <span class="admin-modal-title">Change password</span>
+        <button type="button" class="admin-modal-close" id="changePasswordCloseBtn">&times;</button>
+      </div>
+      <div class="admin-modal-body">
+        <div class="form">
+          <div class="form-group">
+            <label for="currentPassword">Current password</label>
+            <input type="password" class="form-control" id="currentPassword">
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New password</label>
+            <input type="password" class="form-control" id="newPassword">
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">Confirm new password</label>
+            <input type="password" class="form-control" id="confirmNewPassword">
+          </div>
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn btn-secondary" id="cancelChangePasswordBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="submitChangePasswordBtn">Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/admin-common.js"></script>
+  <script src="../javascript/admin-profile.js"></script>
+</body>
+</html>

@@ -13,91 +13,109 @@
   <link rel="stylesheet" href="..\css\asthetic_style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="../component-loader.js"></script>
-  <link rel="stylesheet" href="../student_grade.css" />
+  <link rel="stylesheet" href="../student/student_grade.css" />
+    <style>
+    .main-content {
+      padding: 4rem 0;
+      /* background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); */
+    }
+  </style>
 </head>
 <body>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <div id="nav"></div>
-  <main class="main-content">
-    <div class="container">
-      <section id="grades-section" class="tab-content" role="tabpanel">
-        <div class="card">
-          <div class="card-header">
-            <h2><i class="fas fa-chart-bar"></i> View Grades</h2>
-          </div>
-          <div class="card-body">
-            <nav class="secondary-nav" aria-label="User Type Navigation">
-              <ul class="nav-tabs" role="tablist">
-                <li role="presentation">
-                  <button class="tab-btn active" id="student-view-btn" data-tab="student-view" aria-selected="true">
-                    <i class="fas fa-user-graduate"></i> Student View
-                  </button>
-                </li>
-                <!-- <li role="presentation">
-                  <button class="tab-btn" id="teacher-view-btn" data-tab="teacher-view" aria-selected="false">
-                    <i class="fas fa-chalkboard-teacher"></i> Teacher View
-                  </button>
-                </li> -->
-              </ul>
-            </nav>
-            <div id="student-view" class="student-grade-container">
-              <h3>Check Your Assignment Results</h3>
-              <form id="student-grade-form" class="form">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="student-id">Student ID Number</label>
-                    <input type="text" id="student-id" class="form-control" placeholder="Enter your student ID" required />
-                    <small class="form-text">Your unique student identifier</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="assignment-id-student">Assignment Code</label>
-                    <input type="text" id="assignment-id-student" class="form-control" placeholder="Enter assignment code" required />
-                    <small class="form-text">Find this code on your assignment sheet</small>
-                  </div>
-                </div>
-                <div class="form-actions">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Retrieve Results
-                  </button>
-                  <button type="reset" class="btn btn-secondary">
-                    <i class="fas fa-redo"></i> Clear
-                  </button>
-                </div>
-              </form>
-              <div class="loader-container" id="student-loader-container">
-                <div class="loader" id="student-loader"></div>
-              </div>           
-              <div class="result-container" id="student-result">
-                <h4>Your Assignment Summary</h4>
-                <table id="summary-table" class="summary-table">
-                  <thead>
-                    <tr>
-                      <th>Student ID</th>
-                      <th>Assignment ID</th>
-                      <th>Total Marks</th>
-                      <th>Evaluation ID</th>
-                      <th>QP ID</th>
-                      <th>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody id="summary-body"></tbody>
-                </table>
-                <h4>Question Breakdown</h4>
-                <div id="questions-container"></div>
+  <div class="app-shell">
+    <div id="nav"></div>
+    <main class="app-main">
+      <main class="main-content">
+        <div class="container">
+          <section id="grades-section" class="tab-content active" role="tabpanel">
+            <div class="card">
+              <div class="card-header">
+                <span class="header-icon-badge"><i class="fas fa-chart-bar"></i></span>
+                <h2>My Grades</h2>
+                <p>Enter your Student ID and Assignment Code to see your results and per-question feedback.</p>
               </div>
-              <button class="print-button" onclick="window.print()">Print Section</button>
-            </div>
+              <div class="card-body">
+                <nav class="secondary-nav" aria-label="User Type Navigation">
+                  <ul class="nav-tabs" role="tablist">
+                    <li role="presentation">
+                      <button class="tab-btn active" id="student-view-btn" data-tab="student-view" aria-selected="true">
+                        <i class="fas fa-user-graduate"></i> Student View
+                      </button>
+                    </li>
+                    <!-- <li role="presentation">
+                      <button class="tab-btn" id="teacher-view-btn" data-tab="teacher-view" aria-selected="false">
+                        <i class="fas fa-chalkboard-teacher"></i> Teacher View
+                      </button>
+                    </li> -->
+                  </ul>
+                </nav>
+                <div id="student-view" class="student-grade-container">
+                  <h3>Check Your Assignment Results</h3>
+                  <form id="student-grade-form" class="form">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="student-id">Student ID Number</label>
+                        <input type="text" id="student-id" class="form-control" placeholder="Enter your student ID" required />
+                        <small class="form-text">Your unique student identifier</small>
+                      </div>
+                      <div class="form-group">
+                        <label for="assignment-id-student">Assignment Code</label>
+                        <input type="text" id="assignment-id-student" class="form-control" placeholder="Enter assignment code" required />
+                        <small class="form-text">Find this code on your assignment sheet</small>
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Retrieve Results
+                      </button>
+                      <button type="reset" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Clear
+                      </button>
+                    </div>
+                  </form>
+                  <div class="loader-container" id="student-loader-container">
+                    <div class="loader" id="student-loader"></div>
+                  </div>
+                  <div class="result-container" id="student-result">
+                    <div class="score-hero" id="score-hero" hidden></div>
+                    <h4>Your Assignment Summary</h4>
+                    <table id="summary-table" class="summary-table">
+                      <thead>
+                        <tr>
+                          <th>Student ID</th>
+                          <th>Assignment ID</th>
+                          <th>Total Marks</th>
+                          <th>Evaluation ID</th>
+                          <th>QP ID</th>
+                          <th>Date</th>
+                        </tr>
+                      </thead>
+                      <tbody id="summary-body"></tbody>
+                    </table>
+                    <h4>Question Breakdown</h4>
+                    <div class="q-path-nav" id="q-path-nav"></div>
+                    <div class="q-path-hint" id="q-path-hint">Select a question above to view its details.</div>
+                    <div class="q-count" id="q-count"></div>
+                    <div id="questions-container"></div>
+                  </div>
+                  <button class="print-button" onclick="window.print()">Print Section</button>
+                </div>
 
-          </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </section>
-    </div>
-  </main>
+      </main>
+    </main>
+  </div>
   <footer class="site-footer">
     <div class="container">
       <p>&copy; 2025 GradeAnt. All rights reserved.</p>
     </div>
   </footer>
+  <script src="..\javascript\api-cache.js"></script>
+  <script src="..\javascript\grade_display.js"></script>
   <script src="..\javascript\student_grade.js"></script>
 </body>
 </html>

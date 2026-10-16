@@ -35,7 +35,8 @@
   <section class="hero" id="hero">
     <div class="container">
       <div class="hero-content">
-        <h1 class="hero-title">Welcome to GradeAnt — The Future of STEM Grading</h1>
+        <span class="hero-eyebrow">AI-Powered STEM Homework Grading</span>
+        <h1 class="hero-title">Welcome to GradeAnt  The Future of STEM Grading</h1>
         <p class="hero-description">Evaluate assignments with personalized rubrics, detailed insights, and effortless handwritten recognition.</p>
         <div class="hero-buttons">
           <a href="#getstarted" class="btn btn-primary">Get Started</a>
@@ -446,7 +447,7 @@
       right: 30px;
       width: 50px;
       height: 50px;
-      background-color: var(--primary-color);
+      background-color: var(--brand);
       color: white;
       border-radius: 50%;
       display: flex;
@@ -457,16 +458,16 @@
       visibility: hidden;
       transition: all 0.3s ease;
       z-index: 1000;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--shadow-md);
     }
-    
+
     .back-to-top.show {
       opacity: 1;
       visibility: visible;
     }
-    
+
     .back-to-top:hover {
-      background-color: var(--secondary-color);
+      background-color: var(--brand-hover);
       transform: translateY(-5px);
     }
     
@@ -495,13 +496,13 @@
       z-index: 9999;
       transition: opacity 0.5s ease;
     }
-    
+
     .loader {
       width: 50px;
       height: 50px;
-      border: 5px solid #f3f3f3;
+      border: 5px solid var(--ink-150);
       border-radius: 50%;
-      border-top: 5px solid var(--primary-color);
+      border-top: 5px solid var(--brand);
       animation: spin 1s linear infinite;
     }
     

@@ -15,27 +15,36 @@
   <link rel="stylesheet" href="..\css\asthetic_style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="../component-loader.js"></script>
-  <link rel="stylesheet" href="..\teacher\teacher_grade.csss" />
+  <link rel="stylesheet" href="..\teacher\teacher_grade.css" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+    .main-content {
+      padding: 4rem 0;
+      /* background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); */
+    }
+  </style>
 </head>
 <body>
-<div class="particles"></div>
-  <!-- Navigation will be loaded here -->
-  <div id="nav"></div>
-  <main class="main-content">
+  <div class="app-shell">
+    <!-- Navigation will be loaded here -->
+    <div id="nav"></div>
+    <main class="app-main">
+    <main class="main-content">
     <div class="container">
   
-        <section id="grades-section" class="tab-content" role="tabpanel">
+        <section id="grades-section" class="tab-content active" role="tabpanel">
           <div class="card">
             <div class="card-header">
-              <h2><i class="fas fa-chart-bar"></i> View Grades</h2>
+              <span class="header-icon-badge"><i class="fas fa-chart-bar"></i></span>
+              <h2>View Grades</h2>
+              <p>Look up any student's results or pull the full class summary for a question paper.</p>
             </div>
             <div class="card-body">
               <nav class="secondary-nav" aria-label="User Type Navigation">
                 <ul class="nav-tabs" role="tablist">
                   <li role="presentation">
                     <button class="tab-btn" id="student-view-btn" data-tab="student-view" aria-selected="true">
-                      <i class="fas fa-user-graduate"></i> Single Student's Assignment Info View
+                      <i class="fas fa-eye"></i> Preview: What the Student Sees
                     </button>
                   </li>
                   <li role="presentation">
@@ -47,7 +56,10 @@
               </nav>
   
               <div id="student-view" class="sub-tab-content" style="display: none;">
-                <h3>View Your Assignment Grades</h3>
+                <h3>Preview a student's result</h3>
+                <div class="preview-banner">
+                  <i class="fas fa-eye"></i> This renders exactly what the student sees on their own grade page — same question breakdown, same correct/needs-correction badges, no editing controls.
+                </div>
                 <form id="student-grade-form" class="form">
                   <div class="form-row">
                     <div class="form-group">
@@ -74,6 +86,7 @@
                 </div>
   
                 <div class="result-container" id="student-result">
+                  <div class="score-hero" id="score-hero" hidden></div>
                   <h4>Your Assignment Summary</h4>
                   <table id="summary-table" class="summary-table">
                     <thead>
@@ -90,13 +103,20 @@
                   </table>
   
                   <h4>Question Breakdown</h4>
+                  <div class="q-path-nav" id="q-path-nav"></div>
+                  <div class="q-count" id="q-count"></div>
                   <div id="questions-container"></div>
                 </div>
                 <button class="print-button" onclick="window.print()">Print Section</button>
               </div>
   
               <div id="teacher-view" class="sub-tab-content active">
-                <h3>All Student Grades</h3>
+                <div class="questions-toolbar">
+                  <h3>All Student Grades</h3>
+                  <a href="teacher_correction.html" id="open-correction-link" class="preview-toggle-btn">
+                    <i class="fas fa-marker"></i> Open Correction Workspace
+                  </a>
+                </div>
                 <form id="teacher-grade-form" class="form">
                   <div class="form-row">
                     <div class="form-group">
@@ -121,6 +141,7 @@
                   <div class="loader" id="teacher-loader"></div>
                 </div>
                 <div class="result-container" id="teacher-result">
+                  <div class="class-stats" id="class-stats" hidden></div>
                   <h4>Student Grades Summary</h4>
                   <table id="students-table" class="data-table">
                     <thead>
@@ -141,17 +162,19 @@
           </div>
         </section>
       </div>
-    </div>
     </main>
-  
-    <footer class="site-footer">
+    </main>
+  </div>
+
+  <footer class="site-footer">
       <div class="container">
         <p>&copy; 2025 GradeAnt. All rights reserved.</p>
       </div>
     </footer>
 
+  <script src="..\javascript\api-cache.js"></script>
+  <script src="..\javascript\grade_display.js"></script>
   <script src="..\javascript\view_grades.js"></script>
-  <script >setupNavLinkHighlighting();</script>
   
 </body>
 </html>

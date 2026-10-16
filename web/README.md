@@ -1,0 +1,49 @@
+# GradeAnt — React app
+
+React 19 + TypeScript + Vite + React Router. It replaces the static HTML pages in the repo root; the backend (API Gateway + the Lambdas in `lambda_python_files/`) is unchanged.
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # type-check + production bundle in dist/
+npm run lint
+```
+
+API host: `src/config.ts`, overridable with `VITE_API_BASE_URL` (see `.env.example`).
+
+## Layout
+
+| Path | What |
+|---|---|
+| `src/App.tsx` | All routes. Role areas are wrapped in `RequireRole` (no session → `/session-expired`, wrong role → `/unauthorized`). |
+| `src/auth/` | `AuthContext` (session in local/sessionStorage, same keys as the old pages) and `RequireRole`. |
+| `src/lib/` | `api.ts` (fetch wrapper, Lambda-envelope unwrapping, admin operations), `apiCache.ts`, `session.ts`, `grading.ts`, `upload.ts`, `correction.ts`. |
+| `src/components/` | `AppShell` + `Sidebar` (student/teacher), `UploadPage`, `grades/` (score hero, question viewer), `correction/` (OCR correction editor), `PageScope`. |
+| `src/pages/` | `public/`, `auth/`, `session/`, `student/`, `teacher/`, `profile/`, `admin/`. |
+| `src/styles/` | The original stylesheets, copied as-is (see below). |
+
+## Styling
+
+The original per-page CSS was kept verbatim so pages look the same. In a single-page app all CSS is global, so `vite.config.ts` scopes each file:
+
+- `src/styles/pages/<name>.css` → every selector prefixed with `.page-<name>`
+- `src/styles/themes/<name>.css` (shared files like the old `asthetic_style.css`) → `.theme-<name>`
+- `body`/`html`/`:root` map to the wrapper itself.
+
+A page opts in with `<PageScope name="<name>" theme={[...]}>`, which renders that wrapper. Import order matters: themes first, then the page stylesheet.
+
+## Routes (old file → new path)
+
+| Old | New |
+|---|---|
+| `index.html`, `quick_links/*`, `resoures/*`, `legal/*` | `/`, `/features`, `/demo`, `/get-started`, `/about`, `/blog`, `/contact`, `/privacy`, `/terms`, `/cookies` |
+| `auth/login.html`, `auth/signup.html` | `/login`, `/signup` |
+| `session/*.html` | `/logout`, `/session-expired`, `/unauthorized`, `/multiple-login` |
+| `dashboards/student_dashboard_.html`, `student/*` | `/student/dashboard`, `/student/upload`, `/student/grades`, `/student/answer-correction` |
+| `dashboards/teacher_dashboard.html`, `teacher/*` | `/teacher/dashboard`, `/teacher/upload`, `/teacher/grades`, `/teacher/student-details`, `/teacher/correction`, `/teacher/question-correction` |
+| `userProfiles/*` | `/student/profile`, `/teacher/profile` |
+| `admin/*` | `/admin/dashboard`, `/admin/users`, `/admin/reset-requests`, `/admin/content`, `/admin/analytics`, `/admin/tickets`, `/admin/audit-logs`, `/admin/settings`, `/admin/profile`, `/first-login` |
+
+## Deploy
+
+`Dockerfile` builds the app and serves `dist/` with NGINX; `nginx.conf` adds the SPA fallback (so refreshing `/teacher/grades` works) and redirects the main old `.html` URLs.
