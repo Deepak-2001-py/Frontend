@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt Admin | System Settings</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../css/asthetic_style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="admin_dashboard.html" class="admin-sidebar-logo">
+        <span class="logo-mark"></span>
+        <span class="logo-word">GradeAnt</span>
+        <span class="admin-badge">ADMIN</span>
+      </a>
+      <a href="admin_dashboard.html" class="admin-nav-link"><span class="material-icons">dashboard</span>Overview</a>
+      <a href="admin_users.html" class="admin-nav-link"><span class="material-icons">group</span>Users</a>
+      <a href="admin_reset_requests.html" class="admin-nav-link"><span class="material-icons">lock_reset</span>Reset Requests</a>
+      <a href="admin_content.html" class="admin-nav-link"><span class="material-icons">article</span>Content &amp; Blog</a>
+      <a href="admin_analytics.html" class="admin-nav-link"><span class="material-icons">bar_chart</span>Analytics</a>
+      <a href="admin_tickets.html" class="admin-nav-link"><span class="material-icons">confirmation_number</span>Support Tickets</a>
+      <a href="admin_audit_logs.html" class="admin-nav-link"><span class="material-icons">history</span>Audit Logs</a>
+      <a href="admin_settings.html" class="admin-nav-link"><span class="material-icons">settings</span>System Settings</a>
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card" id="adminUserCard">
+          <span class="admin-user-avatar"></span>
+          <div class="admin-user-meta">
+            <div class="admin-user-name" id="adminUserName">Admin</div>
+            <div class="admin-user-role">Administrator</div>
+          </div>
+          <div class="admin-user-menu" id="adminUserMenu">
+            <a href="admin_profile.html"><span class="material-icons" style="font-size:16px;">person</span>My Profile</a>
+            <a href="#" id="adminLogoutBtn" class="danger"><span class="material-icons" style="font-size:16px;">logout</span>Logout</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <div class="admin-page-title">System settings</div>
+      </div>
+
+      <span id="adminAlert" class="status-pill" style="display:none;"></span>
+
+      <div class="admin-panel" style="max-width: 640px;">
+        <div class="admin-panel-title">Platform</div>
+        <div class="form">
+          <div class="form-group">
+            <label for="platformName">Platform name</label>
+            <input type="text" class="form-control" id="platformName" placeholder="GradeAnt">
+          </div>
+          <div class="form-group">
+            <label for="supportEmail">Support contact email</label>
+            <input type="email" class="form-control" id="supportEmail" placeholder="support@gradeant.io">
+          </div>
+          <div class="form-group">
+            <label for="sessionTimeout">Session timeout (minutes)</label>
+            <input type="number" class="form-control" id="sessionTimeout" min="5" max="480" placeholder="30">
+          </div>
+          <label style="display:flex; align-items:center; gap:9px; font-size:13px; color:var(--ink-700);">
+            <input type="checkbox" id="maintenanceMode">
+            Maintenance mode — signs out non-admins and blocks new logins
+          </label>
+          <label style="display:flex; align-items:center; gap:9px; font-size:13px; color:var(--ink-700);">
+            <input type="checkbox" id="allowSelfSignup">
+            Allow public self-signup (off = invite-only, per the Onboarding flow)
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save Changes</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/admin-common.js"></script>
+  <script src="../javascript/admin-settings.js"></script>
+</body>
+</html>

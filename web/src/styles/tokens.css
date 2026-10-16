@@ -1,0 +1,103 @@
+﻿/* GradeAnt design tokens (from nav.html) */
+:root {
+    /* ---- Brand: Orange (primary / hero) ---- */
+    --orange-50:  #FFF4EC;
+    --orange-100: #FFE6D2;
+    --orange-200: #FFC9A1;
+    --orange-300: #FFA869;
+    --orange-400: #FF8A38;
+    --orange-500: #FF7A00;
+    --orange-600: #EC5E00;
+    --orange-700: #C44A02;
+    --orange-800: #973807;
+    --orange-900: #7A2F0A;
+
+    /* ---- Growth: Teal ---- */
+    --teal-50:  #E7FBF5;
+    --teal-100: #C4F4E8;
+    --teal-200: #8DE8D3;
+    --teal-300: #51D7BB;
+    --teal-400: #20C0A3;
+    --teal-500: #12A88E;
+    --teal-600: #0C8B76;
+    --teal-700: #0B6F60;
+    --teal-800: #0B5A4E;
+    --teal-900: #093F38;
+
+    /* ---- Support: Sky ---- */
+    --sky-50:  #EAF4FE;
+    --sky-100: #D0E7FD;
+    --sky-300: #7FB6F2;
+    --sky-500: #4A90E2;
+    --sky-600: #2F73C4;
+    --sky-700: #235AA0;
+
+    /* ---- Warm neutral (ink) ---- */
+    --ink-900: #1C1813;
+    --ink-800: #2B261E;
+    --ink-700: #423B30;
+    --ink-600: #5C5446;
+    --ink-500: #7C7263;
+    --ink-400: #A39A89;
+    --ink-300: #C8C0B1;
+    --ink-200: #E5DFD3;
+    --ink-150: #EEE8DD;
+    --ink-100: #F5F0E7;
+    --ink-50:  #FAF6EF;
+    --white:   #FFFFFF;
+
+    /* ---- Semantic status ---- */
+    --color-success: #12A88E;
+    --color-success-soft: #E7FBF5;
+    --color-warning: #F5A623;
+    --color-warning-soft: #FFF3E0;
+    --color-danger:  #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-info:    #4A90E2;
+    --color-info-soft: #EAF4FE;
+
+    /* Semantic aliases */
+    --brand:        var(--orange-500);
+    --brand-hover:  var(--orange-600);
+    --brand-press:  var(--orange-700);
+    --brand-soft:   var(--orange-50);
+    --brand-on:     var(--white);
+    --accent:       var(--teal-500);
+    --accent-hover: var(--teal-600);
+    --accent-soft:  var(--teal-50);
+    --gradient-brand: linear-gradient(120deg, var(--orange-500) 0%, var(--orange-400) 38%, var(--teal-500) 100%);
+
+    --text-strong: var(--ink-900);
+    --text-body:   var(--ink-700);
+    --text-muted:  var(--ink-500);
+    --text-subtle: var(--ink-400);
+    --text-on-brand: var(--white);
+    --text-link:   var(--orange-600);
+
+    --surface-page:   var(--ink-50);
+    --surface-card:   var(--white);
+    --surface-sunken: var(--ink-100);
+    --surface-inverse: var(--ink-900);
+
+    --border-subtle:  var(--ink-150);
+    --border-default: var(--ink-200);
+    --border-strong:  var(--ink-300);
+
+    /* Typography */
+    --font-display: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-sans:    'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    /* Spacing / radius / shadow */
+    --radius-xs: 6px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 18px;
+    --radius-full: 999px;
+    --shadow-sm: 0 2px 6px rgba(43, 33, 20, 0.07), 0 1px 2px rgba(43, 33, 20, 0.05);
+    --shadow-md: 0 6px 16px rgba(43, 33, 20, 0.08), 0 2px 4px rgba(43, 33, 20, 0.05);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 0.16s;
+    --dur-base: 0.24s;
+  }
+

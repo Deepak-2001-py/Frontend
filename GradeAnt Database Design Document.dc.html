@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2efe8;font-family:'Patrick Hand',cursive;color:#1a1a1a}
+a{color:#2A5A8C}a:hover{color:#0F6E56}
+</style>
+</helmet>
+
+<div style="padding:40px 44px;display:flex;flex-direction:column;gap:30px" data-screen-label="Database Design Docs">
+
+<div style="width:1560px;background:#fbf9f4;border:2px solid #1a1a1a;border-radius:12px;box-shadow:5px 5px 0 rgba(0,0,0,.12);padding:36px 40px;display:flex;flex-direction:column;gap:44px">
+
+<!-- header + TOC -->
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:2px dashed #b9b2a4;padding-bottom:18px">
+  <div>
+    <div style="font-size:36px;line-height:1.1">GradeAnt — Database &amp; Data Design Pack</div>
+    <div style="font-size:16px;color:#666;margin-top:4px">How USERS, CLASSES (+ member rows), RESET_REQUESTS, ASSIGNMENTS, QUESTION_PAPERS and SUBMISSIONS connect. Five documents in one board.</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:14px">
+    <a href="#doc1" style="border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 10px;background:#fff;text-decoration:none;color:#1a1a1a">1 · DB Design</a>
+    <a href="#doc2" style="border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 10px;background:#fff;text-decoration:none;color:#1a1a1a">2 · ER Diagram</a>
+    <a href="#doc3" style="border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 10px;background:#fff;text-decoration:none;color:#1a1a1a">3 · Data Dictionary</a>
+    <a href="#doc4" style="border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 10px;background:#fff;text-decoration:none;color:#1a1a1a">4 · Data Flow</a>
+    <a href="#doc5" style="border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 10px;background:#fff;text-decoration:none;color:#1a1a1a">5 · API Spec</a>
+  </div>
+</div>
+
+<!-- ══ DOC 1 · DATABASE DESIGN ══ -->
+<div id="doc1" style="display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px">
+  <div style="font-size:26px">Doc 1 · Database Design Document — six DynamoDB tables + one log table</div>
+  <div style="font-size:15px;color:#666">Multi-table design (one table per aggregate) with an adjacency-list inside CLASSES for memberships. Every FK is a plain attribute holding another table's PK — joins happen in the &#955; handler via GSI query, never a scan.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:start">
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T1 — USERS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">USER#&lt;userId&gt; / PROFILE</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">GSI1</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">EMAIL#&lt;email&gt; — login-time profile lookup</td></tr>
+        <tr><td style="padding:5px 10px;font-weight:500">holds</td><td style="padding:5px 10px;color:#555">profile, role, accountStatus, cognitoSub</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:7px 10px;font-size:13.5px;color:#666;border-top:1px dashed #ddd">Referenced by every other table (teacherId, studentId, userId, actorId).</div>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T2 — CLASSES (+ member rows)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">CLASS#&lt;classId&gt; / METADATA</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">member row</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">SK = MEMBER#&lt;studentId&gt; (the enrollment itself)</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">GSI1</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">USER#&lt;studentId&gt; / CLASS#&lt;classId&gt; — "my classes"</td></tr>
+        <tr><td style="padding:5px 10px;font-weight:500">FK</td><td style="padding:5px 10px;color:#555">teacherId &#8594; T1 (one owning teacher)</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:7px 10px;font-size:13.5px;color:#666;border-top:1px dashed #ddd">M:N students&#8596;classes lives here — no separate MEMBERSHIPS table needed.</div>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T3 — ASSIGNMENTS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">ASSIGN#&lt;assignmentId&gt; / METADATA</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">GSI1</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">CLASS#&lt;classId&gt; / DUE#&lt;dueAt&gt; — class feed, sorted by due date</td></tr>
+        <tr><td style="padding:5px 10px;font-weight:500">FK</td><td style="padding:5px 10px;color:#555">classId &#8594; T2 &#183; qpId &#8594; T4</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:7px 10px;font-size:13.5px;color:#666;border-top:1px dashed #ddd">status: draft &#8594; open &#8594; closed &#8594; published.</div>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T4 — QUESTION_PAPERS (+ question rows)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">QP#&lt;qpId&gt; / METADATA</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">question row</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">SK = Q#&lt;qNo&gt; — one row per parsed question</td></tr>
+        <tr><td style="padding:5px 10px;font-weight:500">FK</td><td style="padding:5px 10px;color:#555">assignmentId &#8594; T3 (1:1) &#183; rawS3Key / parsedS3Key &#8594; S3</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:7px 10px;font-size:13.5px;color:#666;border-top:1px dashed #ddd">Big blobs (PDF, parsed.json, rubric.json) stay in S3 — DDB holds keys + status only.</div>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T5 — SUBMISSIONS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">SUB#&lt;submissionId&gt; / METADATA</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">GSI1</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">ASSIGN#&lt;assignmentId&gt; / USER#&lt;studentId&gt; — teacher's grading grid</td></tr>
+        <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">GSI2</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">USER#&lt;studentId&gt; / SUBMITTED#&lt;ts&gt; — "my submissions"</td></tr>
+        <tr><td style="padding:5px 10px;font-weight:500">FK</td><td style="padding:5px 10px;color:#555">assignmentId &#8594; T3 &#183; studentId &#8594; T1</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:7px 10px;font-size:13.5px;color:#666;border-top:1px dashed #ddd">One item per (assignment, student) — GSI1 key pair enforced unique by conditional write.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+        <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T6 — RESET_REQUESTS</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+          <tbody>
+          <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">RESET#&lt;requestId&gt; / METADATA</td></tr>
+          <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">GSI1</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">STATUS#&lt;status&gt; / &lt;createdAt&gt; — admin pending queue</td></tr>
+          <tr><td style="padding:5px 10px;font-weight:500">FK</td><td style="padding:5px 10px;color:#555">userId &#8594; T1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+        <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">T7 — AUDIT_LOG (append-only)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+          <tbody>
+          <tr><td style="padding:5px 10px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:5px 10px;border-bottom:1px dashed #ddd;color:#555">AUDIT#&lt;yyyy-mm&gt; / &lt;ts&gt;#&lt;eventId&gt;</td></tr>
+          <tr><td style="padding:5px 10px;font-weight:500">FK</td><td style="padding:5px 10px;color:#555">actorId, targetId &#8594; T1 (soft — never queried by GSI)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <sc-if value="{{ showSampleItems }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:10px 12px">
+      <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">Sample — enrollment row inside CLASSES (the "join table" item)</div>
+      <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "CLASS#C7", "SK": "MEMBER#S42",
+  "GSI1PK": "USER#S42", "GSI1SK": "CLASS#C7",
+  "memberStatus": "enrolled",
+  "addedBy": "ADMIN#AD1", "addedAt": "2026-07-01T10:05:00Z"
+}</pre>
+    </div>
+    <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:10px 12px">
+      <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">Sample — SUBMISSIONS item (all blobs are S3 keys)</div>
+      <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUB#B310", "SK": "METADATA",
+  "GSI1PK": "ASSIGN#A12", "GSI1SK": "USER#S42",
+  "GSI2PK": "USER#S42", "GSI2SK": "SUBMITTED#2026-07-11T08:20:00Z",
+  "status": "ai_graded", "score": 41, "totalMarks": 50, "flagged": ["q4"],
+  "rawS3Key": "subs/A12/S42/raw.pdf", "ocrS3Key": "subs/A12/S42/ocr.json",
+  "correctedS3Key": "subs/A12/S42/corrected.json",
+  "reportS3Key": "subs/A12/S42/report.json"
+}</pre>
+    </div>
+  </div>
+  </sc-if>
+
+  <div style="border:1.5px dashed #888;border-radius:10px;background:#fdfcf9;padding:12px 14px">
+    <div style="font-size:17px;margin-bottom:8px">Access patterns — every screen is one query, no scans</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+      <tbody>
+      <tr style="color:#555"><td style="padding:4px 8px;border-bottom:1px solid #ddd">Screen / need</td><td style="padding:4px 8px;border-bottom:1px solid #ddd">Table · index</td><td style="padding:4px 8px;border-bottom:1px solid #ddd">Key condition</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Login &#8594; load profile</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">USERS · GSI1</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">GSI1PK = EMAIL#&lt;email&gt;</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Student "my classes"</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">CLASSES · GSI1</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">GSI1PK = USER#&lt;sid&gt;</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Class roster (teacher/admin)</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">CLASSES · base</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">PK = CLASS#&lt;cid&gt; AND begins_with(SK, "MEMBER#")</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Assignments of a class, by due date</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">ASSIGNMENTS · GSI1</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">GSI1PK = CLASS#&lt;cid&gt;</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Questions of a paper</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">QUESTION_PAPERS · base</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">PK = QP#&lt;qpId&gt; AND begins_with(SK, "Q#")</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Teacher grading grid</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">SUBMISSIONS · GSI1</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">GSI1PK = ASSIGN#&lt;aid&gt;</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Student submission history</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">SUBMISSIONS · GSI2</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">GSI2PK = USER#&lt;sid&gt; (desc by SUBMITTED#ts)</td></tr>
+      <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Admin pending reset queue</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">RESET_REQUESTS · GSI1</td><td style="padding:4px 8px;border-bottom:1px dashed #eee">GSI1PK = STATUS#pending</td></tr>
+      <tr><td style="padding:4px 8px">Audit log by month</td><td style="padding:4px 8px">AUDIT_LOG · base</td><td style="padding:4px 8px">PK = AUDIT#2026-07 (desc by ts)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══ DOC 2 · ER DIAGRAM ══ -->
+<div id="doc2" style="display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px">
+    <div style="font-size:26px">Doc 2 · ER Diagram — logical entities &amp; relationships</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#E8F0F7;border:2px solid #2A5A8C"></span>Identity</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#FDF1EA;border:2px solid #993C1D"></span>Class layer</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#F0EBF9;border:2px solid #6B4FA0"></span>Coursework</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#EAF5F1;border:2px solid #0F6E56"></span>Submission</span>
+    </div>
+  </div>
+
+  <div style="position:relative;width:1470px;height:880px">
+    <svg style="position:absolute;left:0;top:0;width:1470px;height:880px" viewBox="0 0 1470 880">
+      <defs><marker id="erArw" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#555"></path></marker></defs>
+      <polyline points="310,360 400,380" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="310,310 350,310 350,120 400,120" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="535,210 535,300" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="670,390 770,390" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="910,480 910,600" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="1050,390 1140,390" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="170,480 170,835 1285,835 1285,515" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#erArw)"></polyline>
+      <polyline points="130,480 130,600" fill="none" stroke="#555" stroke-width="2" marker-end="url(#erArw)"></polyline>
+      <polyline points="310,430 370,430 370,715 400,715" fill="none" stroke="#555" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#erArw)"></polyline>
+    </svg>
+
+    <div style="position:absolute;left:322px;top:390px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1&#8594;N owns</div>
+    <div style="position:absolute;left:356px;top:180px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1 &#8594; N enrollments</div>
+    <div style="position:absolute;left:545px;top:240px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">N &#8594; 1 class</div>
+    <div style="position:absolute;left:682px;top:402px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1&#8594;N</div>
+    <div style="position:absolute;left:920px;top:530px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1 &#8594; 1 · qpId</div>
+    <div style="position:absolute;left:1062px;top:402px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1&#8594;N</div>
+    <div style="position:absolute;left:600px;top:842px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">student authors 1 &#8594; N · studentId (one per assignment)</div>
+    <div style="position:absolute;left:140px;top:530px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1 &#8594; N · userId</div>
+    <div style="position:absolute;left:380px;top:560px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">actorId / targetId</div>
+
+    <div style="position:absolute;left:40px;top:280px;width:270px;height:200px;box-sizing:border-box;border:2px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);overflow:hidden">
+      <div style="background:#E8F0F7;color:#2A5A8C;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #2A5A8C">USER</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">userId (PK)</b><br>role: student|teacher|admin<br>email · username · cognitoSub<br>accountStatus (5 states)<br>phone · photoS3Key</div>
+    </div>
+    <div style="position:absolute;left:400px;top:40px;width:270px;height:170px;box-sizing:border-box;border:2px solid #993C1D;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(153,60,29,.15);overflow:hidden">
+      <div style="background:#FDF1EA;color:#993C1D;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #993C1D">MEMBERSHIP <span style="font-size:12px;font-family:'IBM Plex Mono',monospace">(row in CLASSES)</span></div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">classId + studentId (PK+SK)</b><br>memberStatus: enrolled|removed<br>addedBy · addedAt</div>
+    </div>
+    <div style="position:absolute;left:400px;top:300px;width:270px;height:180px;box-sizing:border-box;border:2px solid #993C1D;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(153,60,29,.15);overflow:hidden">
+      <div style="background:#FDF1EA;color:#993C1D;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #993C1D">CLASS</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">classId (PK)</b><br>name · subject · term<br>teacherId (FK &#8594; USER)<br>createdBy · createdAt</div>
+    </div>
+    <div style="position:absolute;left:770px;top:280px;width:280px;height:200px;box-sizing:border-box;border:2px solid #6B4FA0;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(107,79,160,.15);overflow:hidden">
+      <div style="background:#F0EBF9;color:#6B4FA0;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #6B4FA0">ASSIGNMENT</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">assignmentId (PK)</b><br>classId (FK &#8594; CLASS)<br>qpId (FK &#8594; QUESTION_PAPER)<br>title · totalMarks · dueAt<br>status: draft|open|closed|published</div>
+    </div>
+    <div style="position:absolute;left:770px;top:600px;width:280px;height:180px;box-sizing:border-box;border:2px solid #6B4FA0;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(107,79,160,.15);overflow:hidden">
+      <div style="background:#F0EBF9;color:#6B4FA0;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #6B4FA0">QUESTION_PAPER + QUESTION</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">qpId (PK) · qNo (SK)</b><br>assignmentId (FK &#8594; ASSIGNMENT)<br>rawS3Key · parsedS3Key · rubricS3Key<br>per question: text · maxMarks · rubricItems</div>
+    </div>
+    <div style="position:absolute;left:1140px;top:280px;width:290px;height:235px;box-sizing:border-box;border:2px solid #0F6E56;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(15,110,86,.2);overflow:hidden">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">SUBMISSION</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">submissionId (PK)</b><br>assignmentId (FK &#8594; ASSIGNMENT)<br>studentId (FK &#8594; USER)<br>status (9-step pipeline)<br>score · flagged[] · overriddenBy<br>raw/ocr/corrected/report S3Keys</div>
+    </div>
+    <div style="position:absolute;left:40px;top:600px;width:270px;height:160px;box-sizing:border-box;border:2px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);overflow:hidden">
+      <div style="background:#E8F0F7;color:#2A5A8C;padding:6px 12px;font-size:18px;border-bottom:1.5px solid #2A5A8C">RESET_REQUEST</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">requestId (PK)</b><br>userId (FK &#8594; USER) · reason<br>status: pending&#8594;&#8230;&#8594;completed<br>decidedBy · tempPwExpiresAt</div>
+    </div>
+    <div style="position:absolute;left:400px;top:640px;width:270px;height:150px;box-sizing:border-box;border:2px dashed #2A5A8C;border-radius:10px;background:#F7FAFD;overflow:hidden">
+      <div style="color:#2A5A8C;padding:6px 12px;font-size:18px;border-bottom:1.5px dashed #2A5A8C">AUDIT_EVENT (append-only)</div>
+      <div style="padding:8px 12px;font-size:12px;font-family:'IBM Plex Mono',monospace;line-height:1.7;color:#555"><b style="color:#1a1a1a">month (PK) · ts#eventId (SK)</b><br>actorId · action · targetId · detail</div>
+    </div>
+  </div>
+  <div style="font-size:15px;color:#666">Key relationship: a SUBMISSION exists only where an enrollment does — the &#955; checks MEMBERSHIP(classId of the assignment, studentId) before issuing an upload URL.</div>
+</div>
+
+<!-- ══ DOC 3 · DATA DICTIONARY ══ -->
+<div id="doc3" style="display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px">
+  <div style="font-size:26px">Doc 3 · Data Dictionary — every ID and attribute defined</div>
+
+  <div style="border:1.5px dashed #888;border-radius:10px;background:#fdfcf9;padding:12px 14px">
+    <div style="font-size:17px;margin-bottom:8px">ID definitions — all IDs are ULIDs (sortable, no coordination) behind a typed prefix</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px 24px;font-size:12.5px;font-family:'IBM Plex Mono',monospace;color:#555">
+      <div><b style="color:#1a1a1a">userId</b> — USER#01J&#8230; · immutable; Cognito sub stored alongside, never used as PK</div>
+      <div><b style="color:#1a1a1a">classId</b> — CLASS#01J&#8230; · minted by &#955; class-admin</div>
+      <div><b style="color:#1a1a1a">assignmentId</b> — ASSIGN#01J&#8230; · minted on create (draft)</div>
+      <div><b style="color:#1a1a1a">qpId</b> — QP#01J&#8230; · minted when teacher requests QP upload</div>
+      <div><b style="color:#1a1a1a">submissionId</b> — SUB#01J&#8230; · minted on upload request; unique per (assignmentId, studentId)</div>
+      <div><b style="color:#1a1a1a">requestId</b> — RESET#01J&#8230; · minted by unauthenticated &#955; reset-request</div>
+      <div><b style="color:#1a1a1a">eventId</b> — 8-char random suffix on &lt;ts&gt; · uniqueness inside a ms</div>
+      <div><b style="color:#1a1a1a">S3 keys</b> — subs/&lt;aid&gt;/&lt;sid&gt;/&lt;file&gt; · qp/&lt;qpId&gt;/&lt;file&gt; · never guessable-public, presigned only</div>
+      <div><b style="color:#1a1a1a">timestamps</b> — ISO-8601 UTC strings, sortable lexicographically</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+    <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+      <div style="background:#1a1a1a;color:#fff;padding:7px 12px;font-size:17px">USERS attributes</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr style="color:#888"><td style="padding:4px 10px;border-bottom:1px solid #ddd">attr</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">type</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">definition</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">cognitoSub</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·uuid</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">link to Cognito identity; set once at provision</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">username</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">login handle; admin-editable only</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">email · phone · photoS3Key</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">self-service editable profile fields</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">role</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·enum</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">student | teacher | admin — mirrors Cognito group</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">accountStatus</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·enum</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">invited | active | temp_password | suspended | deactivated</td></tr>
+        <tr><td style="padding:4px 10px;font-weight:500">createdBy · createdAt · lastLoginAt · activeResetId</td><td style="padding:4px 10px;color:#888">S</td><td style="padding:4px 10px;color:#555">audit trail + open reset pointer</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+      <div style="background:#1a1a1a;color:#fff;padding:7px 12px;font-size:17px">CLASSES + MEMBER attributes</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr style="color:#888"><td style="padding:4px 10px;border-bottom:1px solid #ddd">attr</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">type</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">definition</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">name · subject · term</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">display metadata, e.g. "Physics 12-B · 2026-T2"</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">teacherId</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·FK</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">one owning teacher; reassignment is an admin action + audit event</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">memberStatus</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·enum</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">enrolled | removed — soft delete keeps submission history valid</td></tr>
+        <tr><td style="padding:4px 10px;font-weight:500">addedBy · addedAt</td><td style="padding:4px 10px;color:#888">S</td><td style="padding:4px 10px;color:#555">who enrolled the student (admin or owning teacher)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+      <div style="background:#1a1a1a;color:#fff;padding:7px 12px;font-size:17px">ASSIGNMENTS + QUESTION_PAPERS attributes</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr style="color:#888"><td style="padding:4px 10px;border-bottom:1px solid #ddd">attr</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">type</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">definition</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">title · totalMarks · dueAt</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·N·S</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">totalMarks = sum of question maxMarks, validated at open</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">status</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·enum</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">draft | open | closed | published — students see open+ only</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">parseStatus</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·enum</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">uploaded | parsing | parsed | teacher_reviewed | failed</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">Q# rows: text · maxMarks</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·N</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">parsed question; teacher can edit before opening</td></tr>
+        <tr><td style="padding:4px 10px;font-weight:500">rubricItems</td><td style="padding:4px 10px;color:#888">L·map</td><td style="padding:4px 10px;color:#555">[{criterion, marks, keywords[]}] — fed verbatim to the grading prompt</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+      <div style="background:#1a1a1a;color:#fff;padding:7px 12px;font-size:17px">SUBMISSIONS attributes</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr style="color:#888"><td style="padding:4px 10px;border-bottom:1px solid #ddd">attr</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">type</td><td style="padding:4px 10px;border-bottom:1px solid #ddd">definition</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">status</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S·enum</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">upload_requested &#8594; uploaded &#8594; ocr_done &#8594; corrected &#8594; grading_triggered &#8594; ai_graded &#8594; flagged? &#8594; overridden? &#8594; published</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">score · totalMarks</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">N</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">denormalized copy of totalMarks frozen at submit time</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">flagged</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">L·S</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">question numbers with low AI confidence &#8594; SQS review queue</td></tr>
+        <tr><td style="padding:4px 10px;border-bottom:1px dashed #eee;font-weight:500">raw/ocr/corrected/report S3Key</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#888">S</td><td style="padding:4px 10px;border-bottom:1px dashed #eee;color:#555">the four artifacts of the pipeline (Doc 4)</td></tr>
+        <tr><td style="padding:4px 10px;font-weight:500">overriddenBy · gradedAt · publishedAt</td><td style="padding:4px 10px;color:#888">S</td><td style="padding:4px 10px;color:#555">teacher override + lifecycle stamps</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div style="font-size:15px;color:#666">RESET_REQUESTS and AUDIT_LOG attributes are defined in the auth board (<a href="GradeAnt Schema Flow Wireframes.dc.html#3a">3a</a>) — unchanged here.</div>
+</div>
+
+<!-- ══ DOC 4 · DATA FLOW ══ -->
+<div id="doc4" style="display:flex;flex-direction:column;gap:14px;scroll-margin-top:16px">
+  <div style="font-size:26px">Doc 4 · Data Flow Diagram — upload &#8594; parsing &#8594; grading &#8594; results</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">1 · UPLOAD<br>(student)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Student picks assignment &#183; POST /assignments/{id}/submissions</span>
+        <span style="font-size:16px;color:#888">&#8594; membership check &#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">SUBMISSIONS &#171;upload_requested&#187;</span>
+        <span style="font-size:16px;color:#888">&#8594; presigned URL &#8594; direct PUT &#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 raw.pdf</span>
+        <span style="font-size:16px;color:#888">&#8594; S3 event &#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">&#171;uploaded&#187;</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">2 · OCR</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="font-size:16px;color:#888">DDB stream &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; ocr &#8594; Textract</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 ocr.json</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">&#171;ocr_done&#187;</span>
+        <span style="font-size:16px;color:#888">&#8594; student reviews text, fixes misreads &#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 corrected.json</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">&#171;corrected&#187;</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">3 · GRADE<br>(auto)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="font-size:16px;color:#888">cond. write &#171;grading_triggered&#187; &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; grade &#8594; Bedrock</span>
+        <span style="font-size:16px;color:#888">reads corrected.json + QP rubricItems &#8594; per-question scores &#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 report.json</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">&#171;ai_graded&#187; + score</span>
+        <span style="font-size:16px;color:#888">&#183; low confidence &#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SQS review queue &#171;flagged&#187;</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">4 · REVIEW<br>(teacher)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Teacher works the queue &#183; per-question override + comment</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">report.json v2</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">&#171;overridden&#187; + overriddenBy</span>
+        <span style="font-size:16px;color:#888">&#183; every override also &#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">AUDIT_LOG grade_overridden</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">5 · RESULTS</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Teacher clicks Publish (whole assignment)</span>
+        <span style="font-size:16px;color:#888">&#8594; batch update &#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">all SUBMISSIONS &#171;published&#187; · ASSIGNMENT &#171;published&#187;</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SNS &#8594; student email/push</span>
+        <span style="font-size:16px;color:#888">&#8594; results screen reads report.json via GET /submissions/{id}/report</span>
+      </div>
+    </div>
+  </div>
+  <div style="font-size:15px;color:#666">Invariant: S3 holds the artifacts (raw.pdf &#8594; ocr.json &#8594; corrected.json &#8594; report.json), DynamoDB holds the state machine. Status is only ever advanced by conditional writes, so a replayed event can't move a submission backwards.</div>
+</div>
+
+<!-- ══ DOC 5 · API SPEC ══ -->
+<div id="doc5" style="display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px">
+  <div style="font-size:26px">Doc 5 · API Specification — REST over API Gateway, Cognito-JWT authorized</div>
+  <div style="font-size:15px;color:#666">Auth: every route (except reset-request) requires <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">Authorization: Bearer &lt;idToken&gt;</span>. The Cognito authorizer validates the JWT; the route table below enforces the role claim; &#955; handlers add row-level checks (class membership, PK ownership). Login/refresh go straight to Cognito via SDK — no custom endpoint.</div>
+
+  <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+    <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+      <tbody>
+      <tr style="color:#888;background:#fdfcf9"><td style="padding:6px 12px;border-bottom:1.5px solid #1a1a1a">endpoint</td><td style="padding:6px 12px;border-bottom:1.5px solid #1a1a1a">role</td><td style="padding:6px 12px;border-bottom:1.5px solid #1a1a1a">request</td><td style="padding:6px 12px;border-bottom:1.5px solid #1a1a1a">response</td></tr>
+
+      <tr><td colspan="4" style="padding:6px 12px;background:#F7FAFD;color:#2A5A8C;font-size:14px;border-bottom:1px solid #ddd">AUTH (public, rate-limited)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /auth/reset-request</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{usernameOrEmail, reason}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">202 {requestId, status:"pending"}</td></tr>
+
+      <tr><td colspan="4" style="padding:6px 12px;background:#F7FAFD;color:#2A5A8C;font-size:14px;border-bottom:1px solid #ddd">ADMIN</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /admin/users</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{username, email, role, classIds?}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">201 {userId, accountStatus:"invited"}</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /admin/users/bulk</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{fileName} &#8594; presigned CSV upload</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">202 {importId} · errors in per-import report</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">PATCH /admin/users/{userId}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{role? | accountStatus? | username?}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 profile · writes AUDIT_LOG</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">GET /admin/reset-requests?status=pending</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {items[]} (RESET_REQUESTS.GSI1)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /admin/reset-requests/{id}/approve · /reject</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{rejectReason?}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {status} · temp pw via SES only</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /classes · POST /classes/{id}/members</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin (+teacher for own class members)</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{name, subject, teacherId} · {studentIds[]}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">201 {classId} · 200 {added}</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">GET /admin/audit?month=2026-07</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#2A5A8C">admin</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {events[]}</td></tr>
+
+      <tr><td colspan="4" style="padding:6px 12px;background:#FDF8F4;color:#993C1D;font-size:14px;border-bottom:1px solid #ddd">TEACHER (row check: JWT sub must be teacherId of the class)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /assignments</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#993C1D">teacher</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{classId, title, dueAt, totalMarks}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">201 {assignmentId, status:"draft"}</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /assignments/{id}/question-paper</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#993C1D">teacher</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{fileName, contentType}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {qpId, uploadUrl} &#8594; parse pipeline</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">PUT /question-papers/{qpId}/questions/{qNo}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#993C1D">teacher</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{text?, maxMarks?, rubricItems?}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 question row (pre-open review)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">GET /assignments/{id}/submissions</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#993C1D">teacher</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {items[]: status, score, flagged} (GSI1)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /submissions/{id}/override</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#993C1D">teacher</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{overrides:[{qNo, score, comment}]}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {score} · report.json v2 + audit</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /assignments/{id}/publish</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#993C1D">teacher</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {published: n} &#8594; SNS fan-out</td></tr>
+
+      <tr><td colspan="4" style="padding:6px 12px;background:#F5FAF8;color:#0F6E56;font-size:14px;border-bottom:1px solid #ddd">STUDENT (row checks: class membership + PK ownership)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">GET /me/classes</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#0F6E56">any</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {classes[]} (CLASSES.GSI1)</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">GET /classes/{id}/assignments</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#0F6E56">student·member</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">—</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {items[]} status &#8805; open only</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">POST /assignments/{id}/submissions</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#0F6E56">student·member</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{fileName, contentType}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {submissionId, uploadUrl} · 409 if already submitted</td></tr>
+      <tr><td style="padding:5px 12px;border-bottom:1px dashed #eee;font-weight:500">PATCH /submissions/{id}/ocr-fix</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#0F6E56">student·owner</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">{fixes:[{qNo, text}]}</td><td style="padding:5px 12px;border-bottom:1px dashed #eee;color:#555">200 {status:"corrected"} &#8594; triggers grading</td></tr>
+      <tr><td style="padding:5px 12px;font-weight:500">GET /submissions/{id} · /report</td><td style="padding:5px 12px;color:#0F6E56">owner | teacher</td><td style="padding:5px 12px;color:#555">—</td><td style="padding:5px 12px;color:#555">200 status/meta · report.json only when published</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <sc-if value="{{ showApiExamples }}" hint-placeholder-val="{{ true }}">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:10px 12px">
+      <div style="font-size:13px;color:#993C1D;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">Example request — POST /assignments/A12/submissions</div>
+      <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">POST /assignments/A12/submissions
+Authorization: Bearer eyJ&#8230;   // role=student, sub&#8594;USER#S42
+
+{ "fileName": "answers.pdf", "contentType": "application/pdf" }
+
+&#955; checks: ASSIGNMENT A12 status=open &#183; dueAt not passed
+&#183; CLASSES has (CLASS#C7, MEMBER#S42) enrolled
+&#183; no existing SUB with GSI1 (ASSIGN#A12, USER#S42)</pre>
+    </div>
+    <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:10px 12px">
+      <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">Example response — 200 (and the DDB item it created)</div>
+      <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "submissionId": "SUB#B310",
+  "uploadUrl": "https://s3&#8230;/subs/A12/S42/raw.pdf?X-Amz-&#8230;",
+  "expiresIn": 900
+}
+// SUBMISSIONS: { PK:"SUB#B310", status:"upload_requested",
+//   GSI1PK:"ASSIGN#A12", GSI1SK:"USER#S42" }
+// EventBridge sweeper expires this if no PUT within 24h</pre>
+    </div>
+  </div>
+  </sc-if>
+</div>
+
+</div>
+
+<p style="margin:0;font:14px/1.5 'Patrick Hand',cursive;color:rgba(0,0,0,.55)">Companion boards: <a href="GradeAnt Schema Flow Wireframes.dc.html#3a">auth &amp; identity (3a)</a> · <a href="GradeAnt Schema Flow Wireframes.dc.html#2a">full AWS system (2a)</a>. Try next: "add capacity &amp; cost notes per table" · "expand the DFD into a sequence diagram" · "generate the OpenAPI YAML".</p>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showSampleItems&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Detail level&quot;},&quot;showApiExamples&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Detail level&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showSampleItems: this.props.showSampleItems ?? true,
+      showApiExamples: this.props.showApiExamples ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>

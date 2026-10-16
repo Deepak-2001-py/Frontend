@@ -6,15 +6,14 @@
   <title>GradeAnt Dashboard</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
    <!-- Styles -->
-   <link rel="stylesheet" href="..\dashboards\teacher_dashboard.css" />
+   <link rel="stylesheet" href="../dashboards/teacher_dashboard.css" />
 </head>
 <body>
 <script src="../component-loader.js"></script>
-  <script >setupNavLinkHighlighting();</script>
-</head>
-<body>
-<!-- Navigation will be loaded here -->
-<div id="nav"></div>
+<div class="app-shell">
+  <!-- Navigation will be loaded here -->
+  <div id="nav"></div>
+  <main class="app-main">
   <!-- Main Dashboard Content -->
   <section class="dashboard-container container">
     <!-- Welcome Section -->
@@ -88,6 +87,17 @@
       
       <div class="option-card">
         <div class="option-image">
+          <img src="../img/ChatGPT Image Apr 3, 2025, 04_52_22 PM.png" alt="Manual Grading & Correction">
+        </div>
+        <div class="option-content">
+          <h3>Manual Grading &amp; Correction</h3>
+          <p>Review AI-flagged answers, annotate, adjust rubric scores, and finalize corrections before publishing.</p>
+          <button class="btn btn-primary" data-nav="teacher-nav-correction" data-url="../teacher/teacher_correction.html">Open Correction Workspace</button>
+        </div>
+      </div>
+
+      <div class="option-card">
+        <div class="option-image">
           <img src="../img/analytic_dashboard.png" alt="Analytics Dashboard">
         </div>
         <div class="option-content">
@@ -108,13 +118,22 @@
         </div>
       </div>
     </div>
-  </section> 
+  </section>
+  </main>
+</div>
 
   <!-- Loading Spinner -->
   <div class="loading-spinner" id="loadingSpinner" style="display: none;">
     <div class="spinner"></div>
   </div>
+    <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 GradeAnt. All rights reserved.</p>
+    </div>
+  </footer>
     <!-- Scripts -->
+    <script src="../javascript/api-cache.js"></script>
     <script src="..\dashboards\teacher_dashboard.js"></script>
 </body>
 </html>

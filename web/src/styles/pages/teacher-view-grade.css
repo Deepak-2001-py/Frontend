@@ -1,0 +1,107 @@
+/* From the inline <style> in teacher/teacher_view_grade.html */
+.main-content {
+  padding: 4rem 0;
+}
+
+/* Styles view_grades.js injected at runtime (addStyles) */
+.feedback-container {
+  margin-top: 10px;
+}
+.feedback-section {
+  margin-bottom: 15px;
+  border-left: 3px solid #4a90e2;
+  padding-left: 15px;
+}
+.feedback-section h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #4a90e2;
+  font-weight: bold;
+}
+.feedback-content {
+  margin-left: 5px;
+}
+.feedback-content ul {
+  margin-top: 5px;
+  padding-left: 20px;
+}
+.feedback-content li {
+  margin-bottom: 5px;
+}
+
+/* Code block styling */
+pre {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  overflow-x: auto;
+  margin: 10px 0;
+  font-family: 'Courier New', Courier, monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9em;
+}
+
+/* Syntax highlighting based on language */
+.language-python { color: #3572A5; }
+.language-javascript { color: #f1e05a; }
+.language-java { color: #b07219; }
+.language-cpp, .language-c { color: #f34b7d; }
+
+/* Markdown styling */
+strong { font-weight: bold; }
+h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 5px;
+}
+h3 {
+  font-size: 1.25em;
+  font-weight: bold;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+/* Question item styling */
+.question-item {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.question-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.question-meta {
+  margin: 10px 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.question-meta .marks {
+  margin-right: 15px;
+  font-weight: bold;
+}
+
+.obtained { color: #28a745; }
+.max { color: #6c757d; }
+
+.answer-section, .reasoning-section {
+  margin-top: 15px;
+}
+
+.answer-section h4, .reasoning-section h4 {
+  margin-bottom: 10px;
+  color: #495057;
+}

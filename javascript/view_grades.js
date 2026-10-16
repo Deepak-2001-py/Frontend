@@ -277,22 +277,65 @@ teacherViewBtn.addEventListener("click", function () {
         return;
       }
       fetchAllStudentGrades(qpId, assignmentId);
+
+      // Carry the same qp_id/assignment_id into the correction worklist
+      // (teacher_correction.html) so "Open Correction Workspace" jumps
+      // straight into a pre-filled scan instead of an empty form.
+      const openCorrectionLink = document.getElementById("open-correction-link");
+      if (openCorrectionLink) {
+        openCorrectionLink.href = `teacher_correction.html?qp_id=${encodeURIComponent(qpId)}&assignment_id=${encodeURIComponent(assignmentId)}`;
+      }
     });
 
-  // Utility for API requests using the configured GRADES endpoint
+  // Restore whatever was last searched on this tab, so navigating away and
+  // back (or reloading) shows the same table again instead of an empty
+  // form. The re-fetch below resolves straight from apiCache (same exact
+  // query = cache hit), so this never re-hits the network.
+  (function restoreLastQueries() {
+    const lastStudent = apiCache.get("lastQuery:studentGrade");
+    if (lastStudent && lastStudent.studentId && lastStudent.assignmentId) {
+      document.getElementById("student-id").value = lastStudent.studentId;
+      document.getElementById("assignment-id-student").value = lastStudent.assignmentId;
+      fetchStudentGrades(lastStudent.studentId, lastStudent.assignmentId);
+    }
+
+    const lastTeacher = apiCache.get("lastQuery:teacherGrades");
+    if (lastTeacher && lastTeacher.qpId && lastTeacher.assignmentId) {
+      document.getElementById("qp-id").value = lastTeacher.qpId;
+      document.getElementById("assignment-id-teacher").value = lastTeacher.assignmentId;
+      fetchAllStudentGrades(lastTeacher.qpId, lastTeacher.assignmentId);
+
+      const openCorrectionLink = document.getElementById("open-correction-link");
+      if (openCorrectionLink) {
+        openCorrectionLink.href = `teacher_correction.html?qp_id=${encodeURIComponent(lastTeacher.qpId)}&assignment_id=${encodeURIComponent(lastTeacher.assignmentId)}`;
+      }
+    }
+  })();
+
+  // Utility for API requests using the configured GRADES endpoint — reads
+  // are cached per exact query for the tab session, so re-searching the
+  // same student/assignment or coming back to this page doesn't re-fetch.
   async function makeAPIRequest(data) {
+    const cacheKey = `grades:${JSON.stringify(data)}`;
+    const cached = apiCache.get(cacheKey);
+    if (cached !== undefined) return cached;
     try {
+      const authToken = sessionStorage.getItem("authToken") || localStorage.getItem("authToken");
       const response = await fetch(CONFIG.API.GRADES_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`,
         },
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error(errBody.error || errBody.message || `HTTP error! Status: ${response.status}`);
       }
-      return await response.json();
+      const result = await response.json();
+      apiCache.set(cacheKey, result);
+      return result;
     } catch (error) {
       console.error("API request failed:", error);
       throw error;
@@ -315,6 +358,18 @@ teacherViewBtn.addEventListener("click", function () {
     document.getElementById(elementId).style.display = "none";
   }
 
+  // Shows a .result-container and (re)plays its CSS reveal animation
+  // (asthetic_style.css's resultReveal keyframes) — removing the class
+  // before re-adding it, via a forced reflow, is what lets the animation
+  // replay on a second search rather than only firing once ever.
+  function revealResultContainer(el) {
+    if (!el) return;
+    el.style.display = "block";
+    el.classList.remove("is-revealed");
+    void el.offsetWidth;
+    el.classList.add("is-revealed");
+  }
+
   async function fetchStudentGrades(studentId, assignmentId) {
     showLoading("student-loader");
 
@@ -325,6 +380,7 @@ teacherViewBtn.addEventListener("click", function () {
         assignment_id: assignmentId,
       };
       const response = await makeAPIRequest(data);
+      apiCache.set("lastQuery:studentGrade", { studentId, assignmentId });
 
       displayStudentSummary(response);
       displayDetails(response);
@@ -346,6 +402,7 @@ teacherViewBtn.addEventListener("click", function () {
         assignment_id: assignmentId,
       };
       const response = await makeAPIRequest(data);
+      apiCache.set("lastQuery:teacherGrades", { qpId, assignmentId });
       displayAllStudentGrades(response);
     } catch (error) {
       UIManager.showAlert(
@@ -530,10 +587,40 @@ function displayAllStudentGrades(data) {
   // Show success message with count
   if (validGradesCount > 0) {
     UIManager.showAlert(`Successfully loaded ${validGradesCount} grade record(s)`, "success");
-    teacherResultContainer.style.display = "block";
+    renderClassStats(result.grades);
+    revealResultContainer(teacherResultContainer);
   } else {
     UIManager.showAlert("No valid grade records found", "warning");
   }
+}
+
+// Class-wide stat strip (student count, average/highest/lowest total
+// marks) built from the same roster response the table already renders —
+// no extra API call, just a summary of numbers already on hand.
+function renderClassStats(grades) {
+  const container = document.getElementById("class-stats");
+  if (!container) return;
+
+  const marks = grades
+    .map((g) => parseFloat(g.total_marks))
+    .filter((n) => !isNaN(n));
+
+  if (marks.length === 0) {
+    container.hidden = true;
+    return;
+  }
+
+  const average = marks.reduce((sum, n) => sum + n, 0) / marks.length;
+  const highest = Math.max(...marks);
+  const lowest = Math.min(...marks);
+
+  container.innerHTML = `
+    <div class="class-stat"><div class="class-stat-value">${grades.length}</div><div class="class-stat-label">Students</div></div>
+    <div class="class-stat"><div class="class-stat-value">${average.toFixed(1)}</div><div class="class-stat-label">Average</div></div>
+    <div class="class-stat"><div class="class-stat-value highest">${highest}</div><div class="class-stat-label">Highest</div></div>
+    <div class="class-stat"><div class="class-stat-value lowest">${lowest}</div><div class="class-stat-label">Lowest</div></div>
+  `;
+  container.hidden = false;
 }
 
 // Single student details view
@@ -663,7 +750,20 @@ function displayStudentSummary(data) {
   // Show result and success message
   if (validRecordsCount > 0) {
     UIManager.showAlert(`Successfully loaded ${validRecordsCount} summary record(s)`, "success");
-    studentResultContainer.style.display = "block";
+
+    const scoreHero = document.getElementById("score-hero");
+    if (scoreHero && result.summary[0]) {
+      const maxMarks = Array.isArray(result.details)
+        ? result.details.reduce((sum, q) => sum + (parseFloat(q.max_marks) || 0), 0)
+        : 0;
+      renderScoreHero(scoreHero, {
+        totalMarks: result.summary[0].total_marks,
+        maxMarks,
+        details: result.details,
+      });
+    }
+
+    revealResultContainer(studentResultContainer);
   } else {
     UIManager.showAlert("No valid summary records found", "warning");
   }
@@ -757,18 +857,22 @@ function displayDetails(data) {
   validDetails.forEach((question, index) => {
     try {
       const questionCard = document.createElement('div');
-      questionCard.className = 'question-item';
-      
+      const status = getMarksStatus(question.marks, question.max_marks);
+      const badge = getStatusBadge(status);
+      questionCard.className = `question-item status-${status}`;
+      questionCard.id = `q-card-${index}`;
+      questionCard.dataset.qIndex = String(index);
+
       // Handle timestamp safely
       let timestamp = '';
       if (question.timestamp) {
         try {
           // Handle both Unix timestamp (seconds) and milliseconds
-          const ts = question.timestamp.toString().length === 10 
-            ? question.timestamp * 1000 
+          const ts = question.timestamp.toString().length === 10
+            ? question.timestamp * 1000
             : question.timestamp;
           const date = new Date(ts);
-          
+
           if (!isNaN(date.getTime())) {
             timestamp = date.toLocaleString();
           }
@@ -780,12 +884,19 @@ function displayDetails(data) {
       // Create question header
       const questionHeader = document.createElement('div');
       questionHeader.className = 'question-header';
-      
+
       const questionTitle = document.createElement('h3');
       const questionNum = question.question_number || '';
       const subpart = question.subpart ? ` (${question.subpart})` : '';
       questionTitle.textContent = `Question ${questionNum}${subpart}`;
       questionHeader.appendChild(questionTitle);
+
+      if (badge.text) {
+        const statusBadge = document.createElement('span');
+        statusBadge.className = `status-badge status-badge-${status}`;
+        statusBadge.textContent = badge.text;
+        questionHeader.appendChild(statusBadge);
+      }
 
       // Create question meta
       const questionMeta = document.createElement('div');
@@ -832,16 +943,30 @@ function displayDetails(data) {
       answerPre.innerHTML = renderContent(question.student_answer || 'No answer provided');
       answerSection.appendChild(answerPre);
 
-      // Create reasoning section
+      // Create reasoning section — feedback/correction starts collapsed,
+      // revealed by clicking the toggle button (delegated listener below).
       const reasoningSection = document.createElement('div');
       reasoningSection.className = 'reasoning-section rubric';
-      
-      const feedbackTitle = document.createElement('h4');
-      feedbackTitle.textContent = 'Feedback:';
-      reasoningSection.appendChild(feedbackTitle);
-      
+
+      const feedbackToggleBtn = document.createElement('button');
+      feedbackToggleBtn.type = 'button';
+      feedbackToggleBtn.className = 'feedback-toggle-btn';
+      feedbackToggleBtn.setAttribute('aria-expanded', 'false');
+
+      const feedbackToggleLabel = document.createElement('span');
+      feedbackToggleLabel.textContent = status === 'correct' ? 'Feedback' : 'Correction';
+      feedbackToggleBtn.appendChild(feedbackToggleLabel);
+
+      const feedbackToggleIcon = document.createElement('span');
+      feedbackToggleIcon.className = 'feedback-toggle-icon';
+      feedbackToggleIcon.textContent = '▾';
+      feedbackToggleBtn.appendChild(feedbackToggleIcon);
+
+      reasoningSection.appendChild(feedbackToggleBtn);
+
       const feedbackContainer = document.createElement('div');
       feedbackContainer.className = 'feedback-container';
+      feedbackContainer.hidden = true;
       feedbackContainer.innerHTML = renderContent(question.feedback || 'No additional reasoning provided');
       reasoningSection.appendChild(feedbackContainer);
 
@@ -862,6 +987,10 @@ function displayDetails(data) {
 
   if (processedCount > 0) {
     showAlert(`Successfully loaded ${processedCount} question detail(s)`, "success");
+    // Horizontal one-question-at-a-time viewer (see student_grade.js for
+    // the same pattern) — a scroll-snapped row + pill-based question path
+    // nav, mirroring the wireframe's "‹ Q3 / Q5 ›" question pager.
+    setupQuestionPathNav(validDetails);
     // Load MathJax if needed
     loadMathJax(questionsContainer);
   } else {
@@ -869,9 +998,161 @@ function displayDetails(data) {
   }
 }
 
+// ---- Horizontal question-path navigation ----
+// currentQuestionIndex starts at -1 ("nothing selected yet") — the
+// question-card row stays collapsed until the user clicks a pill, per
+// the requested first-view: pill nav only, cards revealed on click.
+let currentQuestionIndex = -1;
+let totalQuestionsCount = 0;
+
+function setupQuestionPathNav(details) {
+  const nav = document.getElementById('q-path-nav');
+  const container = document.getElementById('questions-container');
+  totalQuestionsCount = details.length;
+  currentQuestionIndex = -1;
+  if (container) container.classList.add('is-collapsed');
+  if (!nav) return;
+
+  const pills = details.map((q, i) => {
+    const status = getMarksStatus(q.marks, q.max_marks);
+    const label = `Q${escapeHtml(String(q.question_number || i + 1))}${q.subpart ? escapeHtml(q.subpart) : ''}`;
+    return `<button type="button" class="q-path-pill status-${status}" data-index="${i}">${label}</button>`;
+  }).join('');
+
+  nav.innerHTML = `
+    <button type="button" class="q-path-btn q-path-prev" aria-label="Previous question">‹</button>
+    <div class="q-path-track">${pills}</div>
+    <button type="button" class="q-path-btn q-path-next" aria-label="Next question">›</button>
+  `;
+
+  nav.querySelectorAll('.q-path-pill').forEach((pill) => {
+    pill.addEventListener('click', () => goToQuestion(parseInt(pill.dataset.index, 10)));
+  });
+  nav.querySelector('.q-path-prev').addEventListener('click', () => goToQuestion(currentQuestionIndex - 1));
+  nav.querySelector('.q-path-next').addEventListener('click', () => goToQuestion(currentQuestionIndex + 1));
+
+  setupQuestionScrollSync(details.length);
+  setupFeedbackToggleDelegation();
+  updateQuestionPathState();
+}
+
+function goToQuestion(index) {
+  if (totalQuestionsCount === 0) return;
+  const clamped = Math.max(0, Math.min(index, totalQuestionsCount - 1));
+  currentQuestionIndex = clamped;
+  const container = document.getElementById('questions-container');
+  if (container) container.classList.remove('is-collapsed');
+  try {
+    const target = document.getElementById(`q-card-${clamped}`);
+    if (target && typeof target.scrollIntoView === 'function') {
+      target.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    }
+  } catch (e) {
+    console.warn('scrollIntoView failed:', e);
+  }
+  updateQuestionPathState();
+}
+
+// #questions-container is a horizontal flex row of cards laid out side by
+// side — even with align-items:flex-start (so a short card no longer
+// stretches to the tallest one), the ROW itself is still as tall as its
+// tallest child, leaving dead space below whichever (shorter) card is
+// actually in view. Pinning the container's height to just the active
+// card's own height removes that gap; called whenever the active card
+// changes (goToQuestion, swipe scroll-sync) or its content resizes in
+// place (feedback toggle).
+function syncQuestionsContainerHeight() {
+  const container = document.getElementById('questions-container');
+  if (!container || currentQuestionIndex < 0) return;
+  const activeCard = document.getElementById(`q-card-${currentQuestionIndex}`);
+  if (!activeCard) return;
+  container.style.height = `${activeCard.scrollHeight}px`;
+}
+
+function updateQuestionPathState() {
+  const nav = document.getElementById('q-path-nav');
+  const hint = document.getElementById('q-path-hint');
+  const nothingSelected = currentQuestionIndex < 0;
+  if (nav) {
+    nav.querySelectorAll('.q-path-pill').forEach((pill, i) => {
+      pill.classList.toggle('active', i === currentQuestionIndex);
+    });
+    const prevBtn = nav.querySelector('.q-path-prev');
+    const nextBtn = nav.querySelector('.q-path-next');
+    if (prevBtn) prevBtn.disabled = nothingSelected || currentQuestionIndex <= 0;
+    if (nextBtn) nextBtn.disabled = nothingSelected || currentQuestionIndex >= totalQuestionsCount - 1;
+  }
+  if (hint) hint.style.display = nothingSelected ? '' : 'none';
+  const countEl = document.getElementById('q-count');
+  if (countEl) {
+    countEl.textContent = (totalQuestionsCount && !nothingSelected)
+      ? `Question ${currentQuestionIndex + 1} of ${totalQuestionsCount}`
+      : '';
+  }
+  syncQuestionsContainerHeight();
+}
+
+function setupFeedbackToggleDelegation() {
+  const container = document.getElementById('questions-container');
+  if (!container || container.dataset.feedbackToggleBound === 'true') return;
+  container.dataset.feedbackToggleBound = 'true';
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.feedback-toggle-btn');
+    if (!btn) return;
+    const panel = btn.nextElementSibling;
+    if (!panel || !panel.classList.contains('feedback-container')) return;
+    const isOpen = !panel.hidden;
+    panel.hidden = isOpen;
+    btn.setAttribute('aria-expanded', String(!isOpen));
+    syncQuestionsContainerHeight();
+  });
+}
+
+function setupQuestionScrollSync(count) {
+  const container = document.getElementById('questions-container');
+  if (!container || !window.IntersectionObserver) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        const idx = parseInt(entry.target.dataset.qIndex, 10);
+        if (!isNaN(idx)) {
+          currentQuestionIndex = idx;
+          updateQuestionPathState();
+        }
+      }
+    });
+  }, { root: container, threshold: 0.6 });
+  for (let i = 0; i < count; i++) {
+    const el = document.getElementById(`q-card-${i}`);
+    if (el) observer.observe(el);
+  }
+}
+
+// Classify a question as correct/partial/incorrect from the marks the
+// grading API already returns (question.marks vs question.max_marks) —
+// no new data, just a comparison of two existing fields.
+function getMarksStatus(marks, maxMarks) {
+  const obtained = parseFloat(marks) || 0;
+  const max = parseFloat(maxMarks) || 0;
+  if (max <= 0) return 'unscored';
+  if (obtained >= max) return 'correct';
+  if (obtained <= 0) return 'incorrect';
+  return 'partial';
+}
+
+function getStatusBadge(status) {
+  const badges = {
+    correct: { text: '✓ Correct' },
+    partial: { text: '~ Partially correct' },
+    incorrect: { text: '✕ Needs correction' },
+    unscored: { text: '' }
+  };
+  return badges[status] || badges.unscored;
+}
+
 function renderContent(text) {
   if (!text || typeof text !== 'string') return '';
-  
+
   // Handle LaTeX format with sections
   if (text.includes('\\textbf{') && text.includes('}:} \\quad \\text{')) {
     const sections = text.match(/\[ \\textbf\{([^}]+)\}\:} \\quad \\text\{([^}]+)\} \]/g) || [];
@@ -1153,7 +1434,6 @@ function addStyles() {
 
 // Initialize styles
 addStyles();
-  setupNavLinkHighlighting();
 
 });
   // function displayDetails(data) {

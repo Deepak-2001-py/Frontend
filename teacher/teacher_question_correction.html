@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GradeAnt: AI-Powered Homework Grader for students and teachers" />
+  <title>GradeAnt: Review &amp; Correct Question Text</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="../img/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png" />
+  <link rel="apple-touch-icon" href="../img/apple-touch-icon.png" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="../css/asthetic_style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="../teacher/teacher_grade.css" />
+  <link rel="stylesheet" href="../teacher/teacher_correction.css" />
+  <link rel="stylesheet" href="../teacher/teacher_question_correction.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="../component-loader.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Navigation will be loaded here -->
+    <div id="nav"></div>
+    <main class="app-main">
+      <main class="main-content">
+        <div class="container">
+
+          <section id="qp-correction-section" class="tab-content active" role="tabpanel">
+            <div class="card">
+              <div class="card-header">
+                <h2><i class="fas fa-file-circle-check"></i> Review &amp; Correct Question Text</h2>
+                <p>GradeAnt's OCR read the question paper you uploaded. Fix anything it misread before grading starts &mdash; use LaTeX (e.g. <code>x^2 + 1</code>, <code>\frac{1}{2}</code>) for math, or plain text otherwise. A fix here updates that question for every student in the class.</p>
+              </div>
+              <div class="card-body">
+
+                <form id="lookup-form" class="form">
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="qp-id">Question Paper ID</label>
+                      <input type="text" id="qp-id" class="form-control" placeholder="Enter question paper ID" required />
+                    </div>
+                    <div class="form-group">
+                      <label for="assignment-id">Assignment ID</label>
+                      <input type="text" id="assignment-id" class="form-control" placeholder="Enter assignment ID" required />
+                    </div>
+                  </div>
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="load-btn">
+                      <i class="fas fa-magnifying-glass"></i> Load questions
+                    </button>
+                  </div>
+                </form>
+
+                <div class="loader-container" id="loader-container" style="display:none;">
+                  <div class="loader" id="loader"></div>
+                  <p id="loader-text" class="scan-progress">Loading questions&hellip;</p>
+                </div>
+
+                <div id="alerts-container" class="alerts-container" aria-live="assertive"></div>
+
+                <div id="processing-state" class="processing-state" style="display:none;">
+                  <i class="fas fa-hourglass-half"></i>
+                  <h4>Still processing this question paper</h4>
+                  <p>GradeAnt hasn't finished reading this question paper (and at least one student submission) yet.</p>
+                  <button type="button" class="btn btn-secondary" id="retry-btn"><i class="fas fa-rotate"></i> Check again</button>
+                </div>
+
+                <div id="questions-result" class="result-container" style="display:none;">
+                  <div class="correction-toolbar">
+                    <h4>Questions in this paper</h4>
+                    <span class="correction-count" id="correction-count">0 questions</span>
+                  </div>
+
+                  <div id="questions-list" class="answers-list"></div>
+
+                  <div class="finalize-panel">
+                    <div class="finalize-summary">
+                      <div class="finalize-title">Submit corrections</div>
+                      <div class="finalize-count" id="saved-count">0 / 0 reviewed</div>
+                    </div>
+                    <p class="finalize-note">Corrections apply to every student's copy of that question.</p>
+                    <div class="form-actions">
+                      <button type="button" class="btn btn-secondary" id="reload-btn"><i class="fas fa-rotate"></i> Reload</button>
+                      <button type="button" class="btn btn-primary" id="save-all-btn">
+                        <i class="fas fa-check-double"></i> Save all corrections
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 GradeAnt. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/teacher_question_correction.js"></script>
+</body>
+</html>
