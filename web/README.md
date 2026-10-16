@@ -11,6 +11,8 @@ npm run lint
 
 API host: `src/config.ts`, overridable with `VITE_API_BASE_URL` (see `.env.example`).
 
+See [`WIREFRAMES.md`](WIREFRAMES.md) for the site map and how each wireframe screen maps to a route and file.
+
 ## Layout
 
 | Path | What |
