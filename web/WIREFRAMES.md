@@ -128,6 +128,12 @@ type scale, spacing, radius, shadows, focus ring). `components/ui` + `styles/ui.
 `StatTile`, `Card`, `PageHeader`, `Notice`, `LoadError`, `EmptyState`, `ProgressBar`,
 `GradeDistribution`, `Spinner`, `FileDrop`. `components/WorkflowPage.tsx` is the page shell.
 
+Signed-in pages share the marketing site's look through `components/app/AppKit.tsx` +
+`styles/app.css` (gradient hero, animated stat cards, quick-action tiles, panels, score ring) and
+the redesigned `Sidebar`. The dashboards and upload pages are built on it; the grades, correction,
+student-details and profile pages keep their markup and get the same look from
+`styles/app-bridge.css`.
+
 ## 5. Workflow API (`lambda_python_files/workflow.py`)
 
 `POST {API_BASE_URL}/workflow` (path overridable with `VITE_WORKFLOW_PATH`), bearer token, body

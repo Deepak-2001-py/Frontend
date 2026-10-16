@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import BottomNav from './BottomNav'
 import Sidebar from './Sidebar'
+import '../styles/app-bridge.css'
 
 const YEAR = new Date().getFullYear()
 

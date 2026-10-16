@@ -39,6 +39,19 @@ function handleExpiredSession() {
   window.location.assign(`/session-expired?returnTo=${encodeURIComponent(here)}`)
 }
 
+/**
+ * True when the API route looks undeployed rather than failing inside a Lambda:
+ * API Gateway's "Missing Authentication Token" / "Invalid key=value pair" 403s,
+ * which carry no CORS headers, so the browser usually reports a network error.
+ */
+export function isRouteMissing(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (/Missing Authentication Token|Invalid key=value pair/i.test(error.message) ||
+      (error instanceof TypeError && /fetch|network|load failed/i.test(error.message)))
+  )
+}
+
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: unknown
