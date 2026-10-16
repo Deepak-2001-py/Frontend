@@ -9,7 +9,7 @@ npm run build      # type-check + production bundle in dist/
 npm run lint
 ```
 
-API host: `src/config.ts`, overridable with `VITE_API_BASE_URL` (see `.env.example`).
+API host: `src/config.ts`, overridable with `VITE_API_BASE_URL` (see `.env.example`). To run without AWS, start the local backend (`python ../lambda_python_files/local_dev_server.py`) and set `VITE_API_BASE_URL=http://localhost:8787` in `.env.local` — demo logins are in the [root README](../README.md).
 
 See [`WIREFRAMES.md`](WIREFRAMES.md) for the site map and how each wireframe screen maps to a route and file.
 
@@ -17,7 +17,7 @@ See [`WIREFRAMES.md`](WIREFRAMES.md) for the site map and how each wireframe scr
 
 | Path | What |
 |---|---|
-| `src/App.tsx` | All routes. Role areas are wrapped in `RequireRole` (no session → `/session-expired`, wrong role → `/unauthorized`). |
+| `src/App.tsx` | All routes. Role areas are wrapped in `RequireRole` (no session → `/login?returnTo=…`, wrong role → `/unauthorized`). An API 401 ends the session and goes to `/session-expired`. |
 | `src/auth/` | `AuthContext` (session in local/sessionStorage, same keys as the old pages) and `RequireRole`. |
 | `src/lib/` | `api.ts` (fetch wrapper, Lambda-envelope unwrapping, admin operations), `apiCache.ts`, `session.ts`, `grading.ts`, `upload.ts`, `correction.ts`. |
 | `src/components/` | `AppShell` + `Sidebar` (student/teacher), `UploadPage`, `grades/` (score hero, question viewer), `correction/` (OCR correction editor), `PageScope`. |

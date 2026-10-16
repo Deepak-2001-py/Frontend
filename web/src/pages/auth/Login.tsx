@@ -4,7 +4,7 @@ import { useAuth } from '../../auth/AuthContext'
 import PageScope from '../../components/PageScope'
 import Spinner from '../../components/Spinner'
 import { apiRequest } from '../../lib/api'
-import { dashboardPath, type UserRole } from '../../lib/session'
+import { changePasswordPath, safeReturnTo, type UserRole } from '../../lib/session'
 import '../../styles/pages/auth.css'
 import AuthNavbar from './AuthNavbar'
 
@@ -61,9 +61,8 @@ export default function Login() {
       )
       showAlert(`Login successful! Welcome ${data.name ?? ''}. Redirecting to ${role} dashboard...`)
 
-      const returnTo = params.get('returnTo')
       // A temporary password (issued after an admin approves a reset) must be replaced first.
-      const target = data.must_change_password === true ? `/${role}/change-password` : returnTo?.startsWith('/') ? returnTo : dashboardPath(role)
+      const target = data.must_change_password === true ? changePasswordPath(role) : safeReturnTo(params.get('returnTo'), role)
       setTimeout(() => navigate(target, { replace: true }), 1000)
     } catch (err) {
       showAlert(err instanceof Error ? err.message : 'An error occurred during login. Please try again.', true)
@@ -121,7 +120,7 @@ export default function Login() {
                 <div className="form-group user-type">
                   <p>I am a:</p>
                   <div className="radio-options">
-                    {(['student', 'teacher'] as const).map((role) => (
+                    {(['student', 'teacher', 'admin'] as const).map((role) => (
                       <label className="radio-container" key={role}>
                         <input
                           type="radio"
@@ -131,7 +130,7 @@ export default function Login() {
                           onChange={() => setUserType(role)}
                         />
                         <span className="radio-mark" />
-                        {role === 'student' ? 'Student' : 'Teacher'}
+                        {role === 'student' ? 'Student' : role === 'teacher' ? 'Teacher' : 'Admin'}
                       </label>
                     ))}
                   </div>

@@ -1,4 +1,5 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { adminApiRequest } from '../../lib/api'
 import AdminLayout, { capitalize, useAdminAlert } from './AdminLayout'
 import { AdminModal, ConfirmButton, FilterPills, timeAgo, useAdminData } from './adminShared'
@@ -42,6 +43,12 @@ function RequestsBody() {
   const [tempPassword, setTempPassword] = useState<string | null>(null)
   const requests = useAdminData<{ requests?: ResetRequest[]; pendingCount?: number }>('listResetRequests', { status: filter })
   const matrix = useAdminData<{ features?: Feature[] }>('getPermissionMatrix')
+
+  // Dashboard's "Permission matrix" link lands on the matrix once it has loaded.
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (hash === '#permission-matrix' && matrix.data) document.getElementById('permission-matrix')?.scrollIntoView({ behavior: 'smooth' })
+  }, [hash, matrix.data])
 
   async function act(operation: string, requestId: string, success?: string) {
     try {
@@ -161,7 +168,7 @@ function RequestsBody() {
           </div>
         </div>
 
-        <div className="admin-panel">
+        <div className="admin-panel" id="permission-matrix">
           <div className="admin-panel-title">Permissions by role</div>
           <div className="admin-matrix">
             <div className="head">Feature</div>

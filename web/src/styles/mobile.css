@@ -20,17 +20,6 @@
 }
 
 @media (max-width: 768px) {
-  /* Upload: a plain `1fr` column can't shrink below its content's
-     min-content width, so the form and "How it works" box were wider than
-     the card and got clipped. */
-  .page-scope.page-upload .upload-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .page-scope.page-upload .upload-layout > * {
-    min-width: 0;
-  }
-
   /* Grade summary table: was overflow-x: hidden, so right-hand columns
      (Evaluation ID, QP ID, Date) were cut off. Let it scroll instead. */
   .page-scope.theme-aesthetic .summary-table {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
 import { useAlerts } from '../hooks/useAlerts'
 import { apiCache } from '../lib/apiCache'
 import {
@@ -11,11 +12,10 @@ import {
   type UploadMetadata,
   type UploadType,
 } from '../lib/upload'
-import '../styles/themes/aesthetic.css'
-import '../styles/pages/upload.css'
-import AlertStack from './AlertStack'
-import AppShell from './AppShell'
-import PageScope from './PageScope'
+import { AnimatePresence, motion } from 'motion/react'
+import { AppHero, Panel, Stagger } from './app/AppKit'
+import { Notice, ProgressBar } from './ui'
+import WorkflowPage from './WorkflowPage'
 
 export interface UploadPageCopy {
   title: string
@@ -54,7 +54,8 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
   )
   const [assignmentId, setAssignmentId] = useState(() => params.get('assignment_id') ?? '')
   const [courseId, setCourseId] = useState(() => params.get('qp_id') ?? '')
-  const [studentId, setStudentId] = useState('')
+  const { session } = useAuth()
+  const [studentId, setStudentId] = useState(() => (session?.userType === 'student' ? session.userId : ''))
   const [files, setFiles] = useState<File[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -89,7 +90,7 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
     setUploadType('')
     setAssignmentId('')
     setCourseId('')
-    setStudentId('')
+    setStudentId(session?.userType === 'student' ? session.userId : '')
     setFiles([])
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -206,199 +207,203 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
     timers.current.push(window.setTimeout(() => navigate(`${target}?${params}`), 1500))
   }
 
+  const typeLabel = uploadType ? copy.types.find((t) => t.value === uploadType)?.label : null
+
   return (
-    <PageScope name="upload" theme="aesthetic" title={copy.title}>
-      <AppShell footer={false}>
-        <main className="main-content">
-          <div className="container">
-            <section className="tab-content active">
-              <div className="card">
-                <div className="card-header">
-                  <span className="header-icon-badge">
-                    <i className="fas fa-file-upload" />
-                  </span>
-                  <h2>{uploadType ? HEADINGS[uploadType] : copy.title}</h2>
-                  <p>{copy.subtitle}</p>
-                </div>
-                <div className="card-body">
-                  <div className="upload-layout">
-                    <div className="upload-main">
-                      <form className="form" onSubmit={handleSubmit} noValidate>
-                        <div className="form-row">
-                          <div className="form-group">
-                            <label htmlFor="upload-type">Upload Type</label>
-                            <select
-                              id="upload-type"
-                              className="form-control"
-                              value={uploadType}
-                              onChange={(e) => setUploadType(e.target.value as UploadType | '')}
-                            >
-                              <option value="">Select Upload Type</option>
-                              {copy.types.map((t) => (
-                                <option key={t.value} value={t.value}>
-                                  {t.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="form-group">
-                            <label htmlFor="assignment-id">Assignment ID</label>
-                            <input
-                              type="text"
-                              id="assignment-id"
-                              className="form-control"
-                              placeholder="e.g. assignment456"
-                              value={assignmentId}
-                              onChange={(e) => setAssignmentId(e.target.value)}
-                            />
-                          </div>
-                          {uploadType === 'student' && (
-                            <div className="form-group student-id-container">
-                              <label htmlFor="student-id">Student ID</label>
-                              <input
-                                type="text"
-                                id="student-id"
-                                className="form-control"
-                                placeholder="Enter your student ID"
-                                value={studentId}
-                                onChange={(e) => setStudentId(e.target.value)}
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="course-id">Question Paper ID</label>
-                          <input
-                            type="text"
-                            id="course-id"
-                            className="form-control"
-                            placeholder="e.g. physics_101"
-                            value={courseId}
-                            onChange={(e) => setCourseId(e.target.value)}
-                          />
-                        </div>
+    <WorkflowPage title={copy.title}>
+      <AppHero
+        eyebrow={uploadType ? HEADINGS[uploadType] : 'Upload'}
+        title={copy.title}
+        text={copy.subtitle}
+        aside={
+          <motion.span
+            className="app-drop-icon material-icons"
+            style={{ width: 96, height: 96, borderRadius: 28, fontSize: 48 }}
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+            aria-hidden
+          >
+            cloud_upload
+          </motion.span>
+        }
+      />
 
-                        <div
-                          className={`file-upload${dragOver ? ' drag-over' : ''}`}
-                          onDragEnter={(e) => onDrag(e, true)}
-                          onDragOver={(e) => onDrag(e, true)}
-                          onDragLeave={(e) => onDrag(e, false)}
-                          onDrop={(e) => {
-                            onDrag(e, false)
-                            addFiles(e.dataTransfer.files)
-                          }}
-                        >
-                          <label htmlFor="file-input" className="file-upload-label">
-                            <span className="upload-icon-circle">
-                              <i className="fas fa-cloud-upload-alt" />
-                            </span>
-                            <span>{copy.dropLabel}</span>
-                          </label>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            id="file-input"
-                            className="file-input"
-                            accept=".pdf"
-                            multiple
-                            onChange={(e) => {
-                              addFiles(e.target.files)
-                              e.target.value = ''
-                            }}
-                          />
-                          <div className="upload-specs">
-                            <span className="spec-item">PDF only</span>
-                            <span className="spec-item">·</span>
-                            <span className="spec-item">up to {UPLOAD_LIMITS.maxFileSizeMb} MB</span>
-                            <span className="spec-item">·</span>
-                            <span className="spec-item">multi-page supported</span>
-                          </div>
-                        </div>
-
-                        <div className="file-list-container">
-                          <ul className="file-list">
-                            {files.map((f) => (
-                              <li key={f.name}>
-                                <span className="file-name">{f.name}</span>
-                                <span className="file-size">{formatFileSize(f.size)}</span>
-                                <button
-                                  type="button"
-                                  className="remove-file"
-                                  onClick={() => setFiles((fs) => fs.filter((x) => x !== f))}
-                                >
-                                  &times;
-                                </button>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {progress && (
-                          <div className="progress-container" style={{ display: 'block' }}>
-                            <div className="progress">
-                              <div
-                                className="progress-bar"
-                                role="progressbar"
-                                aria-valuenow={progress.percent}
-                                aria-valuemin={0}
-                                aria-valuemax={100}
-                                style={{ width: `${progress.percent}%` }}
-                              />
-                            </div>
-                            <p className="progress-text">{progress.text}</p>
-                            {fileProgress.map((fp) => (
-                              <div key={fp.name} className={`file-progress${fp.error ? ' upload-failed' : ''}`}>
-                                <p>
-                                  {fp.name} ({fp.error ? `Failed: ${fp.error}` : `${fp.percent}%`})
-                                </p>
-                                <div className="progress">
-                                  <div className="progress-bar" style={{ width: `${fp.percent}%` }} />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        <AlertStack alerts={alerts} onDismiss={dismiss} />
-
-                        <div className="form-actions">
-                          <button type="submit" className="btn btn-primary" disabled={submitting}>
-                            {submitting ? (
-                              'Uploading...'
-                            ) : (
-                              <>
-                                <i className="fas fa-upload" /> {copy.submitLabel}
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                    <aside className="upload-aside">
-                      <h3>How it works</h3>
-                      <div className="upload-steps">
-                        {copy.steps.map((s, i) => (
-                          <div className="upload-step" key={s.title}>
-                            <span className="step-num">{i + 1}</span>
-                            <p>
-                              <strong>{s.title}</strong>
-                              {s.text}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="upload-aside-note">
-                        <i className="fas fa-circle-info" />
-                        <span>{copy.note}</span>
-                      </div>
-                    </aside>
-                  </div>
-                </div>
+      <Stagger className="app-upload">
+        <Panel title={typeLabel ?? 'Upload details'}>
+          <form onSubmit={handleSubmit} noValidate>
+            {copy.types.length > 1 && (
+              <div className="app-segment" role="radiogroup" aria-label="Upload type">
+                {copy.types.map((t) => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={uploadType === t.value}
+                    className={uploadType === t.value ? 'is-active' : ''}
+                    onClick={() => setUploadType(t.value)}
+                  >
+                    {uploadType === t.value && <motion.span layoutId="upload-type" className="app-segment-bg" />}
+                    <span>{t.label}</span>
+                  </button>
+                ))}
               </div>
-            </section>
+            )}
+
+            <div className="ga-grid-2">
+              <div className="ga-field">
+                <label htmlFor="assignment-id">Assignment ID</label>
+                <input
+                  id="assignment-id"
+                  className="ga-input"
+                  placeholder="e.g. assignment456"
+                  value={assignmentId}
+                  onChange={(e) => setAssignmentId(e.target.value)}
+                />
+              </div>
+              <div className="ga-field">
+                <label htmlFor="course-id">Question Paper ID</label>
+                <input
+                  id="course-id"
+                  className="ga-input"
+                  placeholder="e.g. physics_101"
+                  value={courseId}
+                  onChange={(e) => setCourseId(e.target.value)}
+                />
+              </div>
+            </div>
+            {uploadType === 'student' && (
+              <div className="ga-field">
+                <label htmlFor="student-id">Student ID</label>
+                <input
+                  id="student-id"
+                  className="ga-input"
+                  placeholder="Enter your student ID"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                />
+              </div>
+            )}
+
+            <label
+              className={`app-drop${dragOver ? ' is-over' : ''}`}
+              onDragEnter={(e) => onDrag(e, true)}
+              onDragOver={(e) => onDrag(e, true)}
+              onDragLeave={(e) => onDrag(e, false)}
+              onDrop={(e) => {
+                onDrag(e, false)
+                addFiles(e.dataTransfer.files)
+              }}
+            >
+              <motion.span className="app-drop-icon material-icons" animate={dragOver ? { scale: 1.12, rotate: -6 } : { scale: 1, rotate: 0 }} aria-hidden>
+                upload_file
+              </motion.span>
+              <strong>{copy.dropLabel}</strong>
+              <small>or click to browse</small>
+              <span className="app-chips">
+                <span className="app-chip">PDF only</span>
+                <span className="app-chip">up to {UPLOAD_LIMITS.maxFileSizeMb} MB</span>
+                <span className="app-chip">multi-page</span>
+              </span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                id="file-input"
+                accept=".pdf"
+                multiple
+                onChange={(e) => {
+                  addFiles(e.target.files)
+                  e.target.value = ''
+                }}
+              />
+            </label>
+
+            {files.length > 0 && (
+              <div className="app-rows" style={{ marginTop: 16 }}>
+                <AnimatePresence initial={false}>
+                  {files.map((f) => {
+                    return (
+                      <motion.div key={f.name} className="app-file" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 30 }}>
+                        <span className="app-file-icon material-icons" aria-hidden>
+                          picture_as_pdf
+                        </span>
+                        <span className="app-file-main">
+                          <span className="app-file-name">{f.name}</span>
+                          <span className="app-file-meta">{formatFileSize(f.size)}</span>
+                        </span>
+                        <button type="button" className="ga-btn ga-btn-ghost ga-btn-sm" onClick={() => setFiles((fs) => fs.filter((x) => x !== f))} aria-label={`Remove ${f.name}`}>
+                          <span className="material-icons">close</span>
+                        </button>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {progress && (
+              <motion.div style={{ marginTop: 18 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <ProgressBar percent={progress.percent} tone={progress.percent >= 100 ? 'success' : 'brand'} />
+                <p className="ga-muted" style={{ margin: '8px 0 0' }}>
+                  {progress.text}
+                </p>
+                {fileProgress.map((fp) => (
+                  <div key={fp.name} className="app-file" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+                    <span className="app-file-main">
+                      <span className="app-file-name">{fp.name}</span>
+                      <span className="app-file-meta">{fp.error ? `Failed: ${fp.error}` : `${fp.percent}%`}</span>
+                      <ProgressBar percent={fp.percent} tone={fp.error ? 'danger' : fp.percent >= 100 ? 'success' : 'brand'} />
+                    </span>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+
+            <div style={{ marginTop: 18 }}>
+              {alerts.map((a) => (
+                <Notice
+                  key={a.id}
+                  tone={a.type === 'danger' ? 'danger' : a.type === 'warning' ? 'warning' : a.type === 'success' ? 'success' : 'info'}
+                  action={
+                    <button type="button" className="ga-btn ga-btn-ghost ga-btn-sm" onClick={() => dismiss(a.id)} aria-label="Dismiss">
+                      ×
+                    </button>
+                  }
+                >
+                  {a.message}
+                </Notice>
+              ))}
+            </div>
+
+            <div className="ga-row" style={{ justifyContent: 'flex-end', marginTop: 8 }}>
+              <motion.button type="submit" className="ga-btn ga-btn-primary" disabled={submitting} whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
+                <span className="material-icons" aria-hidden>
+                  {submitting ? 'hourglass_top' : 'upload'}
+                </span>
+                {submitting ? 'Uploading…' : copy.submitLabel}
+              </motion.button>
+            </div>
+          </form>
+        </Panel>
+
+        <Panel title="How it works">
+          <ol className="app-steps">
+            {copy.steps.map((st) => (
+              <li key={st.title}>
+                <div>
+                  <strong>{st.title}</strong>
+                  <span>{st.text}</span>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="app-tip">
+            <span className="material-icons" aria-hidden>
+              lightbulb
+            </span>
+            <span>{copy.note}</span>
           </div>
-        </main>
-      </AppShell>
-    </PageScope>
+        </Panel>
+      </Stagger>
+    </WorkflowPage>
   )
 }

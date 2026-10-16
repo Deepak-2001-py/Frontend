@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { getGradeLetter } from '../../lib/grading'
+import { isRouteMissing } from '../../lib/api'
 import { statusMeta, type Tone } from '../../lib/status'
 import '../../styles/ui.css'
 
@@ -114,8 +115,9 @@ export function Notice({ tone = 'info', children, action }: { tone?: Tone; child
 
 /** Load error with retry; spells out when the workflow API isn't deployed yet. */
 export function LoadError({ error, onRetry }: { error: Error; onRetry?: () => void }) {
-  const status = (error as Error & { status?: number }).status
-  const missing = status === 403 || status === 404
+  // API Gateway answers an undeployed route with 403 "Missing Authentication
+  // Token" (no token sent) or "Invalid key=value pair … in Authorization header".
+  const missing = isRouteMissing(error)
   return (
     <Notice
       tone="danger"
@@ -127,8 +129,8 @@ export function LoadError({ error, onRetry }: { error: Error; onRetry?: () => vo
         )
       }
     >
-      <strong>{missing ? 'The assignment workflow service isn’t available yet.' : 'Couldn’t load this.'}</strong>{' '}
-      {missing ? 'Ask your administrator to deploy the /workflow API.' : error.message}
+      <strong>{missing ? 'The assignment workflow service isn’t reachable.' : 'Couldn’t load this.'}</strong>{' '}
+      {missing ? 'The /workflow API may not be deployed yet — ask your administrator.' : error.message}
     </Notice>
   )
 }

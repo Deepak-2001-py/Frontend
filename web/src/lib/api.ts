@@ -1,6 +1,6 @@
 import { API_BASE_URL } from '../config'
 import { apiCache } from './apiCache'
-import { getToken } from './session'
+import { clearSession, getToken } from './session'
 
 export class ApiError extends Error {
   readonly status: number
@@ -27,6 +27,29 @@ export function unwrapLambda<T>(data: unknown): T {
     if (body && typeof body === 'object') return body as T
   }
   return data as T
+}
+
+let expiring = false
+
+function handleExpiredSession() {
+  if (expiring) return
+  expiring = true
+  clearSession()
+  const here = window.location.pathname + window.location.search
+  window.location.assign(`/session-expired?returnTo=${encodeURIComponent(here)}`)
+}
+
+/**
+ * True when the API route looks undeployed rather than failing inside a Lambda:
+ * API Gateway's "Missing Authentication Token" / "Invalid key=value pair" 403s,
+ * which carry no CORS headers, so the browser usually reports a network error.
+ */
+export function isRouteMissing(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (/Missing Authentication Token|Invalid key=value pair/i.test(error.message) ||
+      (error instanceof TypeError && /fetch|network|load failed/i.test(error.message)))
+  )
 }
 
 interface RequestOptions {
@@ -63,6 +86,9 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
 
   if (!response.ok) {
     const payload = unwrapLambda<{ message?: string; error?: string } | null>(data)
+    // Every 401 on an authenticated call means the token is expired or invalid
+    // (login's own 401 is sent without one), so end the session cleanly.
+    if (response.status === 401 && headers.Authorization) handleExpiredSession()
     throw new ApiError(payload?.message || payload?.error || `Request failed (${response.status})`, response.status)
   }
   return opts.raw ? (data as T) : unwrapLambda<T>(data)

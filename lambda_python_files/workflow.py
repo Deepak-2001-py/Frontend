@@ -1,0 +1,1052 @@
+"""
+GradeAnt — assignment workflow Lambda  (POST /workflow)
+=======================================================
+Backs the React screens built from the website wireframes §04, §13–§15,
+§19 and §20: create assignment → review parsed questions → choose AI or
+standard grading → rubric → verify → grading run → spot-check → publish,
+the student inbox / re-check request, and the GradeFlow assistant.
+
+Same conventions as get_grades.py / correct_questions_answer.py: one API
+Gateway resource with Lambda **proxy** integration, body
+`{"operation": "...", ...}`, `Authorization: Bearer <JWT>` issued by
+authetication.py (same JWT_SECRET), role looked up fresh from the Users
+table on every request.
+
+Data
+----
+Existing (read, plus a few flag fields written):
+  assignment_grading   PK evaluation_id. One row per question per student
+                       plus one type="summary" row per student. GSIs
+                       student_id-index, type-index. Written by the grading
+                       pipeline and the correction / grades Lambdas.
+  Users                PK email. user_id, name, userRole, optional
+                       `classes` (list of class names) for enrolment.
+New (owned by this Lambda):
+  GradeAnt_Assignments PK assignment_id (S). GSI teacher_id-index (PK teacher_id).
+  GradeAnt_Submissions PK assignment_id (S), SK student_id (S).
+                       GSI student_id-index (PK student_id).
+
+A submission's status (wireframe §20 SUBMISSIONS chain) is derived from
+its assignment_grading rows (answer rows → ocr_done, every row
+status="corrected" → corrected, a summary row → ai_graded, an unresolved
+low-confidence row → queued_for_review) and combined with the workflow
+statuses this Lambda records itself (grading_triggered, teacher_reviewed,
+published, published_revised). The later of the two wins.
+
+Students see an assignment as soon as it's created (content_status
+"published"): the question paper is only parsed once answers come in, so
+the teacher's question review necessarily follows the first submissions.
+
+Environment
+-----------
+  JWT_SECRET            must match authetication.py (REQUIRED in production)
+  USER_TABLE_NAME       default "Users"
+  GRADING_TABLE         default "assignment_grading"
+  GRADING_ASSIGNMENT_INDEX default "assignment_id-index" — recommended GSI on
+                        assignment_grading (PK assignment_id). Without it, a
+                        student shows up once graded, once this Lambda has a
+                        record for them, or via Users.classes enrolment.
+  ASSIGNMENTS_TABLE     default "GradeAnt_Assignments"
+  SUBMISSIONS_TABLE     default "GradeAnt_Submissions"
+  FLAG_CONFIDENCE       default 0.75 — rows with a lower `confidence` are spot-checked
+  BEDROCK_REGION        default AWS_REGION — region for Claude on Amazon Bedrock
+  BEDROCK_MODEL_ID      default "anthropic.claude-opus-5-5"
+  BEDROCK_FALLBACK_MODEL_ID default "anthropic.claude-opus-5" (used if a request is declined)
+  GRADING_FUNCTION_NAME optional — Lambda invoked (async) per submission on startGrading
+  SNS_TOPIC_ARN         optional — "grades published" notification
+  SES_SENDER_EMAIL      optional — From address for submission reminders
+
+Dependencies (bundle in a layer): PyJWT, anthropic[bedrock]. boto3 ships
+with the Lambda runtime. Timeout: 60 s (askAssistant calls Claude).
+IAM: DynamoDB on the four tables, bedrock-mantle access for Claude,
+lambda:InvokeFunction on itself (+ GRADING_FUNCTION_NAME), sns:Publish,
+ses:SendEmail as configured.
+"""
+import datetime
+import json
+import os
+import uuid
+from decimal import Decimal
+
+import boto3
+import jwt
+from boto3.dynamodb.conditions import Attr, Key
+from botocore.exceptions import ClientError
+
+JWT_SECRET = os.environ.get('JWT_SECRET', '')
+GRADING_ASSIGNMENT_INDEX = os.environ.get('GRADING_ASSIGNMENT_INDEX', 'assignment_id-index')
+FLAG_CONFIDENCE = float(os.environ.get('FLAG_CONFIDENCE', '0.75'))
+BEDROCK_MODEL_ID = os.environ.get('BEDROCK_MODEL_ID', 'anthropic.claude-opus-5-5')
+BEDROCK_FALLBACK_MODEL_ID = os.environ.get('BEDROCK_FALLBACK_MODEL_ID', 'anthropic.claude-opus-5')
+INTERNAL_SOURCE = 'gradeant.workflow'
+
+dynamodb = boto3.resource('dynamodb')
+users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
+grading_table = dynamodb.Table(os.environ.get('GRADING_TABLE', 'assignment_grading'))
+assignments_table = dynamodb.Table(os.environ.get('ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'))
+submissions_table = dynamodb.Table(os.environ.get('SUBMISSIONS_TABLE', 'GradeAnt_Submissions'))
+
+SUBMISSION_CHAIN = [
+    'upload_requested', 'answer_uploaded', 'ocr_done', 'corrected', 'grading_triggered',
+    'ai_graded', 'queued_for_review', 'teacher_reviewed', 'published', 'published_revised',
+]
+RANK = {s: i for i, s in enumerate(SUBMISSION_CHAIN)}
+PERSONAS = ('balanced', 'strict', 'lenient')
+
+
+# ----------------------------------------------------------------------
+# Plumbing
+# ----------------------------------------------------------------------
+
+class ApiError(Exception):
+    def __init__(self, status_code, message):
+        super().__init__(message)
+        self.status_code = status_code
+        self.message = message
+
+
+def _json_default(obj):
+    if isinstance(obj, Decimal):
+        return int(obj) if obj % 1 == 0 else float(obj)
+    if isinstance(obj, (datetime.datetime, datetime.date)):
+        return obj.isoformat()
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError(f'Not JSON serialisable: {type(obj)}')
+
+
+def create_response(status_code, body):
+    return {
+        'statusCode': status_code,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+        'body': json.dumps(body, default=_json_default),
+    }
+
+
+def _now():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+
+def _num(value, default=0.0):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _to_dynamo(value):
+    """floats → Decimal, recursively (DynamoDB rejects float)."""
+    if isinstance(value, float):
+        return Decimal(str(value))
+    if isinstance(value, dict):
+        return {k: _to_dynamo(v) for k, v in value.items() if v is not None}
+    if isinstance(value, list):
+        return [_to_dynamo(v) for v in value]
+    return value
+
+
+def _query_all(table, **kwargs):
+    items, start = [], None
+    while True:
+        if start:
+            kwargs['ExclusiveStartKey'] = start
+        page = table.query(**kwargs)
+        items.extend(page.get('Items', []))
+        start = page.get('LastEvaluatedKey')
+        if not start:
+            return items
+
+
+def _scan_all(table, **kwargs):
+    items, start = [], None
+    while True:
+        if start:
+            kwargs['ExclusiveStartKey'] = start
+        page = table.scan(**kwargs)
+        items.extend(page.get('Items', []))
+        start = page.get('LastEvaluatedKey')
+        if not start:
+            return items
+
+
+def authenticate(event):
+    if not JWT_SECRET:
+        raise ApiError(500, 'Server misconfigured: JWT_SECRET is not set.')
+    headers = event.get('headers') or {}
+    auth = headers.get('Authorization') or headers.get('authorization') or ''
+    if not auth.startswith('Bearer '):
+        raise ApiError(401, 'Missing Authorization: Bearer <token> header.')
+    try:
+        payload = jwt.decode(auth[len('Bearer '):].strip(), JWT_SECRET, algorithms=['HS256'])
+    except jwt.ExpiredSignatureError:
+        raise ApiError(401, 'Session expired — please log in again.')
+    except jwt.InvalidTokenError:
+        raise ApiError(401, 'Invalid session token.')
+    email, user_id = payload.get('email'), payload.get('user_id')
+    if not email or not user_id:
+        raise ApiError(401, 'Malformed session token.')
+    user = users_table.get_item(Key={'email': email}).get('Item')
+    if not user or user.get('user_id') != user_id:
+        raise ApiError(401, 'Account no longer exists.')
+    return {'user_id': user_id, 'email': email, 'role': user.get('userRole', 'student'), 'user': user}
+
+
+def _require(caller, *roles):
+    if caller['role'] not in roles:
+        raise ApiError(403, "Your role can't do that.")
+
+
+def _required(body, *fields):
+    missing = [f for f in fields if body.get(f) in (None, '')]
+    if missing:
+        raise ApiError(400, f"Missing required field(s): {', '.join(missing)}")
+    return [body[f] for f in fields]
+
+
+# ----------------------------------------------------------------------
+# Data helpers
+# ----------------------------------------------------------------------
+
+def _load_assignment(assignment_id, caller=None):
+    item = assignments_table.get_item(Key={'assignment_id': assignment_id}).get('Item')
+    if not item:
+        raise ApiError(404, 'Assignment not found.')
+    if caller and caller['role'] == 'teacher' and item.get('teacher_id') != caller['user_id']:
+        raise ApiError(403, 'This assignment belongs to a different teacher.')
+    return item
+
+
+def _grading_rows(assignment, users=None):
+    """Every assignment_grading row for this assignment, grouped by student."""
+    rows = _assignment_rows(assignment)
+    if rows is not None:
+        by_student = {}
+        for r in rows:
+            entry = by_student.setdefault(r['student_id'], {'summary': None, 'details': []})
+            if r.get('type') == 'summary':
+                entry['summary'] = r
+            else:
+                entry['details'].append(r)
+        return by_student
+
+    # No assignment_id index: find candidate students (graded, recorded by
+    # this Lambda, or enrolled via Users.classes) and read their rows.
+    summaries = _query_all(
+        grading_table,
+        IndexName='type-index',
+        KeyConditionExpression=Key('type').eq('summary'),
+        FilterExpression=Attr('assignment_id').eq(assignment['assignment_id']) & Attr('qp_id').eq(assignment['qp_id']),
+    )
+    candidates = {s['student_id'] for s in summaries}
+    candidates |= {s['student_id'] for s in _query_all(submissions_table, KeyConditionExpression=Key('assignment_id').eq(assignment['assignment_id']))}
+    candidates |= {u['user_id'] for u in _enrolled_students(assignment, users if users is not None else _users_by_id())}
+    by_student = {}
+    for student_id in candidates:
+        details = _student_details(student_id, assignment)
+        summary = next((s for s in summaries if s['student_id'] == student_id), None)
+        if details or summary is not None:
+            by_student[student_id] = {'summary': summary, 'details': details}
+    return by_student
+
+
+def _assignment_rows(assignment):
+    """All rows via GRADING_ASSIGNMENT_INDEX (PK assignment_id) — None if that GSI doesn't exist."""
+    try:
+        rows = _query_all(
+            grading_table,
+            IndexName=GRADING_ASSIGNMENT_INDEX,
+            KeyConditionExpression=Key('assignment_id').eq(assignment['assignment_id']),
+            FilterExpression=Attr('qp_id').eq(assignment['qp_id']),
+        )
+    except ClientError as e:
+        if e.response['Error']['Code'] in ('ValidationException', 'ResourceNotFoundException'):
+            return None
+        raise
+    return [r for r in rows if r.get('student_id')]
+
+
+def _student_details(student_id, assignment):
+    return _query_all(
+        grading_table,
+        IndexName='student_id-index',
+        KeyConditionExpression=Key('student_id').eq(student_id),
+        FilterExpression=Attr('assignment_id').eq(assignment['assignment_id'])
+        & Attr('qp_id').eq(assignment['qp_id'])
+        & Attr('type').ne('summary'),
+    )
+
+
+def _is_flagged(row):
+    conf = row.get('confidence')
+    return conf is not None and _num(conf, 1.0) < FLAG_CONFIDENCE and not row.get('flag_resolved_at')
+
+
+def _derived_status(entry):
+    details, summary = entry['details'], entry['summary']
+    if summary is not None:
+        return 'queued_for_review' if any(_is_flagged(r) for r in details) else 'ai_graded'
+    if details:
+        if all(r.get('status') == 'corrected' for r in details):
+            return 'corrected'
+        return 'ocr_done'
+    return None
+
+
+def _merge_status(derived, stored):
+    candidates = [s for s in (derived, stored) if s in RANK]
+    if not candidates:
+        return 'upload_requested'
+    best = max(candidates, key=lambda s: RANK[s])
+    # A paper that's flagged again after the teacher reviewed it goes back to the queue.
+    if derived == 'queued_for_review' and stored in ('teacher_reviewed', 'grading_triggered', 'ai_graded'):
+        return 'queued_for_review'
+    return best
+
+
+def _users_by_id():
+    users = _scan_all(users_table, ProjectionExpression='user_id, email, #n, userRole, classes', ExpressionAttributeNames={'#n': 'name'})
+    return {u['user_id']: u for u in users if u.get('user_id')}
+
+
+def _enrolled_students(assignment, users):
+    """Students whose Users.classes lists this assignment's class (if anyone uses `classes`)."""
+    cls = assignment.get('class_name')
+    return [u for u in users.values() if u.get('userRole') == 'student' and cls and cls in (u.get('classes') or [])]
+
+
+def _questions(assignment, by_student=None):
+    """One canonical copy of each parsed question (question text is denormalised onto every student's rows)."""
+    by_student = by_student if by_student is not None else _grading_rows(assignment)
+    questions = {}
+    for entry in by_student.values():
+        for r in entry['details']:
+            key = (str(r.get('question_number')), r.get('subpart') or '')
+            if key not in questions:
+                questions[key] = {
+                    'question_number': r.get('question_number'),
+                    'subpart': r.get('subpart'),
+                    'question': r.get('question'),
+                    'max_marks': r.get('max_marks'),
+                    'ocr_confidence': r.get('question_confidence'),
+                    'question_reviewed': bool(r.get('question_reviewed_at')),
+                }
+    return sorted(questions.values(), key=lambda q: (_num(q['question_number'], 0), str(q.get('subpart') or '')))
+
+
+def _assignment_view(item, by_student=None):
+    by_student = by_student if by_student is not None else _grading_rows(item)
+    questions = _questions(item, by_student)
+    qp_status = item.get('qp_status', 'qp_uploaded')
+    if questions and qp_status in ('upload_requested', 'qp_uploaded'):
+        qp_status = 'qp_parsed'
+    submitted = 0
+    for entry in by_student.values():
+        if entry['details'] or entry['summary'] is not None:
+            submitted += 1
+    view = {k: v for k, v in item.items() if k not in ('rubric', 'teacher_id')}
+    view.update({
+        'qp_status': qp_status,
+        'question_count': len(questions) or item.get('question_count'),
+        'total_marks': sum(_num(q.get('max_marks')) for q in questions) or item.get('total_marks'),
+        'submitted': submitted,
+    })
+    return view
+
+
+# ----------------------------------------------------------------------
+# Teacher: assignments (§13)
+# ----------------------------------------------------------------------
+
+def list_assignments(body, caller):
+    _require(caller, 'teacher', 'admin')
+    if caller['role'] == 'admin':
+        items = _scan_all(assignments_table)
+    else:
+        items = _query_all(assignments_table, IndexName='teacher_id-index', KeyConditionExpression=Key('teacher_id').eq(caller['user_id']))
+    users = _users_by_id() if items else {}
+    out = []
+    for item in sorted(items, key=lambda a: a.get('created_at', ''), reverse=True):
+        view = _assignment_view(item)
+        enrolled = len(_enrolled_students(item, users))
+        if enrolled:
+            view['enrolled'] = enrolled
+        out.append(view)
+    return {'assignments': out}
+
+
+def get_assignment(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    view = _assignment_view(item)
+    enrolled = len(_enrolled_students(item, _users_by_id()))
+    if enrolled:
+        view['enrolled'] = enrolled
+    return view
+
+
+def create_assignment(body, caller):
+    _require(caller, 'teacher', 'admin')
+    title, class_name = _required(body, 'title', 'class_name')
+    assignment_id = f"A-{uuid.uuid4().hex[:10]}"
+    item = {
+        'assignment_id': assignment_id,
+        'qp_id': f"QP-{uuid.uuid4().hex[:10]}",
+        'title': str(title)[:200],
+        'class_name': str(class_name)[:100],
+        'teacher_id': caller['user_id'],
+        'qp_status': 'qp_uploaded',
+        'content_status': 'published',
+        'grades_status': 'not_started',
+        'created_at': _now(),
+    }
+    if body.get('due_at'):
+        item['due_at'] = str(body['due_at'])
+    assignments_table.put_item(Item=item)
+    return {'assignment_id': assignment_id, 'qp_id': item['qp_id']}
+
+
+def get_parsed_questions(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    questions = _questions(item)
+    return {
+        'qp_status': 'qp_parsed' if questions else item.get('qp_status', 'qp_uploaded'),
+        'questions': questions,
+        'paper_total': sum(_num(q.get('max_marks')) for q in questions),
+    }
+
+
+def confirm_questions(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    questions = _questions(item)
+    if not questions:
+        raise ApiError(409, 'No parsed questions yet — they appear once the first answers are processed.')
+    assignments_table.update_item(
+        Key={'assignment_id': assignment_id},
+        UpdateExpression='SET questions_confirmed_at = :t, question_count = :n, total_marks = :m, qp_status = if_not_exists(qp_status, :s)',
+        ExpressionAttributeValues={
+            ':t': _now(), ':n': len(questions),
+            ':m': _to_dynamo(sum(_num(q.get('max_marks')) for q in questions)), ':s': 'qp_parsed',
+        },
+    )
+    return {'ok': True}
+
+
+def set_grading_method(body, caller):
+    _require(caller, 'teacher', 'admin')
+    assignment_id, method = _required(body, 'assignment_id', 'method')
+    if method not in ('ai', 'standard'):
+        raise ApiError(400, "method must be 'ai' or 'standard'.")
+    item = _load_assignment(assignment_id, caller)
+    persona = body.get('persona', item.get('persona', 'balanced'))
+    if persona not in PERSONAS:
+        raise ApiError(400, f"persona must be one of {', '.join(PERSONAS)}.")
+    partial = bool(body.get('partial_credit', item.get('partial_credit', True)))
+
+    changed_method = item.get('method') != method
+    status = item.get('qp_status', 'qp_parsed')
+    expr = 'SET #m = :m, persona = :p, partial_credit = :pc'
+    values = {':m': method, ':p': persona, ':pc': partial}
+    if changed_method:
+        # A new method means a new rubric: AI drafts one in the background,
+        # standard starts from the questions for the teacher to fill in.
+        status = 'rubric_generating' if method == 'ai' else 'rubric_generated'
+        expr += ', qp_status = :s REMOVE rubric'
+        values[':s'] = status
+    assignments_table.update_item(
+        Key={'assignment_id': assignment_id}, UpdateExpression=expr,
+        ExpressionAttributeNames={'#m': 'method'}, ExpressionAttributeValues=values,
+    )
+    if changed_method and method == 'ai':
+        _invoke_self({'operation': 'draftRubric', 'assignment_id': assignment_id})
+    return {'qp_status': status}
+
+
+def _default_rubric(questions):
+    return [{
+        'question_number': q['question_number'],
+        'subpart': q.get('subpart'),
+        'title': (q.get('question') or '')[:80],
+        'max_marks': _num(q.get('max_marks')),
+        'criteria': '',
+    } for q in questions]
+
+
+def get_rubric(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    status = item.get('qp_status')
+    if item.get('rubric'):
+        return {'qp_status': status, 'rubric': item['rubric']}
+    if status == 'rubric_generating':
+        return {'qp_status': status, 'rubric': []}
+    return {'qp_status': status, 'rubric': _default_rubric(_questions(item))}
+
+
+def approve_rubric(body, caller):
+    _require(caller, 'teacher', 'admin')
+    assignment_id, rubric = _required(body, 'assignment_id', 'rubric')
+    _load_assignment(assignment_id, caller)
+    if not isinstance(rubric, list) or not rubric:
+        raise ApiError(400, 'rubric must be a non-empty list.')
+    clean = []
+    for r in rubric:
+        if not isinstance(r, dict) or r.get('question_number') in (None, ''):
+            raise ApiError(400, 'Every rubric item needs a question_number.')
+        marks = _num(r.get('max_marks'), -1)
+        if marks < 0:
+            raise ApiError(400, f"Invalid max_marks for Q{r.get('question_number')}.")
+        clean.append({
+            'question_number': r['question_number'],
+            'subpart': r.get('subpart') or None,
+            'title': str(r.get('title') or '')[:200],
+            'max_marks': marks,
+            'criteria': str(r.get('criteria') or '')[:4000],
+        })
+    assignments_table.update_item(
+        Key={'assignment_id': assignment_id},
+        UpdateExpression='SET rubric = :r, qp_status = :s, rubric_reviewed_at = :t, rubric_reviewed_by = :u',
+        ExpressionAttributeValues={':r': _to_dynamo(clean), ':s': 'rubric_reviewed', ':t': _now(), ':u': caller['user_id']},
+    )
+    return {'qp_status': 'rubric_reviewed'}
+
+
+def start_grading(body, caller):
+    """Teacher side of the fan-in gate: every corrected submission is graded now."""
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    if item.get('qp_status') != 'rubric_reviewed':
+        raise ApiError(409, 'Approve the rubric before grading starts.')
+    by_student = _grading_rows(item)
+    triggered = 0
+    for student_id, entry in by_student.items():
+        if _derived_status(entry) != 'corrected':
+            continue
+        _put_submission_status(assignment_id, student_id, 'grading_triggered')
+        _trigger_grading(item, student_id)
+        triggered += 1
+    expr, values = 'SET grading_started_at = :t', {':t': _now()}
+    # Re-grading after publish keeps the assignment "published"; students keep
+    # their grades until the teacher publishes again (→ published_revised).
+    if item.get('grades_status') != 'published':
+        expr += ', grades_status = :g'
+        values[':g'] = 'teacher_reviewing' if triggered else 'ai_graded'
+    assignments_table.update_item(Key={'assignment_id': assignment_id}, UpdateExpression=expr, ExpressionAttributeValues=values)
+    return {'ok': True, 'triggered': triggered}
+
+
+def _trigger_grading(assignment, student_id):
+    fn = os.environ.get('GRADING_FUNCTION_NAME')
+    if not fn:
+        return
+    boto3.client('lambda').invoke(
+        FunctionName=fn,
+        InvocationType='Event',
+        Payload=json.dumps({
+            'assignment_id': assignment['assignment_id'],
+            'qp_id': assignment['qp_id'],
+            'student_id': student_id,
+            'method': assignment.get('method'),
+            'persona': assignment.get('persona', 'balanced'),
+            'partial_credit': assignment.get('partial_credit', True),
+            'rubric': assignment.get('rubric', []),
+        }, default=_json_default).encode(),
+    )
+
+
+def _put_submission_status(assignment_id, student_id, status, extra=None):
+    expr = 'SET #s = :s, updated_at = :t'
+    values = {':s': status, ':t': _now()}
+    for k, v in (extra or {}).items():
+        expr += f', {k} = :{k}'
+        values[f':{k}'] = _to_dynamo(v)
+    submissions_table.update_item(
+        Key={'assignment_id': assignment_id, 'student_id': student_id},
+        UpdateExpression=expr, ExpressionAttributeNames={'#s': 'status'}, ExpressionAttributeValues=values,
+    )
+
+
+# ----------------------------------------------------------------------
+# Teacher: grading run, spot-check, publish, roster (§15, §19)
+# ----------------------------------------------------------------------
+
+def _submissions(item, users=None):
+    users = users if users is not None else _users_by_id()
+    by_student = _grading_rows(item)
+    stored = {s['student_id']: s for s in _query_all(submissions_table, KeyConditionExpression=Key('assignment_id').eq(item['assignment_id']))}
+    for u in _enrolled_students(item, users):
+        by_student.setdefault(u['user_id'], {'summary': None, 'details': []})
+    due = item.get('due_at')
+    out = []
+    for student_id, entry in by_student.items():
+        sub = stored.get(student_id, {})
+        status = _merge_status(_derived_status(entry), sub.get('status'))
+        rows = entry['details']
+        submitted_at = sub.get('submitted_at') or min((r.get('timestamp') or r.get('created_at') or '' for r in rows), default='') or None
+        row = {
+            'student_id': student_id,
+            'student_name': (users.get(student_id) or {}).get('name'),
+            'status': status,
+            'pages': sub.get('pages'),
+        }
+        if submitted_at:
+            row['submitted_at'] = _iso(submitted_at)
+            if due and row['submitted_at'][:10] > str(due)[:10]:
+                row['late'] = True
+        if entry['summary'] is not None:
+            row['evaluation_id'] = entry['summary'].get('evaluation_id')
+            row['total_marks'] = entry['summary'].get('total_marks')
+        if sub.get('recheck_status') == 'open':
+            row['recheck'] = sub.get('recheck')
+        confs = [_num(r['confidence']) for r in rows if r.get('confidence') is not None]
+        if confs:
+            row['confidence'] = min(confs)
+        out.append(row)
+    out.sort(key=lambda r: (r.get('student_name') or r['student_id']).lower())
+    return out, by_student, users
+
+
+def _iso(value):
+    """assignment_grading timestamps are epoch seconds/ms; workflow ones are ISO strings."""
+    if isinstance(value, (int, float, Decimal)) or (isinstance(value, str) and value.isdigit()):
+        n = float(value)
+        return datetime.datetime.fromtimestamp(n / 1000 if n > 1e12 else n, datetime.timezone.utc).isoformat()
+    return str(value)
+
+
+def get_grading_run(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    subs, _, _ = _submissions(item)
+    counts = {}
+    for s in subs:
+        counts[s['status']] = counts.get(s['status'], 0) + 1
+    return {'total': len(subs), 'counts': counts, 'submissions': subs}
+
+
+def list_submissions(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    subs, _, users = _submissions(item)
+    enrolled = len(_enrolled_students(item, users)) or len(subs)
+    return {'submissions': subs, 'enrolled': enrolled}
+
+
+def list_flagged(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    users = _users_by_id()
+    rubric = {(str(r['question_number']), r.get('subpart') or ''): r for r in item.get('rubric') or []}
+    items = []
+    for student_id, entry in _grading_rows(item).items():
+        if entry['summary'] is None:
+            continue
+        for r in entry['details']:
+            if not _is_flagged(r):
+                continue
+            key = (str(r.get('question_number')), r.get('subpart') or '')
+            items.append({
+                'evaluation_id': r['evaluation_id'],
+                'student_id': student_id,
+                'student_name': (users.get(student_id) or {}).get('name'),
+                'question_number': r.get('question_number'),
+                'subpart': r.get('subpart'),
+                'confidence': _num(r.get('confidence')),
+                'reference_answer': (rubric.get(key) or {}).get('criteria') or None,
+                'student_answer': r.get('student_answer'),
+                'proposed_marks': _num(r.get('marks')),
+                'max_marks': _num(r.get('max_marks')),
+            })
+    items.sort(key=lambda f: f['confidence'])
+    return {'items': items}
+
+
+def accept_flagged(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (evaluation_id,) = _required(body, 'evaluation_id')
+    row = grading_table.get_item(Key={'evaluation_id': evaluation_id}).get('Item')
+    if not row or row.get('type') == 'summary':
+        raise ApiError(404, 'Answer not found.')
+    assignment = assignments_table.get_item(Key={'assignment_id': row.get('assignment_id', '')}).get('Item')
+    owner = (assignment or {}).get('teacher_id') or row.get('teacher_id')
+    if caller['role'] == 'teacher' and owner and owner != caller['user_id']:
+        raise ApiError(403, 'This answer belongs to a different teacher.')
+    grading_table.update_item(
+        Key={'evaluation_id': evaluation_id},
+        UpdateExpression='SET flag_resolved_at = :t, flag_resolved_by = :u, flag_resolution = :r',
+        ExpressionAttributeValues={':t': _now(), ':u': caller['user_id'], ':r': 'accepted'},
+    )
+    return {'ok': True}
+
+
+def publish_grades(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (assignment_id,) = _required(body, 'assignment_id')
+    item = _load_assignment(assignment_id, caller)
+    subs, _, users = _submissions(item)
+    if any(s['status'] == 'queued_for_review' for s in subs):
+        raise ApiError(409, 'Clear the flagged answers before publishing.')
+    if any(s['status'] in ('grading_triggered', 'corrected') for s in subs):
+        raise ApiError(409, 'Some papers are still grading.')
+    now = _now()
+    published = []
+    for s in subs:
+        if s.get('total_marks') is None:
+            continue
+        status = 'published_revised' if s['status'] in ('published', 'published_revised') else 'published'
+        _put_submission_status(assignment_id, s['student_id'], status, {'published_at': now})
+        published.append(s['student_id'])
+    if not published:
+        raise ApiError(409, 'No graded papers to publish yet.')
+    assignments_table.update_item(
+        Key={'assignment_id': assignment_id},
+        UpdateExpression='SET grades_status = :g, published_at = :t',
+        ExpressionAttributeValues={':g': 'published', ':t': now},
+    )
+    topic = os.environ.get('SNS_TOPIC_ARN')
+    if topic:
+        boto3.client('sns').publish(
+            TopicArn=topic,
+            Subject=f"Grades published: {item.get('title', assignment_id)}"[:100],
+            Message=json.dumps({'assignment_id': assignment_id, 'student_ids': published}),
+        )
+    return {'notified': len(published)}
+
+
+def remind_student(body, caller):
+    _require(caller, 'teacher', 'admin')
+    assignment_id, student_id = _required(body, 'assignment_id', 'student_id')
+    item = _load_assignment(assignment_id, caller)
+    student = _users_by_id().get(student_id)
+    if not student or student.get('userRole') != 'student':
+        raise ApiError(404, 'Student not found.')
+    sender = os.environ.get('SES_SENDER_EMAIL')
+    emailed = False
+    if sender and student.get('email'):
+        due = f" It's due {str(item['due_at'])[:10]}." if item.get('due_at') else ''
+        boto3.client('ses').send_email(
+            Source=sender,
+            Destination={'ToAddresses': [student['email']]},
+            Message={
+                'Subject': {'Data': f"Reminder: {item.get('title', 'assignment')}"},
+                'Body': {'Text': {'Data': f"Hi {student.get('name') or ''},\n\nPlease submit your answers for "
+                                          f"\"{item.get('title')}\" ({item.get('class_name')}).{due}\n\n— GradeAnt"}},
+            },
+        )
+        emailed = True
+    submissions_table.update_item(
+        Key={'assignment_id': assignment_id, 'student_id': student_id},
+        UpdateExpression='SET reminded_at = :t, #s = if_not_exists(#s, :s)',
+        ExpressionAttributeNames={'#s': 'status'},
+        ExpressionAttributeValues={':t': _now(), ':s': 'upload_requested'},
+    )
+    return {'ok': True, 'emailed': emailed}
+
+
+# ----------------------------------------------------------------------
+# Student (§14)
+# ----------------------------------------------------------------------
+
+def list_student_assignments(body, caller):
+    _require(caller, 'student')
+    classes = caller['user'].get('classes')
+    published = _scan_all(assignments_table, FilterExpression=Attr('content_status').eq('published'))
+    if classes:
+        published = [a for a in published if a.get('class_name') in classes]
+    out = []
+    for a in sorted(published, key=lambda x: x.get('due_at') or x.get('created_at', '')):
+        entry = {'summary': None, 'details': _student_details(caller['user_id'], a)}
+        summary = _query_all(
+            grading_table, IndexName='student_id-index',
+            KeyConditionExpression=Key('student_id').eq(caller['user_id']),
+            FilterExpression=Attr('assignment_id').eq(a['assignment_id']) & Attr('type').eq('summary'),
+        )
+        entry['summary'] = summary[0] if summary else None
+        sub = submissions_table.get_item(Key={'assignment_id': a['assignment_id'], 'student_id': caller['user_id']}).get('Item') or {}
+        status = _merge_status(_derived_status(entry), sub.get('status'))
+        # Students only ever see published grades; teacher-side states read as "grading".
+        if status in ('ai_graded', 'queued_for_review', 'teacher_reviewed'):
+            status = 'grading_triggered'
+        view = {
+            'assignment_id': a['assignment_id'], 'qp_id': a['qp_id'], 'title': a.get('title'),
+            'class_name': a.get('class_name'), 'due_at': a.get('due_at'),
+            'question_count': a.get('question_count'), 'total_marks': a.get('total_marks'),
+            'submission_status': status,
+        }
+        if entry['summary'] is not None and status in ('published', 'published_revised'):
+            view['evaluation_id'] = entry['summary'].get('evaluation_id')
+        out.append({k: v for k, v in view.items() if v is not None})
+    return {'assignments': out}
+
+
+def request_recheck(body, caller):
+    _require(caller, 'student')
+    assignment_id, items = _required(body, 'assignment_id', 'items')
+    if not isinstance(items, list) or not items:
+        raise ApiError(400, 'Pick at least one question.')
+    clean = []
+    for i in items:
+        note = str((i or {}).get('note') or '').strip()
+        if (i or {}).get('question_number') in (None, '') or not note:
+            raise ApiError(400, 'Each item needs a question_number and a note.')
+        clean.append({'question_number': i['question_number'], 'subpart': i.get('subpart') or None, 'note': note[:1000]})
+    sub = submissions_table.get_item(Key={'assignment_id': assignment_id, 'student_id': caller['user_id']}).get('Item')
+    if not sub or sub.get('status') not in ('published', 'published_revised'):
+        raise ApiError(409, 'You can request a re-check once your grades are published.')
+    submissions_table.update_item(
+        Key={'assignment_id': assignment_id, 'student_id': caller['user_id']},
+        UpdateExpression='SET recheck = :r, recheck_requested_at = :t, recheck_status = :s',
+        ExpressionAttributeValues={':r': _to_dynamo(clean), ':t': _now(), ':s': 'open'},
+    )
+    return {'ok': True}
+
+
+# ----------------------------------------------------------------------
+# GradeFlow assistant + rubric drafting (Claude on Amazon Bedrock)
+# ----------------------------------------------------------------------
+
+_claude = None
+
+
+def _claude_client():
+    """Claude via the Bedrock Mantle client; a classifier decline retries on the fallback model."""
+    global _claude
+    if _claude is None:
+        from anthropic import AnthropicBedrockMantle, BetaRefusalFallbackMiddleware
+
+        _claude = AnthropicBedrockMantle(
+            aws_region=os.environ.get('BEDROCK_REGION') or os.environ.get('AWS_REGION'),
+            middleware=[BetaRefusalFallbackMiddleware([{'model': BEDROCK_FALLBACK_MODEL_ID}])],
+        )
+    return _claude
+
+
+def _ask_claude(system, messages, *, effort, max_tokens=16000, output_format=None):
+    from anthropic import BetaFallbackState
+
+    params = {
+        'model': BEDROCK_MODEL_ID,
+        'max_tokens': max_tokens,
+        'system': system,
+        'messages': messages,
+        'output_config': {'effort': effort},
+    }
+    if output_format:
+        params['output_config']['format'] = output_format
+    with BetaFallbackState():
+        response = _claude_client().beta.messages.create(**params)
+    if response.stop_reason == 'refusal':
+        return None
+    return ''.join(b.text for b in response.content if b.type == 'text')
+
+
+def _grading_context(assignment, student_id=None):
+    by_student = _grading_rows(assignment)
+    if student_id:
+        by_student = {k: v for k, v in by_student.items() if k == student_id}
+    users = _users_by_id()
+    lines = [
+        f"Assignment: {assignment.get('title')} ({assignment.get('class_name')})",
+        f"Grading method: {assignment.get('method', 'not chosen')}, persona: {assignment.get('persona', 'balanced')}",
+    ]
+    if assignment.get('rubric'):
+        lines.append('Rubric:')
+        for r in assignment['rubric']:
+            lines.append(f"  Q{r['question_number']}{r.get('subpart') or ''} ({r.get('max_marks')} marks): {r.get('criteria') or r.get('title') or ''}")
+    lines.append('Results:')
+    for sid, entry in by_student.items():
+        name = (users.get(sid) or {}).get('name') or sid
+        total = entry['summary'].get('total_marks') if entry['summary'] else 'not graded'
+        lines.append(f"- Student {name} [{sid}]: total {total}")
+        for r in sorted(entry['details'], key=lambda x: (_num(x.get('question_number')), str(x.get('subpart') or ''))):
+            lines.append(
+                f"    Q{r.get('question_number')}{r.get('subpart') or ''}: {r.get('marks', '?')}/{r.get('max_marks', '?')}"
+                f"{' (low confidence)' if _is_flagged(r) else ''}"
+                f" | answer: {(r.get('student_answer') or '').strip()}"
+                f" | feedback: {(r.get('feedback') or '').strip()}"
+            )
+    return '\n'.join(lines)
+
+
+ASSISTANT_SYSTEM = """You are the GradeFlow assistant inside GradeAnt, an AI grading tool for STEM teachers.
+You help the teacher understand and act on grading results: explain why an answer earned its marks against the rubric, \
+find patterns across the class, identify students who are struggling, and draft feedback or re-teaching notes.
+Ground every claim in the grading data provided below; if the data doesn't contain the answer, say so. \
+Refer to students by the name shown. Keep replies concise and practical; use short lists where they help. \
+You can't change grades yourself — when a change looks warranted, tell the teacher which score to override in the correction workspace.
+
+Grading data:
+"""
+
+
+def ask_assistant(body, caller):
+    _require(caller, 'teacher', 'admin')
+    messages = body.get('messages')
+    if not isinstance(messages, list) or not messages:
+        raise ApiError(400, 'messages is required.')
+    clean = []
+    for m in messages[-20:]:
+        role, content = (m or {}).get('role'), (m or {}).get('content')
+        if role not in ('user', 'assistant') or not isinstance(content, str) or not content.strip():
+            raise ApiError(400, 'Each message needs role user|assistant and text content.')
+        clean.append({'role': role, 'content': content[:4000]})
+    while clean and clean[0]['role'] != 'user':
+        clean.pop(0)
+    if not clean or clean[-1]['role'] != 'user':
+        raise ApiError(400, 'The last message must be from the user.')
+
+    if body.get('assignment_id'):
+        assignment = _load_assignment(body['assignment_id'], caller)
+        context = _grading_context(assignment, body.get('student_id'))
+    else:
+        if caller['role'] == 'admin':
+            items = _scan_all(assignments_table)
+        else:
+            items = _query_all(assignments_table, IndexName='teacher_id-index', KeyConditionExpression=Key('teacher_id').eq(caller['user_id']))
+        context = '\n\n'.join(_grading_context(a) for a in items) or 'No assignments yet.'
+
+    # Chat runs behind API Gateway's 29 s limit, so it uses low effort.
+    reply = _ask_claude(ASSISTANT_SYSTEM + context, clean, effort='low')
+    if reply is None:
+        reply = "I can't help with that request. Try asking about the grades, rubric or feedback for this assignment."
+    return {'reply': reply}
+
+
+RUBRIC_SCHEMA = {
+    'type': 'object',
+    'properties': {
+        'items': {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    'question_number': {'type': 'string'},
+                    'subpart': {'type': 'string'},
+                    'title': {'type': 'string'},
+                    'max_marks': {'type': 'number'},
+                    'criteria': {'type': 'string'},
+                },
+                'required': ['question_number', 'subpart', 'title', 'max_marks', 'criteria'],
+                'additionalProperties': False,
+            },
+        },
+    },
+    'required': ['items'],
+    'additionalProperties': False,
+}
+
+
+def draft_rubric(assignment_id):
+    """Internal (async) — GradeFlow drafts a marking rubric from the reviewed questions."""
+    item = assignments_table.get_item(Key={'assignment_id': assignment_id}).get('Item')
+    if not item or item.get('qp_status') != 'rubric_generating':
+        return
+    questions = _questions(item)
+    rubric = _default_rubric(questions)
+    if questions:
+        listing = '\n'.join(
+            f"Q{q['question_number']}{q.get('subpart') or ''} [{_num(q.get('max_marks'))} marks]: {q.get('question') or ''}"
+            for q in questions
+        )
+        persona = item.get('persona', 'balanced')
+        partial = 'Award method marks (partial credit) for correct working.' if item.get('partial_credit', True) else 'Award marks only for correct final answers.'
+        text = _ask_claude(
+            'You write marking rubrics for STEM homework. For each question, give a short title and concise criteria '
+            'saying exactly what earns the marks (key steps, expected result with units/sign, common errors to penalise). '
+            'Keep each question\'s max_marks exactly as given. Use an empty string for subpart when there is none.',
+            [{'role': 'user', 'content': f"Grading persona: {persona}. {partial}\n\nQuestions:\n{listing}"}],
+            effort='medium',
+            output_format={'type': 'json_schema', 'schema': RUBRIC_SCHEMA},
+        )
+        if text:
+            drafted = {(str(r['question_number']), r.get('subpart') or ''): r for r in json.loads(text).get('items', [])}
+            for r in rubric:
+                d = drafted.get((str(r['question_number']), r.get('subpart') or ''))
+                if d:
+                    r['title'] = d.get('title') or r['title']
+                    r['criteria'] = d.get('criteria') or ''
+    assignments_table.update_item(
+        Key={'assignment_id': assignment_id},
+        UpdateExpression='SET rubric = :r, qp_status = :s',
+        ConditionExpression=Attr('qp_status').eq('rubric_generating'),
+        ExpressionAttributeValues={':r': _to_dynamo(rubric), ':s': 'rubric_generated'},
+    )
+
+
+def _invoke_self(payload):
+    name = os.environ.get('AWS_LAMBDA_FUNCTION_NAME')
+    if not name:  # local run / tests: do it inline
+        draft_rubric(payload['assignment_id'])
+        return
+    boto3.client('lambda').invoke(
+        FunctionName=name, InvocationType='Event',
+        Payload=json.dumps({'source': INTERNAL_SOURCE, **payload}).encode(),
+    )
+
+
+# ----------------------------------------------------------------------
+# Handler
+# ----------------------------------------------------------------------
+
+OPERATIONS = {
+    'listAssignments': list_assignments,
+    'getAssignment': get_assignment,
+    'createAssignment': create_assignment,
+    'getParsedQuestions': get_parsed_questions,
+    'confirmQuestions': confirm_questions,
+    'setGradingMethod': set_grading_method,
+    'getRubric': get_rubric,
+    'approveRubric': approve_rubric,
+    'startGrading': start_grading,
+    'getGradingRun': get_grading_run,
+    'listSubmissions': list_submissions,
+    'listFlagged': list_flagged,
+    'acceptFlagged': accept_flagged,
+    'publishGrades': publish_grades,
+    'remindStudent': remind_student,
+    'listStudentAssignments': list_student_assignments,
+    'requestRecheck': request_recheck,
+    'askAssistant': ask_assistant,
+}
+
+
+def lambda_handler(event, context):
+    # Async self-invocation (rubric drafting). API Gateway events always carry
+    # requestContext, so this path can't be reached from outside.
+    if event.get('source') == INTERNAL_SOURCE and 'requestContext' not in event:
+        if event.get('operation') == 'draftRubric':
+            draft_rubric(event['assignment_id'])
+        return {'ok': True}
+
+    if event.get('httpMethod') == 'OPTIONS':
+        return create_response(200, {'message': 'CORS preflight successful'})
+
+    try:
+        raw = event.get('body')
+        body = json.loads(raw) if isinstance(raw, str) and raw else (raw or {})
+        if not isinstance(body, dict):
+            raise ApiError(400, 'Body must be a JSON object.')
+        caller = authenticate(event)
+        handler = OPERATIONS.get(body.get('operation'))
+        if not handler:
+            raise ApiError(400, 'Invalid operation specified')
+        return create_response(200, handler(body, caller))
+    except ApiError as e:
+        return create_response(e.status_code, {'error': e.message})
+    except Exception as e:  # noqa: BLE001 — surface as JSON so the UI can show it
+        print(f'workflow error: {e!r}')
+        return create_response(500, {'error': 'Internal error'})
