@@ -29,20 +29,22 @@ export default function GradingRun() {
   const subs = run.data?.submissions ?? []
   const total = run.data?.total ?? subs.length
   const graded = subs.filter((s) => reached(s.status, 'ai_graded')).length
-  const queued = subs.filter((s) => !reached(s.status, 'grading_triggered')).length
-  const grading = subs.filter((s) => s.status === 'grading_triggered').length
+  // Waiting on the student (not submitted / OCR not confirmed) never blocks publishing;
+  // only papers that are confirmed or mid-grading do (same rule as publishGrades).
+  const queued = subs.filter((s) => !reached(s.status, 'corrected')).length
+  const grading = subs.filter((s) => s.status === 'grading_triggered' || s.status === 'corrected').length
   const published = subs.length > 0 && subs.every((s) => isPublished(s.status))
   const openFlags = (flagged.data ?? []).filter((f) => !resolved.has(flagKey(f)))
-  const step = published ? 4 : grading > 0 || (queued > 0 && graded > 0) ? 1 : graded === 0 ? 0 : openFlags.length > 0 ? 3 : 4
+  const step = published ? 4 : grading > 0 ? 1 : graded === 0 ? 0 : openFlags.length > 0 ? 3 : 4
 
   useEffect(() => {
-    if (run.loading || published || (grading === 0 && queued === 0)) return
+    if (run.loading || published || grading === 0) return
     const t = window.setTimeout(() => {
       run.reload()
       flagged.reload()
     }, POLL_MS)
     return () => clearTimeout(t)
-  }, [run, flagged, grading, queued, published])
+  }, [run, flagged, grading, published])
 
   const maxMarks = assignment.data?.total_marks ?? 0
   const counts = { A: 0, B: 0, C: 0, D: 0, F: 0 }
@@ -106,7 +108,7 @@ export default function GradingRun() {
             <div className="ga-grid-4">
               <StatTile label="Graded" value={graded} tone="success" />
               <StatTile label="Grading now" value={grading} tone="brand" />
-              <StatTile label="Waiting" value={queued} note="until student confirms OCR" />
+              <StatTile label="Waiting on students" value={queued} note="not submitted or OCR not confirmed" />
               <StatTile label="Low confidence" value={openFlags.length} tone="warning" />
             </div>
           </Card>
@@ -214,19 +216,19 @@ export default function GradingRun() {
 
           {!published && (
             <Notice
-              tone={openFlags.length || queued || grading ? 'warning' : 'success'}
+              tone={openFlags.length || grading ? 'warning' : 'success'}
               action={
                 <button
                   type="button"
                   className="ga-btn ga-btn-primary"
-                  disabled={publishing || openFlags.length > 0 || queued > 0 || grading > 0 || graded === 0}
+                  disabled={publishing || openFlags.length > 0 || grading > 0 || graded === 0}
                   onClick={publish}
                 >
                   {publishing ? 'Publishing…' : 'Publish grades'}
                 </button>
               }
             >
-              {openFlags.length || queued || grading
+              {openFlags.length || grading
                 ? 'Publish unlocks once grading has finished and every flagged answer is cleared.'
                 : 'All clear — publishing notifies every student at once.'}
             </Notice>

@@ -114,8 +114,8 @@ export function Notice({ tone = 'info', children, action }: { tone?: Tone; child
 
 /** Load error with retry; spells out when the workflow API isn't deployed yet. */
 export function LoadError({ error, onRetry }: { error: Error; onRetry?: () => void }) {
-  const status = (error as Error & { status?: number }).status
-  const missing = status === 403 || status === 404
+  // API Gateway answers an undeployed route with 403 "Missing Authentication Token".
+  const missing = /Missing Authentication Token/i.test(error.message)
   return (
     <Notice
       tone="danger"

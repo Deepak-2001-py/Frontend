@@ -1,0 +1,27 @@
+# The root Dockerfile serves the legacy static site straight from this
+# folder, so anything not listed here becomes a public URL. Keep backend
+# code, deployment config, tooling and design docs out of the image.
+.git
+.github
+.claude
+skills-lock.json
+Dockerfile
+.dockerignore
+Task_definition.json
+app.bat
+README.md
+
+# Backend Lambda sources (never serve these)
+lambda_python_files
+admin/*.py
+**/__pycache__
+
+# The React app is built and deployed separately (web/Dockerfile)
+web
+
+# Design / planning documents
+workflows
+images
+*.dc.html
+GradeAnt Website Wireframes (standalone).html
+mermaid-diagram*.png

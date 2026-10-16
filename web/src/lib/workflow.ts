@@ -58,6 +58,8 @@ export interface Submission {
   evaluation_id?: string
   total_marks?: number
   confidence?: number
+  /** Open re-check request from the student (§14 step 5). */
+  recheck?: { question_number: string | number; subpart?: string; note: string }[]
 }
 
 export interface FlaggedItem {

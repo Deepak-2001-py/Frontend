@@ -106,6 +106,11 @@ export default function Submissions() {
                         </td>
                         <td>
                           <StatusPill status={s.status} />
+                          {s.recheck && s.recheck.length > 0 && (
+                            <div style={{ marginTop: 6 }} title={s.recheck.map((r) => `Q${r.question_number}${r.subpart ?? ''}: ${r.note}`).join('\n')}>
+                              <Pill tone="warning">Re-check requested · {s.recheck.map((r) => `Q${r.question_number}${r.subpart ?? ''}`).join(', ')}</Pill>
+                            </div>
+                          )}
                         </td>
                         <td style={{ textAlign: 'right' }}>
                           {isSubmitted(s) ? (
