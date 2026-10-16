@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode, type Ref } from 'react'
 
 /** Shared stylesheets in src/styles/themes/, scoped to `.theme-<name>`. */
-export type Theme = 'aesthetic' | 'teacher-grade' | 'teacher-correction' | 'admin' | 'site' | 'legal' | 'account'
+export type Theme = 'aesthetic' | 'teacher-grade' | 'teacher-correction' | 'admin' | 'legal' | 'account'
 
 interface Props {
   /** Page stylesheet in src/styles/pages/ (if any) — scopes its selectors (see vite.config.ts). */

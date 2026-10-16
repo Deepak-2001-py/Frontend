@@ -1,235 +1,184 @@
-import { useRef } from 'react'
-import { Link } from 'react-router-dom'
-import PageScope from '../../components/PageScope'
-import { useStaticPageBehaviors } from '../../hooks/useStaticPageBehaviors'
-import '../../styles/themes/site.css'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
+import { CtaBand, LandingPage, PageHero } from '../../components/landing/LandingKit'
+import { EASE } from '../../components/landing/motion'
 
-/** Converted from resoures/blog.html; its inline script lives in useStaticPageBehaviors. */
+type Category = 'AI in Education' | 'Teaching Tips' | 'Assessment' | 'EdTech'
+
+interface Post {
+  category: Category
+  title: string
+  excerpt: string
+  author: string
+  date: string
+  readTime?: string
+}
+
+// Article pages aren't written yet, so cards are marked "Coming soon" rather than linking nowhere.
+const POSTS: Post[] = [
+  {
+    category: 'AI in Education',
+    title: 'How AI is transforming student feedback in 2025',
+    excerpt:
+      'The landscape of student feedback is changing rapidly as AI tools become more sophisticated. Here is how educators are using them to give more personalised, timely feedback.',
+    author: 'Sarah Chen',
+    date: 'April 5, 2025',
+    readTime: '8 min read',
+  },
+  {
+    category: 'Teaching Tips',
+    title: '5 strategies to reduce grading time without sacrificing quality',
+    excerpt: 'Practical approaches to streamline your grading while keeping feedback meaningful.',
+    author: 'Alex Johnson',
+    date: 'April 2, 2025',
+  },
+  {
+    category: 'Assessment',
+    title: 'The future of formative assessment in the AI era',
+    excerpt: 'How intelligent assessment tools are changing the way we approach formative evaluation.',
+    author: 'Lisa Patel',
+    date: 'March 28, 2025',
+  },
+  {
+    category: 'EdTech',
+    title: 'Integrating GradeAnt with your existing LMS: a complete guide',
+    excerpt: 'Step-by-step instructions for connecting GradeAnt with popular learning management systems.',
+    author: 'Miguel Rodriguez',
+    date: 'March 21, 2025',
+  },
+  {
+    category: 'AI in Education',
+    title: 'Addressing bias in AI-assisted grading: best practices',
+    excerpt: 'Where bias can creep into AI systems — and how to spot and mitigate it.',
+    author: 'Sarah Chen',
+    date: 'March 15, 2025',
+  },
+  {
+    category: 'Teaching Tips',
+    title: 'Creating rubrics that work with AI grading assistants',
+    excerpt: 'How to design rubrics that complement AI-powered assessment tools.',
+    author: 'Alex Johnson',
+    date: 'March 8, 2025',
+  },
+  {
+    category: 'Assessment',
+    title: 'Beyond multiple choice: AI-assisted grading for complex assignments',
+    excerpt: 'How AI can help evaluate essays, projects and other open-ended work.',
+    author: 'Lisa Patel',
+    date: 'March 1, 2025',
+  },
+]
+
+const COVERS: Record<Category, { cls: string; icon: string }> = {
+  'AI in Education': { cls: 'lp-cover-ai', icon: 'auto_awesome' },
+  'Teaching Tips': { cls: 'lp-cover-tips', icon: 'tips_and_updates' },
+  Assessment: { cls: 'lp-cover-assess', icon: 'fact_check' },
+  EdTech: { cls: 'lp-cover-edtech', icon: 'devices' },
+}
+
+const FILTERS: ('All' | Category)[] = ['All', 'Teaching Tips', 'EdTech', 'Assessment', 'AI in Education']
+
+function PostCard({ post, featured }: { post: Post; featured?: boolean }) {
+  const cover = COVERS[post.category]
+  return (
+    <motion.article
+      layout
+      className={`lp-post${featured ? ' is-featured' : ''}`}
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.4, ease: EASE }}
+      whileHover={{ y: -6 }}
+    >
+      <div className={`lp-post-cover ${cover.cls}`} aria-hidden>
+        <span className="material-icons">{cover.icon}</span>
+      </div>
+      <div className="lp-post-body">
+        <span className="lp-post-cat">{post.category}</span>
+        <h3>{post.title}</h3>
+        <p>{post.excerpt}</p>
+        <div className="lp-post-meta">
+          By {post.author} · {post.date}
+          {post.readTime ? ` · ${post.readTime}` : ''}
+        </div>
+        <span className="lp-soon">Full article coming soon</span>
+      </div>
+    </motion.article>
+  )
+}
+
 export default function Blog() {
-  const root = useRef<HTMLDivElement>(null)
-  useStaticPageBehaviors(root)
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]>('All')
+  const shown = POSTS.filter((p) => filter === 'All' || p.category === filter)
+  const [featured, ...rest] = shown
 
   return (
-    <PageScope name="blog" theme="site" title="Blog" rootRef={root}>
-      <nav className="navbar">
-        <div className="container navbar-container">
-          <Link to="/" className="logo-container">
-            <img src="/img/Designer.jpeg" alt="GradeAnt Logo" className="logo-image" />
-            <h1 className="logo">
-              Grade
-              <span>Ant</span>
-            </h1>
-          </Link>
-          {' '}
-          <button className="mobile-menu-btn" id="mobileMenuBtn">☰</button>
-          <div className="nav-links" id="navLinks">
-            <Link to="/about">About</Link>
-            {' '}
-            <Link to="/blog" className="active">Blog</Link>
-            {' '}
-            <Link to="/contact">Contact</Link>
-            <div className="auth-buttons">
-              <Link to="/login" className="btn btn-secondary">Login</Link>
-              {' '}
-              <Link to="/signup" className="btn btn-primary">Sign Up</Link>
-            </div>
+    <LandingPage title="Blog">
+      <PageHero
+        eyebrow="GradeAnt blog"
+        title={
+          <>
+            Ideas for the <span className="lp-gradient-text">modern classroom</span>
+          </>
+        }
+        lead="Insights, tips and stories from the world of education and AI."
+      />
+
+      <section className="lp-section" style={{ paddingTop: 8 }}>
+        <div className="lp-container">
+          <div className="lp-chips" role="tablist" aria-label="Filter posts by category">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                role="tab"
+                aria-selected={filter === f}
+                className={`lp-chip-btn${filter === f ? ' is-active' : ''}`}
+                onClick={() => setFilter(f)}
+              >
+                {filter === f && <motion.span layoutId="lp-chip-bg" className="lp-chip-bg" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />}
+                <span>{f}</span>
+              </button>
+            ))}
           </div>
-        </div>
-      </nav>
-      <section className="page-hero blog-hero">
-        <div className="container">
-          <h1>GradeAnt Blog</h1>
-          <p>Insights, tips, and stories from the world of education and AI.</p>
-        </div>
-      </section>
-      <section className="blog-categories">
-        <div className="container">
-          <div className="category-tabs">
-            <button className="category-tab active">All</button>
-            {' '}
-            <button className="category-tab">Teaching Tips</button>
-            {' '}
-            <button className="category-tab">EdTech</button>
-            {' '}
-            <button className="category-tab">Assessment</button>
-            {' '}
-            <button className="category-tab">AI in Education</button>
-          </div>
+
+          <AnimatePresence mode="popLayout">
+            {featured && <PostCard key={`featured-${featured.title}`} post={featured} featured />}
+          </AnimatePresence>
+          <motion.div layout className="lp-cards">
+            <AnimatePresence mode="popLayout">
+              {rest.map((p) => (
+                <PostCard key={p.title} post={p} />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         </div>
       </section>
-      <section className="featured-post">
-        <div className="container">
-          <div className="featured-post-card">
-            <div className="featured-post-image">
-              <img src="/img/blog-featured.jpg" alt="Featured Blog Post" />
+
+      <section className="lp-section" style={{ paddingTop: 0 }}>
+        <div className="lp-container">
+          <motion.div
+            className="lp-newsletter"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 0.6, ease: EASE }}
+          >
+            <div>
+              <h2>Subscribe to our newsletter</h2>
+              <p>The latest on education, AI and grading strategy — launching soon.</p>
             </div>
-            <div className="featured-post-content">
-              <span className="post-category">AI in Education</span>
-              <h2>How AI is Transforming Student Feedback in 2025</h2>
-              <p className="post-meta">By Sarah Chen • April 5, 2025 • 8 min read</p>
-              <p className="post-excerpt">
-                The landscape of student feedback is changing rapidly as AI tools become more sophisticated. Here's how educators are using these technologies to provide more personalized, timely feedback...
-              </p>
-              <a href="#" className="btn btn-secondary">Read More</a>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="blog-posts">
-        <div className="container">
-          <div className="posts-grid">
-            <div className="blog-post-card">
-              <div className="post-image">
-                <img src="/img/blog-post-1.jpg" alt="Blog Post" />
-              </div>
-              <div className="post-content">
-                <span className="post-category">Teaching Tips</span>
-                <h3>5 Strategies to Reduce Grading Time Without Sacrificing Quality</h3>
-                <p className="post-meta">By Alex Johnson • April 2, 2025</p>
-                <p className="post-excerpt">
-                  Discover practical approaches to streamline your grading process while maintaining meaningful feedback...
-                </p>
-                <a href="#" className="read-more">Read More →</a>
-              </div>
-            </div>
-            <div className="blog-post-card">
-              <div className="post-image">
-                <img src="/img/blog-post-2.jpg" alt="Blog Post" />
-              </div>
-              <div className="post-content">
-                <span className="post-category">Assessment</span>
-                <h3>The Future of Formative Assessment in the AI Era</h3>
-                <p className="post-meta">By Lisa Patel • March 28, 2025</p>
-                <p className="post-excerpt">
-                  How intelligent assessment tools are changing the way we approach formative evaluation...
-                </p>
-                <a href="#" className="read-more">Read More →</a>
-              </div>
-            </div>
-            <div className="blog-post-card">
-              <div className="post-image">
-                <img src="/img/blog-post-3.jpg" alt="Blog Post" />
-              </div>
-              <div className="post-content">
-                <span className="post-category">EdTech</span>
-                <h3>Integrating GradeAnt with Your Existing LMS: A Complete Guide</h3>
-                <p className="post-meta">By Miguel Rodriguez • March 21, 2025</p>
-                <p className="post-excerpt">
-                  Step-by-step instructions to seamlessly connect GradeAnt with popular learning management systems...
-                </p>
-                <a href="#" className="read-more">Read More →</a>
-              </div>
-            </div>
-            <div className="blog-post-card">
-              <div className="post-image">
-                <img src="/img/blog-post-4.jpg" alt="Blog Post" />
-              </div>
-              <div className="post-content">
-                <span className="post-category">AI in Education</span>
-                <h3>Addressing Bias in AI-Assisted Grading: Best Practices</h3>
-                <p className="post-meta">By Sarah Chen • March 15, 2025</p>
-                <p className="post-excerpt">
-                  Understanding potential sources of bias in AI systems and how to mitigate them...
-                </p>
-                <a href="#" className="read-more">Read More →</a>
-              </div>
-            </div>
-            <div className="blog-post-card">
-              <div className="post-image">
-                <img src="/img/blog-post-5.jpg" alt="Blog Post" />
-              </div>
-              <div className="post-content">
-                <span className="post-category">Teaching Tips</span>
-                <h3>Creating Rubrics That Work With AI Grading Assistants</h3>
-                <p className="post-meta">By Alex Johnson • March 8, 2025</p>
-                <p className="post-excerpt">How to design effective rubrics that complement AI-powered assessment tools...</p>
-                <a href="#" className="read-more">Read More →</a>
-              </div>
-            </div>
-            <div className="blog-post-card">
-              <div className="post-image">
-                <img src="/img/blog-post-6.jpg" alt="Blog Post" />
-              </div>
-              <div className="post-content">
-                <span className="post-category">Assessment</span>
-                <h3>Beyond Multiple Choice: AI-Assisted Grading for Complex Assignments</h3>
-                <p className="post-meta">By Lisa Patel • March 1, 2025</p>
-                <p className="post-excerpt">
-                  Exploring how AI can help evaluate essays, projects, and other open-ended work...
-                </p>
-                <a href="#" className="read-more">Read More →</a>
-              </div>
-            </div>
-          </div>
-          <div className="pagination">
-            <a href="#" className="active">1</a>
-            {' '}
-            <a href="#">2</a>
-            {' '}
-            <a href="#">3</a>
-            {' '}
-            <span className="pagination-dots">...</span>
-            {' '}
-            <a href="#">9</a>
-            {' '}
-            <a href="#" className="pagination-next">Next →</a>
-          </div>
-        </div>
-      </section>
-      <section className="newsletter-section">
-        <div className="container">
-          <div className="newsletter-content">
-            <h2>Subscribe to Our Newsletter</h2>
-            <h3>Upcoming...</h3>
-            <p>
-              Get the latest insights on education, AI, and grading strategies delivered to your inbox.
-            </p>
-            <form className="newsletter-form">
-              <input type="email" placeholder="Your email address" required />
-              {' '}
-              <button type="submit" className="btn btn-primary">Subscribe</button>
+            <form onSubmit={(e) => e.preventDefault()} aria-label="Newsletter (coming soon)">
+              <input className="lp-input" type="email" placeholder="you@school.edu" aria-label="Email address" disabled />
+              <button type="submit" className="lp-btn lp-btn-primary" disabled>
+                Coming soon
+              </button>
             </form>
-          </div>
+          </motion.div>
         </div>
       </section>
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-logo">
-              <h2 className="logo">
-                Grade
-                <span>Ant</span>
-              </h2>
-              <p>Making grading smarter and faster.</p>
-            </div>
-            <div className="footer-links">
-              <div className="footer-column">
-                <h3>Product</h3>
-                <Link to="/features">Features</Link>
-                {' '}
-                <Link to="/demo">Demo</Link>
-              </div>
-              <div className="footer-column">
-                <h3>Company</h3>
-                <Link to="/about">About</Link>
-                {' '}
-                <Link to="/blog">Blog</Link>
-                {' '}
-                <Link to="/contact">Contact</Link>
-              </div>
-              <div className="footer-column">
-                <h3>Legal</h3>
-                <Link to="/terms">Terms</Link>
-                {' '}
-                <Link to="/privacy">Privacy</Link>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <p>© 2025 GradeAnt. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </PageScope>
+
+      <CtaBand title="Put these ideas into practice" text="Try GradeAnt on your next assignment and see the difference in an afternoon." />
+    </LandingPage>
   )
 }
