@@ -1,7 +1,8 @@
 # GradeAnt web — overview against the wireframes
 
 How the React app in `web/` lines up with the wireframes in
-`workflows/Website Wireframes.html` (sections 01–19) and
+`GradeAnt Website Wireframes (standalone).html` (sections 01–20; the newest
+version, superseding `workflows/Website Wireframes.html`) and
 `GradeAnt Schema Flow Wireframes.dc.html` (auth/identity model).
 
 Status key: **Built** = the screen exists as a route · **Partial** = the route exists but parts of the wireframe are missing · **Not built** = no screen yet.
@@ -100,13 +101,23 @@ web/
 | 10 | Mobile key screens | (all) | `styles/mobile.css`, `Sidebar.tsx` mobile menu | Partial — responsive CSS, no bottom nav |
 | 11 | Teacher grading workflow: upload → OCR → preview → Q&A review → publish | `/teacher/upload` → `/teacher/question-correction` → `/teacher/grades` | `TeacherUpload.tsx`, `TeacherQuestionCorrection.tsx`, `TeacherViewGrade.tsx` | Built |
 | 12 | Student workflow: select → upload → review/edit → draft → submit → results | `/student/upload` → `/student/answer-correction` → `/student/grades` | `StudentUpload.tsx`, `StudentAnswerCorrection.tsx`, `StudentGrade.tsx` | Built |
-| 13 | Create assignment: question → choose method (AI / standard) → configure or solution → review → verify | `/teacher/upload` | `TeacherUpload.tsx` | Partial — question + standard solution upload only; no AI-config branch or 5-step progress bar |
+| 13 | Create assignment: upload question → review parsed questions (OCR confidence, marks total) → choose method (AI rubric / standard solution) → review → verify | `/teacher/upload`, `/teacher/question-correction` | `TeacherUpload.tsx`, `TeacherQuestionCorrection.tsx` | Partial — question + standard solution upload and question editing exist; no method branch, AI rubric draft, OCR-confidence flags or step progress bar |
 | 14 | Student submission: receive → submit → track → feedback → re-check | `/student/upload`, `/student/grades` | `StudentUpload.tsx`, `StudentGrade.tsx` | Partial — no assignment inbox, status tracking or re-check request |
 | 15 | AI grading run: queue → processing → results → spot-check | — | — | Not built |
 | 16 | Manual grading & correction: worklist → annotate → rubric → override → finalize | `/teacher/correction` | `TeacherCorrection.tsx` | Built |
 | 17 | Admin onboarding: invite / CSV import → roles & classes → first-login setup | `/admin/users`, `/first-login` | `AdminUsers.tsx`, `FirstLoginSetup.tsx` | Built |
 | 18 | Marketing video · technology · about | `/features`, `/demo`, `/about` | `Features.tsx`, `Demo.tsx`, `About.tsx` | Partial — no homepage video section, no separate Technology page |
 | 19 | Submissions roster → student detail → cohort analytics | `/teacher/grades`, `/teacher/student-details` | `TeacherViewGrade.tsx`, `StudentDetails.tsx` | Partial — no submitted/pending/late roster, "Remind", or score-distribution analytics |
+
+| 20 | Workflows on the real status model: `QUESTION_PAPERS` (qp_uploaded → qp_parsed → rubric_generating/generated → rubric_reviewed) and `SUBMISSIONS` (answer_uploaded → ocr_done → corrected → grading_triggered → ai_graded → queued_for_review → teacher_reviewed → published → published_revised), meeting at a fan-in gate | (all teacher/student pages) | `lib/grading.ts`, `lib/upload.ts` | Not built — the UI doesn't read or show these statuses; no status pills/timeline, no "Grading…" wait state, no publish or revise-after-publish |
+
+### Summary
+
+| Status | Sections |
+|---|---|
+| Built | 01, 02, 03, 05, 06, 07, 08, 09, 11, 12, 16, 17 |
+| Partial | 10, 13, 14, 18, 19 |
+| Not built | 04, 15, 20 |
 
 ## 4. Where the missing screens would go
 
@@ -118,6 +129,8 @@ src/
 │   ├── assistant/AssistantPanel.tsx        04 docked chatbot (used in TeacherCorrection)
 │   └── StepProgress.tsx                    13 Question › Method › Solution › Review › Verify bar
 └── pages/
+    ├── components/StatusPill.tsx            20 status pill + timeline (queued · grading · reviewed)
+    ├── lib/status.ts                       20 QUESTION_PAPERS / SUBMISSIONS status enums
     ├── public/Pricing.tsx                  01 nav link            → /pricing
     ├── public/Technology.tsx               18                     → /technology
     ├── teacher/AssignmentList.tsx          13 entry point         → /teacher/assignments
