@@ -27,6 +27,9 @@ Deploy
      SESSION_TOKEN_SECRET  (REQUIRED in production — HMAC signing key for
                             session tokens; falls back to an insecure
                             dev default with a loud warning if unset)
+     JWT_SECRET            (REQUIRED) — same value as the /auth/login
+                            Lambda (authetication.py), so admins can use the
+                            token they get from the normal login page
      SES_SENDER_EMAIL      (default "no-reply@gradeant.io") — From
                             address for invite emails via SES
      APP_BASE_URL           (default "https://app.gradeant.io") — used to
@@ -95,6 +98,8 @@ APP_BASE_URL = os.environ.get("APP_BASE_URL", "https://app.gradeant.io")
 
 _DEV_FALLBACK_SECRET = "dev-only-insecure-secret-CHANGE-ME"
 SESSION_TOKEN_SECRET = os.environ.get("SESSION_TOKEN_SECRET", _DEV_FALLBACK_SECRET)
+# Must match authetication.py's JWT_SECRET so tokens from /auth/login are accepted.
+JWT_SECRET = os.environ.get("JWT_SECRET", "")
 SESSION_TOKEN_TTL_SECONDS = int(os.environ.get("SESSION_TOKEN_TTL_SECONDS", 24 * 60 * 60))
 INVITE_TOKEN_TTL_SECONDS = int(os.environ.get("INVITE_TOKEN_TTL_SECONDS", 7 * 24 * 60 * 60))
 
@@ -257,12 +262,46 @@ def _parse_body(event) -> dict:
         raise ValidationError("Request body must be valid JSON.")
 
 
+def _verify_login_jwt(token: str) -> dict:
+    """HS256 JWT issued by /auth/login (authetication.py's generate_token).
+
+    It carries only user_id/email, so the role comes from the login Users
+    table on every request — same as get_grades.py and the other Lambdas.
+    """
+    if not JWT_SECRET:
+        raise AuthError("Server misconfigured: JWT_SECRET is not set.")
+    try:
+        header_b64, payload_b64, signature_b64 = token.split(".")
+        header = json.loads(_b64url_decode(header_b64))
+        payload = json.loads(_b64url_decode(payload_b64))
+    except (ValueError, json.JSONDecodeError):
+        raise AuthError("Malformed session token.")
+    if header.get("alg") != "HS256":
+        raise AuthError("Invalid session token.")
+    expected = hmac.new(JWT_SECRET.encode("utf-8"), f"{header_b64}.{payload_b64}".encode("ascii"), hashlib.sha256).digest()
+    if not hmac.compare_digest(_b64url_encode(expected), signature_b64):
+        raise AuthError("Invalid session token.")
+    if payload.get("exp", 0) < time.time():
+        raise AuthError("Session expired.")
+    email, user_id = payload.get("email"), payload.get("user_id")
+    if not email or not user_id:
+        raise AuthError("Malformed session token.")
+    user = _table(LOGIN_USERS_TABLE).get_item(Key={"email": email}).get("Item")
+    if not user or user.get("user_id") != user_id:
+        raise AuthError("Account no longer exists.")
+    return {"sub": user_id, "role": user.get("userRole", "student"), "name": user.get("name", "Admin"), "email": email}
+
+
 def _get_bearer_claims(event) -> dict:
     headers = event.get("headers") or {}
     auth_header = headers.get("Authorization") or headers.get("authorization") or ""
     if not auth_header.lower().startswith("bearer "):
         raise AuthError("Missing Authorization: Bearer <token> header.")
     token = auth_header[7:].strip()
+    # Three dot-separated parts = a JWT from /auth/login; two = this file's
+    # own session token (issued by completeFirstLogin).
+    if token.count(".") == 2:
+        return _verify_login_jwt(token)
     return _verify_token(token)
 
 

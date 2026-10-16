@@ -1,0 +1,4 @@
+# Runtime deps for the Lambdas in this folder (boto3 ships with the Lambda runtime).
+# Bundle these in a Lambda layer.
+PyJWT>=2.8
+anthropic[bedrock]>=1.15   # workflow.py only (GradeFlow assistant / rubric drafting)
