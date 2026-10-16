@@ -127,10 +127,10 @@ Keeping the existing layout (one folder per role under `pages/`, shared pieces u
 src/
 ├── components/
 │   ├── assistant/AssistantPanel.tsx        04 docked chatbot (used in TeacherCorrection)
-│   └── StepProgress.tsx                    13 Question › Method › Solution › Review › Verify bar
+│   ├── StatusPill.tsx                      20 status pill + timeline (queued · grading · reviewed)
+│   └── StepProgress.tsx                    13 Question › Review Qs › Method › Solution › Verify bar
+├── lib/status.ts                           20 QUESTION_PAPERS / SUBMISSIONS status enums
 └── pages/
-    ├── components/StatusPill.tsx            20 status pill + timeline (queued · grading · reviewed)
-    ├── lib/status.ts                       20 QUESTION_PAPERS / SUBMISSIONS status enums
     ├── public/Pricing.tsx                  01 nav link            → /pricing
     ├── public/Technology.tsx               18                     → /technology
     ├── teacher/AssignmentList.tsx          13 entry point         → /teacher/assignments
