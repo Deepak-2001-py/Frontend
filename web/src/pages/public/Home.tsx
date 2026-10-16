@@ -1,74 +1,14 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  AnimatePresence,
-  MotionConfig,
-  animate,
-  motion,
-  useInView,
-  useMotionValueEvent,
-  useScroll,
-  useSpring,
-  useTransform,
-  type Variants,
-} from 'motion/react'
-import '../../styles/landing.css'
+import { motion, useScroll, useTransform } from 'motion/react'
+import { Carousel, CountUp, CtaBand, FaqList, LandingPage, Reveal, SectionHead } from '../../components/landing/LandingKit'
+import { EASE, fadeUp, stagger } from '../../components/landing/motion'
 
 /**
  * Marketing homepage (wireframes §01 + §18), rebuilt as a React landing page
  * on the brand tokens with Motion for entrance, scroll and hover animation.
  * Respects prefers-reduced-motion via <MotionConfig reducedMotion="user">.
  */
-
-const EASE = [0.22, 1, 0.36, 1] as const
-const YEAR = new Date().getFullYear()
-
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 28 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: EASE } },
-}
-
-const stagger: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
-}
-
-function Reveal({ children, className, as = 'div' }: { children: ReactNode; className?: string; as?: 'div' | 'section' | 'ul' }) {
-  const Tag = motion[as]
-  return (
-    <Tag className={className} variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }}>
-      {children}
-    </Tag>
-  )
-}
-
-/** Counts up from 0 when scrolled into view. */
-function CountUp({ to, suffix = '', decimals = 0 }: { to: number; suffix?: string; decimals?: number }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true, amount: 0.6 })
-  useEffect(() => {
-    if (!inView || !ref.current) return
-    const node = ref.current
-    const controls = animate(0, to, {
-      duration: 1.6,
-      ease: EASE,
-      onUpdate: (v) => (node.textContent = `${v.toFixed(decimals)}${suffix}`),
-    })
-    return () => controls.stop()
-  }, [inView, to, suffix, decimals])
-  return (
-    <span ref={ref}>
-      0{suffix}
-    </span>
-  )
-}
-
-const NAV = [
-  { href: '#features', label: 'Features' },
-  { href: '#how', label: 'How it works' },
-  { href: '#technology', label: 'Technology' },
-  { href: '#faq', label: 'FAQ' },
-]
 
 const FEATURES = [
   { icon: 'bolt', title: 'Instant feedback', text: 'Grades a full batch in seconds, not hours — with a comment on every answer.', tone: 'brand', span: 2 },
@@ -125,90 +65,28 @@ const FAQ = [
 ]
 
 export default function Home() {
-  useEffect(() => {
-    document.title = 'GradeAnt | AI-Powered STEM Homework Grading'
-  }, [])
-
   return (
-    <MotionConfig reducedMotion="user">
-      <div className="lp">
-        <a href="#main" className="lp-skip">
-          Skip to content
-        </a>
-        <ScrollProgress />
-        <Header />
-        <main id="main">
-          <Hero />
-          <Stats />
-          <Features />
-          <HowItWorks />
-          <Technology />
-          <Roles />
-          <Showcase />
-          <Faq />
-          <FinalCta />
-        </main>
-        <Footer />
-      </div>
-    </MotionConfig>
-  )
-}
-
-function ScrollProgress() {
-  const { scrollYProgress } = useScroll()
-  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30 })
-  return <motion.div className="lp-progress" style={{ scaleX }} aria-hidden />
-}
-
-function Logo() {
-  return (
-    <Link to="/" className="lp-logo" aria-label="GradeAnt home">
-      <img src="/img/grade-antlogo-removebg-preview.png" alt="" width={36} height={36} />
-      <span>
-        Grade<b>Ant</b>
-      </span>
-    </Link>
-  )
-}
-
-function Header() {
-  const { scrollY } = useScroll()
-  const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
-  useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 12))
-
-  return (
-    <header className={`lp-header${scrolled ? ' is-scrolled' : ''}`}>
-      <div className="lp-container lp-header-inner">
-        <Logo />
-        <nav className={`lp-nav${open ? ' is-open' : ''}`} aria-label="Main">
-          {NAV.map((n) => (
-            <a key={n.href} href={n.href} onClick={() => setOpen(false)}>
-              {n.label}
-            </a>
-          ))}
-          <Link to="/blog">Blog</Link>
-          <Link to="/about">About</Link>
-          <div className="lp-nav-cta">
-            <Link to="/login" className="lp-btn lp-btn-ghost">
-              Log in
-            </Link>
-            <Link to="/get-started" className="lp-btn lp-btn-primary">
-              Get started
-            </Link>
-          </div>
-        </nav>
-        <button
-          type="button"
-          className="lp-menu"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
-        >
-          <span className="material-icons">{open ? 'close' : 'menu'}</span>
-        </button>
-      </div>
-    </header>
+    <LandingPage title="AI-Powered STEM Homework Grading">
+      <Hero />
+      <Stats />
+      <Features />
+      <HowItWorks />
+      <Technology />
+      <Roles />
+      <section className="lp-section lp-section-soft" id="demo">
+        <div className="lp-container">
+          <SectionHead eyebrow="See it in action" title="A closer look at GradeAnt" />
+          <Carousel slides={SLIDES} />
+        </div>
+      </section>
+      <section className="lp-section" id="faq">
+        <div className="lp-container lp-faq-wrap">
+          <SectionHead eyebrow="FAQ" title="Questions teachers ask us" />
+          <FaqList items={FAQ} />
+        </div>
+      </section>
+      <CtaBand title="Reclaim your time. Start grading today." text="Set up your first assignment in minutes — your students get better feedback, faster." />
+    </LandingPage>
   )
 }
 
@@ -414,22 +292,6 @@ function Stats() {
 
 // ---- Features ----
 
-function SectionHead({ eyebrow, title, text, light }: { eyebrow: string; title: ReactNode; text?: string; light?: boolean }) {
-  return (
-    <Reveal className={`lp-section-head${light ? ' is-light' : ''}`}>
-      <motion.span className="lp-eyebrow" variants={fadeUp}>
-        {eyebrow}
-      </motion.span>
-      <motion.h2 variants={fadeUp}>{title}</motion.h2>
-      {text && (
-        <motion.p className="lp-lead" variants={fadeUp}>
-          {text}
-        </motion.p>
-      )}
-    </Reveal>
-  )
-}
-
 function Features() {
   return (
     <section className="lp-section" id="features">
@@ -608,240 +470,3 @@ function Roles() {
 }
 
 // ---- Product showcase carousel ----
-
-function Showcase() {
-  const [i, setI] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const go = (d: number) => setI((n) => (n + d + SLIDES.length) % SLIDES.length)
-
-  useEffect(() => {
-    if (paused) return
-    const t = window.setInterval(() => setI((n) => (n + 1) % SLIDES.length), 5000)
-    return () => clearInterval(t)
-  }, [paused])
-
-  return (
-    <section className="lp-section lp-section-soft" id="demo">
-      <div className="lp-container">
-        <SectionHead eyebrow="See it in action" title="A closer look at GradeAnt" />
-        <motion.div
-          className="lp-carousel"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.8, ease: EASE }}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onKeyDown={(e) => {
-            if (e.key === 'ArrowLeft') go(-1)
-            if (e.key === 'ArrowRight') go(1)
-          }}
-          tabIndex={0}
-          role="region"
-          aria-roledescription="carousel"
-          aria-label="Product screenshots"
-        >
-          <div className="lp-carousel-frame">
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={SLIDES[i].src}
-                src={SLIDES[i].src}
-                alt={SLIDES[i].caption}
-                loading="lazy"
-                initial={{ opacity: 0, scale: 1.03 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.45, ease: EASE }}
-              />
-            </AnimatePresence>
-            <button type="button" className="lp-car-btn is-prev" onClick={() => go(-1)} aria-label="Previous slide">
-              <span className="material-icons">chevron_left</span>
-            </button>
-            <button type="button" className="lp-car-btn is-next" onClick={() => go(1)} aria-label="Next slide">
-              <span className="material-icons">chevron_right</span>
-            </button>
-          </div>
-          <div className="lp-carousel-foot">
-            <AnimatePresence mode="wait">
-              <motion.p key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} aria-live="polite">
-                {SLIDES[i].caption}
-              </motion.p>
-            </AnimatePresence>
-            <div className="lp-dots">
-              {SLIDES.map((s, n) => (
-                <button
-                  key={s.src}
-                  type="button"
-                  className={n === i ? 'is-active' : ''}
-                  onClick={() => setI(n)}
-                  aria-label={`Slide ${n + 1}`}
-                  aria-current={n === i}
-                >
-                  {n === i && !paused && <motion.span layoutId="lp-dot-fill" className="lp-dot-fill" />}
-                </button>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-// ---- FAQ ----
-
-function Faq() {
-  const [open, setOpen] = useState<number | null>(0)
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: FAQ.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
-  }
-  return (
-    <section className="lp-section" id="faq">
-      <div className="lp-container lp-faq-wrap">
-        <SectionHead eyebrow="FAQ" title="Questions teachers ask us" />
-        <Reveal className="lp-faq">
-          {FAQ.map((f, n) => {
-            const isOpen = open === n
-            return (
-              <motion.div key={f.q} className={`lp-faq-item${isOpen ? ' is-open' : ''}`} variants={fadeUp}>
-                <button type="button" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : n)}>
-                  <span>{f.q}</span>
-                  <motion.span className="material-icons" animate={{ rotate: isOpen ? 45 : 0 }} aria-hidden>
-                    add
-                  </motion.span>
-                </button>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      className="lp-faq-a"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: EASE }}
-                    >
-                      <p>{f.a}</p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            )
-          })}
-        </Reveal>
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      </div>
-    </section>
-  )
-}
-
-// ---- Final CTA + footer ----
-
-function FinalCta() {
-  return (
-    <section className="lp-cta-section">
-      <motion.div
-        className="lp-container lp-cta"
-        initial={{ opacity: 0, scale: 0.96 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true, amount: 0.4 }}
-        transition={{ duration: 0.7, ease: EASE }}
-      >
-        <motion.span
-          className="lp-cta-glow"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-          aria-hidden
-        />
-        <h2>Reclaim your time. Start grading today.</h2>
-        <p>Set up your first assignment in minutes — your students get better feedback, faster.</p>
-        <div className="lp-hero-ctas">
-          <motion.span whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-            <Link to="/get-started" className="lp-btn lp-btn-light lp-btn-lg">
-              Get started free →
-            </Link>
-          </motion.span>
-          <Link to="/contact" className="lp-btn lp-btn-outline-light lp-btn-lg">
-            Talk to us
-          </Link>
-        </div>
-      </motion.div>
-    </section>
-  )
-}
-
-function Footer() {
-  return (
-    <footer className="lp-footer" id="contact">
-      <div className="lp-container lp-footer-grid">
-        <div className="lp-footer-brand">
-          <Logo />
-          <p>AI-powered grading for STEM classrooms — faster feedback, fairer grades, happier teachers.</p>
-        </div>
-        <div>
-          <h3>Product</h3>
-          <ul>
-            <li>
-              <Link to="/features">Features</Link>
-            </li>
-            <li>
-              <Link to="/features#technology">Technology</Link>
-            </li>
-            <li>
-              <Link to="/demo">Demo</Link>
-            </li>
-            <li>
-              <Link to="/get-started">Get started</Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3>Company</h3>
-          <ul>
-            <li>
-              <Link to="/about">About us</Link>
-            </li>
-            <li>
-              <Link to="/blog">Blog</Link>
-            </li>
-            <li>
-              <Link to="/contact">Contact</Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3>Legal</h3>
-          <ul>
-            <li>
-              <Link to="/terms">Terms of Service</Link>
-            </li>
-            <li>
-              <Link to="/privacy">Privacy Policy</Link>
-            </li>
-            <li>
-              <Link to="/cookies">Cookies</Link>
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3>Contact</h3>
-          <ul>
-            <li>
-              <a href="mailto:contact@gradeant.com">contact@gradeant.com</a>
-            </li>
-            <li>
-              <a href="tel:+1-573-341-4720">+1-573-341-4720</a>
-            </li>
-            <li>222 Fulton Hall, 301 W. 14th Street, Rolla MO 65409</li>
-          </ul>
-        </div>
-      </div>
-      <div className="lp-container lp-footer-bottom">
-        <p>© {YEAR} GradeAnt. All rights reserved.</p>
-        <a href="#main" className="lp-top" aria-label="Back to top">
-          <span className="material-icons">arrow_upward</span>
-        </a>
-      </div>
-    </footer>
-  )
-}
