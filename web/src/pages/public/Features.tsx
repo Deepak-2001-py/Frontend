@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import PageScope from '../../components/PageScope'
 import { useStaticPageBehaviors } from '../../hooks/useStaticPageBehaviors'
 import '../../styles/pages/features.css'
@@ -8,6 +8,11 @@ import '../../styles/pages/features.css'
 export default function Features() {
   const root = useRef<HTMLDivElement>(null)
   useStaticPageBehaviors(root, { slideshow: { progressAnimation: 'progress 5s linear infinite' } })
+  // /features#technology (homepage "Technology" link) lands on that section.
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (hash) root.current?.querySelector(hash)?.scrollIntoView()
+  }, [hash])
 
   return (
     <PageScope name="features" title="Features" rootRef={root}>
@@ -28,6 +33,8 @@ export default function Features() {
             <a href="#demo" className="nav-link">Demo</a>
             {' '}
             <a href="#how-it-works" className="nav-link">How It Works</a>
+            {' '}
+            <a href="#technology" className="nav-link">Technology</a>
           </nav>
         </div>
       </header>
@@ -214,7 +221,7 @@ export default function Features() {
           </div>
         </div>
       </section>
-      <section className="ai-technology-section">
+      <section className="ai-technology-section" id="technology">
         <div className="container">
           <div className="section-header">
             <h2 className="section-title">Our AI Technology</h2>

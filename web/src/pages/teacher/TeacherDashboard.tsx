@@ -15,10 +15,10 @@ const STATS = [
 const OPTIONS: { img: string; title: string; text: string; cta: string; to: string | null }[] = [
   {
     img: '/img/Screenshot 2025-04-03 164627.png',
-    title: 'Upload Assignment / Question Paper',
-    text: 'Upload your assignments or question papers for automated grading and analysis.',
-    cta: 'Go to Upload',
-    to: '/teacher/upload',
+    title: 'Create Assignment',
+    text: 'Upload a question paper, review what GradeAnt read, pick AI or standard-solution grading, and start grading.',
+    cta: 'New Assignment',
+    to: '/teacher/assignments/new',
   },
   {
     img: '/img/ChatGPT Image Apr 3, 2025, 04_52_22 PM.png',
@@ -38,8 +38,8 @@ const OPTIONS: { img: string; title: string; text: string; cta: string; to: stri
     img: '/img/analytic_dashboard.png',
     title: 'Analytics Dashboard',
     text: 'Get detailed insights into student performance with advanced analytics.',
-    cta: 'View Analytics',
-    to: null,
+    cta: 'View Assignments',
+    to: '/teacher/assignments',
   },
   {
     img: '/img/student_magement_dashboard.png',

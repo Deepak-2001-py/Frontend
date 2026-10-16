@@ -62,10 +62,10 @@ export default function StudentDashboard() {
   const options = [
     {
       img: '/img/Screenshot 2025-04-03 164627.png',
-      title: 'Submit Assignment',
-      text: 'Upload your completed assignments for grading and receive feedback.',
-      cta: 'Submit Work',
-      to: '/student/upload',
+      title: 'My Assignments',
+      text: 'See what your teachers published, submit your answers and track grading.',
+      cta: 'Open Assignments',
+      to: '/student/assignments',
     },
     {
       img: '/img/ChatGPT Image Apr 3, 2025, 04_52_22 PM.png',
@@ -102,7 +102,7 @@ export default function StudentDashboard() {
               <p>Here's an overview of your academic progress</p>
             </div>
             <div>
-              <button onClick={() => navigate('/student/upload')} className="btn btn-primary">
+              <button onClick={() => navigate('/student/assignments')} className="btn btn-primary">
                 <i className="material-icons">assignment</i> View Assignments
               </button>
             </div>

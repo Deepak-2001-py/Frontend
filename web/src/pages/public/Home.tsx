@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import PageScope from '../../components/PageScope'
 import { useStaticPageBehaviors } from '../../hooks/useStaticPageBehaviors'
 import '../../styles/pages/home.css'
+import '../../styles/ui.css'
 
 /** Converted from index.html; its inline script lives in useStaticPageBehaviors. */
 export default function Home() {
@@ -25,7 +26,13 @@ export default function Home() {
           <div className="nav-links" id="navLinks">
             <Link to="/" className="active">Home</Link>
             {' '}
+            <Link to="/features">Features</Link>
+            {' '}
+            <Link to="/features#technology">Technology</Link>
+            {' '}
             <Link to="/about">About</Link>
+            {' '}
+            <Link to="/blog">Blog</Link>
             {' '}
             <Link to="/contact">Contact</Link>
             <div className="auth-buttons">
@@ -50,6 +57,28 @@ export default function Home() {
               <Link to="/features" className="btn btn-secondary">Learn More</Link>
             </div>
           </div>
+        </div>
+      </section>
+      <section className="ga-see-it" aria-labelledby="see-it-title">
+        <div className="ga-see-it-inner">
+          <div>
+            <div className="ga-eyebrow">See it in action</div>
+            <h2 id="see-it-title">How GradeAnt works — in four steps</h2>
+            <p>Watch a full assignment go from uploaded handwriting to graded, feedback-rich results.</p>
+            <ol className="ga-see-it-steps">
+              <li>Upload</li>
+              <li>Verify</li>
+              <li>Auto-grade</li>
+              <li>Review &amp; export</li>
+            </ol>
+            <Link to="/features" className="ga-btn ga-btn-ghost">
+              Features →
+            </Link>
+          </div>
+          <Link to="/demo" className="ga-see-it-player" aria-label="Open the product demo">
+            <img src="/img/pitch_gradeant.pptx (1).png" alt="" />
+            <span className="ga-see-it-play">▶ Product demo</span>
+          </Link>
         </div>
       </section>
       <section className="showcase" id="features">

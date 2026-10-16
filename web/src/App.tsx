@@ -21,6 +21,15 @@ const StudentDetails = lazy(() => import('./pages/teacher/StudentDetails'))
 const TeacherCorrection = lazy(() => import('./pages/teacher/TeacherCorrection'))
 const TeacherQuestionCorrection = lazy(() => import('./pages/teacher/TeacherQuestionCorrection'))
 
+const AssignmentList = lazy(() => import('./pages/teacher/AssignmentList'))
+const CreateAssignment = lazy(() => import('./pages/teacher/CreateAssignment'))
+const GradingRun = lazy(() => import('./pages/teacher/GradingRun'))
+const Submissions = lazy(() => import('./pages/teacher/Submissions'))
+const CohortAnalytics = lazy(() => import('./pages/teacher/CohortAnalytics'))
+const Assistant = lazy(() => import('./pages/teacher/Assistant'))
+const AssignmentInbox = lazy(() => import('./pages/student/AssignmentInbox'))
+const Recheck = lazy(() => import('./pages/student/Recheck'))
+
 const Profile = lazy(() => import('./pages/profile/Profile'))
 const ChangePassword = lazy(() => import('./pages/profile/ChangePassword'))
 
@@ -75,6 +84,8 @@ export default function App() {
         <Route path="/student" element={<RequireRole roles={['student']} />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="assignments" element={<AssignmentInbox />} />
+          <Route path="assignments/:id/recheck" element={<Recheck />} />
           <Route path="upload" element={<StudentUpload />} />
           <Route path="grades" element={<StudentGrade />} />
           <Route path="answer-correction" element={<StudentAnswerCorrection />} />
@@ -86,6 +97,13 @@ export default function App() {
         <Route path="/teacher" element={<RequireRole roles={['teacher']} />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<TeacherDashboard />} />
+          <Route path="assignments" element={<AssignmentList />} />
+          <Route path="assignments/new" element={<CreateAssignment />} />
+          <Route path="assignments/:id/setup" element={<CreateAssignment />} />
+          <Route path="assignments/:id/grading" element={<GradingRun />} />
+          <Route path="assignments/:id/submissions" element={<Submissions />} />
+          <Route path="assignments/:id/analytics" element={<CohortAnalytics />} />
+          <Route path="assistant" element={<Assistant />} />
           <Route path="upload" element={<TeacherUpload />} />
           <Route path="grades" element={<TeacherViewGrade />} />
           <Route path="student-details" element={<StudentDetails />} />

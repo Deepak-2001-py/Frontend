@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAlerts } from '../hooks/useAlerts'
 import { apiCache } from '../lib/apiCache'
 import {
   formatFileSize,
+  renameSolutionFile,
   requestPresignedUrls,
   uploadToPresignedUrl,
   UPLOAD_LIMITS,
@@ -46,9 +47,13 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
   const { alerts, show, dismiss, clear } = useAlerts()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [uploadType, setUploadType] = useState<UploadType | ''>('')
-  const [assignmentId, setAssignmentId] = useState('')
-  const [courseId, setCourseId] = useState('')
+  // Prefilled when opened from an assignment (e.g. the student inbox's "Start submission").
+  const [params] = useSearchParams()
+  const [uploadType, setUploadType] = useState<UploadType | ''>(() =>
+    params.get('assignment_id') && copy.types.length === 1 ? copy.types[0].value : '',
+  )
+  const [assignmentId, setAssignmentId] = useState(() => params.get('assignment_id') ?? '')
+  const [courseId, setCourseId] = useState(() => params.get('qp_id') ?? '')
   const [studentId, setStudentId] = useState('')
   const [files, setFiles] = useState<File[]>([])
   const [dragOver, setDragOver] = useState(false)
@@ -112,15 +117,9 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
     if (type === 'student' && studentId.trim()) metadata.studentId = studentId.trim()
 
     if (type === 'answer') {
-      // The grading Lambda finds solution keys by name: {assignmentId}_{qpId}_answer.pdf
       metadata.qpId = qp
-      const clean = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '_')
       const uploads = files.map((f) => {
-        const ext = f.name.split('.').pop()
-        const renamed = new File([f], `${clean(aId)}_${clean(qp)}_answer.${ext}`, {
-          type: f.type,
-          lastModified: f.lastModified,
-        })
+        const renamed = renameSolutionFile(f, aId, qp)
         metadata.files.push({ name: renamed.name, originalName: f.name, type: renamed.type, size: renamed.size })
         return renamed
       })

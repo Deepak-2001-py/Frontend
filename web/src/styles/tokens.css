@@ -66,6 +66,15 @@
     --accent-hover: var(--teal-600);
     --accent-soft:  var(--teal-50);
     --gradient-brand: linear-gradient(120deg, var(--orange-500) 0%, var(--orange-400) 38%, var(--teal-500) 100%);
+    --gradient-warm:  linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+    --gradient-grow:  linear-gradient(135deg, var(--teal-400) 0%, var(--teal-600) 100%);
+
+    /* Grade scale (STEM grading) */
+    --grade-a: #0C8B76;
+    --grade-b: #2F73C4;
+    --grade-c: #C98A00;
+    --grade-d: #EC5E00;
+    --grade-f: #E5484D;
 
     --text-strong: var(--ink-900);
     --text-body:   var(--ink-700);
@@ -77,25 +86,64 @@
     --surface-page:   var(--ink-50);
     --surface-card:   var(--white);
     --surface-sunken: var(--ink-100);
+    --surface-soft:   var(--ink-50);
     --surface-inverse: var(--ink-900);
 
     --border-subtle:  var(--ink-150);
     --border-default: var(--ink-200);
     --border-strong:  var(--ink-300);
+    --border-focus:   var(--orange-500);
+    --ring: 0 0 0 3px rgba(255, 122, 0, 0.28);
 
     /* Typography */
     --font-display: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-sans:    'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-    /* Spacing / radius / shadow */
+    /* Type scale */
+    --text-2xs: 0.6875rem;
+    --text-xs:  0.75rem;
+    --text-sm:  0.875rem;
+    --text-md:  1rem;
+    --text-lg:  1.125rem;
+    --text-xl:  1.375rem;
+    --text-2xl: 1.75rem;
+    --text-3xl: 2.25rem;
+    --text-4xl: 2.875rem;
+    --text-5xl: 3.75rem;
+    --leading-tight: 1.12;
+    --leading-snug:  1.28;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.65;
+    --tracking-tight: -0.022em;
+    --tracking-caps:  0.08em;
+
+    /* Spacing (4px base) */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+    --space-7: 2.5rem;
+    --space-8: 3rem;
+    --space-9: 4rem;
+    --space-10: 5rem;
+
+    /* Radius / shadow / motion */
     --radius-xs: 6px;
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 18px;
+    --radius-xl: 24px;
+    --radius-2xl: 32px;
     --radius-full: 999px;
+    --shadow-xs: 0 1px 2px rgba(43, 33, 20, 0.06);
     --shadow-sm: 0 2px 6px rgba(43, 33, 20, 0.07), 0 1px 2px rgba(43, 33, 20, 0.05);
     --shadow-md: 0 6px 16px rgba(43, 33, 20, 0.08), 0 2px 4px rgba(43, 33, 20, 0.05);
+    --shadow-lg: 0 14px 32px rgba(43, 33, 20, 0.10), 0 4px 8px rgba(43, 33, 20, 0.05);
+    --shadow-brand: 0 10px 24px rgba(255, 122, 0, 0.30);
+    --container-max: 1200px;
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --dur-fast: 0.16s;
     --dur-base: 0.24s;

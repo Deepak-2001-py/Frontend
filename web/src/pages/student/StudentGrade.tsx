@@ -3,6 +3,8 @@ import AlertStack from '../../components/AlertStack'
 import AppShell from '../../components/AppShell'
 import PageScope from '../../components/PageScope'
 import StudentResult from '../../components/grades/StudentResult'
+import { useSearchParams } from 'react-router-dom'
+import { useAuth } from '../../auth/AuthContext'
 import { useAlerts } from '../../hooks/useAlerts'
 import { apiCache } from '../../lib/apiCache'
 import { gradesRequest, type GradeResult } from '../../lib/grading'
@@ -40,7 +42,17 @@ export default function StudentGrade() {
   }
 
   // Coming back to this page re-shows the last search (served from cache).
+  // ?assignment_id= (from My Assignments → View feedback) loads the signed-in student's result.
+  const [params] = useSearchParams()
+  const { session } = useAuth()
   useEffect(() => {
+    const linked = params.get('assignment_id')
+    if (linked && session?.userId) {
+      setStudentId(session.userId)
+      setAssignmentId(linked)
+      void fetchGrades(session.userId, linked)
+      return
+    }
     const last = apiCache.get<{ studentId?: string; assignmentId?: string }>(LAST_QUERY_KEY)
     if (last?.studentId && last.assignmentId) {
       setStudentId(last.studentId)

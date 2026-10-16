@@ -19,13 +19,16 @@ PUBLIC ────────────────────────�
                      ├─ /forgot-password   request only → admin approves (07)
                      └─ /first-login       invite link ?token= (17)
 
-TEACHER  /teacher/*                       STUDENT  /student/*
-  dashboard (02)                            dashboard (03)
-    └─ upload (11, 13)                        └─ upload (12, 14)
-        └─ question-correction (11)               └─ answer-correction (12)
-            └─ grades (19)                            └─ grades (12, 14)
-                └─ student-details (19)
-                    └─ correction (16) ── publish → student grades
+TEACHER  /teacher/*                         STUDENT  /student/*
+  dashboard (02)                              dashboard (03)
+    └─ assignments (13)                         └─ assignments (14) inbox
+        ├─ new → :id/setup?step=                    ├─ upload → answer-correction (12)
+        │    question › review › method             ├─ grades (feedback)
+        │    › solution|rubric › verify (13)        └─ :id/recheck ──► teacher (16)
+        ├─ :id/grading  queue › spot-check › publish (15)
+        ├─ :id/submissions → student-details (19, 16)
+        └─ :id/analytics (19)
+  assistant (04) · correction (16) · grades
 
 ADMIN  /admin/*  (05)
   dashboard · users (17) · reset-requests (07) · content · analytics
@@ -89,55 +92,60 @@ web/
 
 | § | Wireframe screen | Route(s) | File(s) | Status |
 |---|---|---|---|---|
-| 01 | Marketing homepage | `/` | `pages/public/Home.tsx` | Built (nav has no Pricing page) |
-| 02 | Teacher dashboard | `/teacher/dashboard` | `pages/teacher/TeacherDashboard.tsx` | Built |
-| 03 | Student dashboard | `/student/dashboard` | `pages/student/StudentDashboard.tsx` | Built |
-| 04 | AI Grading Assistant (chatbot) | — | — | Not built |
-| 05 | Admin console: overview, users, content & blog, analytics, tickets, settings | `/admin/*` | `pages/admin/*`, `AdminLayout.tsx` | Built |
-| 06 | Blog index | `/blog` | `pages/public/Blog.tsx` (moderation in `AdminContent.tsx`) | Built |
-| 07 | Login · forgot password (request only) · change password · admin reset queue | `/login`, `/forgot-password`, `/<role>/change-password`, `/admin/reset-requests` | `pages/auth/Login.tsx`, `ForgotPassword.tsx`, `pages/profile/ChangePassword.tsx`, `pages/admin/AdminResetRequests.tsx` | Built — note `/signup` still exists, but the wireframe has no self-signup |
-| 08 | Profiles (admin full edit, teacher/student locked fields) + role navigation | `/<role>/profile`, `/admin/profile` | `pages/profile/Profile.tsx`, `pages/admin/AdminProfile.tsx`, `components/Sidebar.tsx`, `auth/RequireRole.tsx` | Built |
-| 09 | Session expired · 403 · logout confirm · multiple login | `/session-expired`, `/unauthorized`, `/logout`, `/multiple-login` | `pages/session/SessionPages.tsx` | Built |
-| 10 | Mobile key screens | (all) | `styles/mobile.css`, `Sidebar.tsx` mobile menu | Partial — responsive CSS, no bottom nav |
-| 11 | Teacher grading workflow: upload → OCR → preview → Q&A review → publish | `/teacher/upload` → `/teacher/question-correction` → `/teacher/grades` | `TeacherUpload.tsx`, `TeacherQuestionCorrection.tsx`, `TeacherViewGrade.tsx` | Built |
-| 12 | Student workflow: select → upload → review/edit → draft → submit → results | `/student/upload` → `/student/answer-correction` → `/student/grades` | `StudentUpload.tsx`, `StudentAnswerCorrection.tsx`, `StudentGrade.tsx` | Built |
-| 13 | Create assignment: upload question → review parsed questions (OCR confidence, marks total) → choose method (AI rubric / standard solution) → review → verify | `/teacher/upload`, `/teacher/question-correction` | `TeacherUpload.tsx`, `TeacherQuestionCorrection.tsx` | Partial — question + standard solution upload and question editing exist; no method branch, AI rubric draft, OCR-confidence flags or step progress bar |
-| 14 | Student submission: receive → submit → track → feedback → re-check | `/student/upload`, `/student/grades` | `StudentUpload.tsx`, `StudentGrade.tsx` | Partial — no assignment inbox, status tracking or re-check request |
-| 15 | AI grading run: queue → processing → results → spot-check | — | — | Not built |
-| 16 | Manual grading & correction: worklist → annotate → rubric → override → finalize | `/teacher/correction` | `TeacherCorrection.tsx` | Built |
-| 17 | Admin onboarding: invite / CSV import → roles & classes → first-login setup | `/admin/users`, `/first-login` | `AdminUsers.tsx`, `FirstLoginSetup.tsx` | Built |
-| 18 | Marketing video · technology · about | `/features`, `/demo`, `/about` | `Features.tsx`, `Demo.tsx`, `About.tsx` | Partial — no homepage video section, no separate Technology page |
-| 19 | Submissions roster → student detail → cohort analytics | `/teacher/grades`, `/teacher/student-details` | `TeacherViewGrade.tsx`, `StudentDetails.tsx` | Partial — no submitted/pending/late roster, "Remind", or score-distribution analytics |
-
-| 20 | Workflows on the real status model: `QUESTION_PAPERS` (qp_uploaded → qp_parsed → rubric_generating/generated → rubric_reviewed) and `SUBMISSIONS` (answer_uploaded → ocr_done → corrected → grading_triggered → ai_graded → queued_for_review → teacher_reviewed → published → published_revised), meeting at a fan-in gate | (all teacher/student pages) | `lib/grading.ts`, `lib/upload.ts` | Not built — the UI doesn't read or show these statuses; no status pills/timeline, no "Grading…" wait state, no publish or revise-after-publish |
+| 01 | Marketing homepage (nav: Features · Technology · About · Blog) | `/` | `pages/public/Home.tsx` | Built — no Pricing page (no pricing content exists yet) |
+| 02 | Teacher dashboard | `/teacher/dashboard` | `pages/teacher/TeacherDashboard.tsx` | Built (cards link to the new assignment flow) |
+| 03 | Student dashboard | `/student/dashboard` | `pages/student/StudentDashboard.tsx` | Built (links to My Assignments) |
+| 04 | AI Grading Assistant — docked panel + full assistant | `/teacher/assistant`, docked on `/teacher/student-details` | `components/assistant/AssistantPanel.tsx`, `pages/teacher/Assistant.tsx` | Built — needs `askAssistant` |
+| 05 | Admin console | `/admin/*` | `pages/admin/*` | Built |
+| 06 | Blog | `/blog` | `pages/public/Blog.tsx` | Built |
+| 07 | Login · forgot password · change password · reset queue | `/login`, `/forgot-password`, `/<role>/change-password`, `/admin/reset-requests` | `pages/auth/*`, `pages/profile/ChangePassword.tsx`, `AdminResetRequests.tsx` | Built — `/signup` still exists although the wireframe has no self-signup |
+| 08 | Profiles + role navigation | `/<role>/profile` | `Profile.tsx`, `AdminProfile.tsx`, `Sidebar.tsx` | Built |
+| 09 | Session states | `/session-expired`, `/unauthorized`, `/logout`, `/multiple-login` | `pages/session/SessionPages.tsx` | Built |
+| 10 | Mobile key screens + bottom nav | (all student/teacher pages) | `components/BottomNav.tsx`, `styles/mobile.css`, `styles/ui.css` | Built |
+| 11 | Teacher grading workflow | `/teacher/assignments/*`, `/teacher/question-correction` | see §13, §15 | Built |
+| 12 | Student assignment workflow | `/student/assignments` → `/student/upload` → `/student/answer-correction` → `/student/grades` | `AssignmentInbox.tsx`, `StudentUpload.tsx`, `StudentAnswerCorrection.tsx`, `StudentGrade.tsx` | Built |
+| 13 | Create assignment: question → review Qs (OCR confidence, marks Σ) → method → solution / rubric → verify | `/teacher/assignments/new`, `/teacher/assignments/:id/setup?step=` | `pages/teacher/CreateAssignment.tsx`, `AssignmentList.tsx` | Built — needs workflow API |
+| 14 | Student submission: receive → submit → track → feedback → re-check | `/student/assignments`, `/student/assignments/:id/recheck` | `AssignmentInbox.tsx`, `Recheck.tsx` | Built — needs workflow API |
+| 15 | AI grading run: queue → processing → results → spot-check → publish | `/teacher/assignments/:id/grading` | `pages/teacher/GradingRun.tsx` | Built — needs workflow API |
+| 16 | Manual grading & correction | `/teacher/correction`, `/teacher/student-details` | `TeacherCorrection.tsx`, `StudentDetails.tsx` | Built |
+| 17 | Admin onboarding | `/admin/users`, `/first-login` | `AdminUsers.tsx`, `FirstLoginSetup.tsx` | Built |
+| 18 | Marketing: "See it in action" · Technology · About | `/`, `/features#technology`, `/about` | `Home.tsx`, `Features.tsx`, `About.tsx` | Built — the video card opens `/demo` (no product video file exists yet) |
+| 19 | Submissions roster → student detail → cohort analytics | `/teacher/assignments/:id/submissions`, `/teacher/student-details`, `/teacher/assignments/:id/analytics` | `Submissions.tsx`, `StudentDetails.tsx`, `CohortAnalytics.tsx` | Built — analytics uses the existing grades API; roster needs workflow API |
+| 20 | Status model (QUESTION_PAPERS / SUBMISSIONS, fan-in gate) | all workflow screens | `lib/status.ts`, `components/ui` (`StatusPill`) | Built in the UI — statuses must come from the workflow API |
 
 ### Summary
 
-| Status | Sections |
-|---|---|
-| Built | 01, 02, 03, 05, 06, 07, 08, 09, 11, 12, 16, 17 |
-| Partial | 10, 13, 14, 18, 19 |
-| Not built | 04, 15, 20 |
+Every wireframe section now has a screen. The new ones (04, 13, 14, 15, 19 roster, 20) call a
+backend resource that doesn't exist yet — until it's deployed they show "The assignment workflow
+service isn't available yet". Still open: a Pricing page, a product video, and removing `/signup`.
 
-## 4. Where the missing screens would go
+## 4. Shared design kit
 
-Keeping the existing layout (one folder per role under `pages/`, shared pieces under `components/`):
+`styles/tokens.css` now carries the full wireframe token set (colour, grade scale, gradients,
+type scale, spacing, radius, shadows, focus ring). `components/ui` + `styles/ui.css` (global,
+`ga-` prefixed) hold the wireframe components: `StatusPill`, `Pill`, `GradePill`, `StepProgress`,
+`StatTile`, `Card`, `PageHeader`, `Notice`, `LoadError`, `EmptyState`, `ProgressBar`,
+`GradeDistribution`, `Spinner`, `FileDrop`. `components/WorkflowPage.tsx` is the page shell.
 
-```
-src/
-├── components/
-│   ├── assistant/AssistantPanel.tsx        04 docked chatbot (used in TeacherCorrection)
-│   ├── StatusPill.tsx                      20 status pill + timeline (queued · grading · reviewed)
-│   └── StepProgress.tsx                    13 Question › Review Qs › Method › Solution › Verify bar
-├── lib/status.ts                           20 QUESTION_PAPERS / SUBMISSIONS status enums
-└── pages/
-    ├── public/Pricing.tsx                  01 nav link            → /pricing
-    ├── public/Technology.tsx               18                     → /technology
-    ├── teacher/AssignmentList.tsx          13 entry point         → /teacher/assignments
-    ├── teacher/CreateAssignment.tsx        13 method branch       → /teacher/assignments/new
-    ├── teacher/GradingRun.tsx              15 queue + spot-check  → /teacher/assignments/:id/grading
-    ├── teacher/Submissions.tsx             19 roster              → /teacher/assignments/:id/submissions
-    ├── teacher/CohortAnalytics.tsx         19 analytics           → /teacher/assignments/:id/analytics
-    ├── teacher/Assistant.tsx               04 full assistant      → /teacher/assistant
-    └── student/AssignmentInbox.tsx         14 receive + track     → /student/assignments
-```
+## 5. Workflow API (backend contract)
+
+`POST {API_BASE_URL}/workflow` (path overridable with `VITE_WORKFLOW_PATH`), bearer token, body
+`{ "operation": "...", ...payload }`, like `/admin`. Types are in `src/lib/workflow.ts`.
+
+| Operation | Payload | Returns | Used by |
+|---|---|---|---|
+| `listAssignments` | — | `{ assignments: Assignment[] }` | §13 list, §04 |
+| `getAssignment` | `assignment_id` | `Assignment` (incl. `qp_status`, `method`, `total_marks`, `grades_status`) | §13, §15, §19 |
+| `createAssignment` | `title, class_name, due_at?` | `{ assignment_id, qp_id }` | §13 step 1 (then the existing `/uploadpdf` presign) |
+| `confirmQuestions` | `assignment_id` | `{ ok }` | §13 step 2 (questions are read/edited via the existing `/correctanswer`; `ocr_confidence` 0–1 per question is optional) |
+| `setGradingMethod` | `assignment_id, method: ai\|standard, persona?, partial_credit?` | `{ qp_status }` | §13 step 3 / AI rubric |
+| `getRubric` | `assignment_id` | `{ qp_status, rubric: RubricItem[] }` | §13 review + verify |
+| `approveRubric` | `assignment_id, rubric` | `{ qp_status: "rubric_reviewed" }` | §13 (teacher gate input) |
+| `startGrading` | `assignment_id` | `{ ok }` | §13 verify |
+| `getGradingRun` | `assignment_id` | `{ total, submissions: Submission[] }` | §15 |
+| `listFlagged` / `acceptFlagged` | `assignment_id` / `evaluation_id, question_number, subpart?` | `{ items: FlaggedItem[] }` / `{ ok }` | §15 spot-check |
+| `publishGrades` | `assignment_id` | `{ notified }` | §15 |
+| `listSubmissions` / `remindStudent` | `assignment_id` (+ `student_id`) | `{ submissions, enrolled }` / `{ ok }` | §19 |
+| `listStudentAssignments` | — | `{ assignments: StudentAssignment[] }` | §14 |
+| `requestRecheck` | `assignment_id, evaluation_id, items: [{question_number, subpart?, note}]` | `{ ok }` | §14 step 5 |
+| `askAssistant` | `assignment_id?, student_id?, messages` | `{ reply }` | §04 |

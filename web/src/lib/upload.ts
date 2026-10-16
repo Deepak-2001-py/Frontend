@@ -64,3 +64,32 @@ export function uploadToPresignedUrl(file: File, url: string, onProgress: (perce
     xhr.send(file)
   })
 }
+
+/** The grading Lambda finds solution keys by name: {assignmentId}_{qpId}_answer.pdf */
+export function renameSolutionFile(file: File, assignmentId: string, qpId: string): File {
+  const clean = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '_')
+  const ext = file.name.split('.').pop()
+  return new File([file], `${clean(assignmentId)}_${clean(qpId)}_answer.${ext}`, {
+    type: file.type,
+    lastModified: file.lastModified,
+  })
+}
+
+/** Presigns and PUTs every file; resolves once all succeed, rejects on the first failure. */
+export async function uploadFiles(
+  metadata: Omit<UploadMetadata, 'files'>,
+  files: File[],
+  onProgress: (percent: number) => void,
+): Promise<void> {
+  const full: UploadMetadata = { ...metadata, files: files.map((f) => ({ name: f.name, type: f.type, size: f.size })) }
+  const urls = await requestPresignedUrls(full)
+  const progress = files.map(() => 0)
+  await Promise.all(
+    files.map((file, i) =>
+      uploadToPresignedUrl(file, urls[i], (p) => {
+        progress[i] = p
+        onProgress(Math.round(progress.reduce((a, b) => a + b, 0) / files.length))
+      }),
+    ),
+  )
+}

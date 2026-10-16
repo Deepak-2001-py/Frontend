@@ -17,7 +17,7 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
     profile: '/student/profile',
     items: [
       { to: '/student/dashboard', label: 'Dashboard' },
-      { to: '/student/upload', label: 'Assignments', also: ['/student/answer-correction'] },
+      { to: '/student/assignments', label: 'My Assignments', also: ['/student/upload', '/student/answer-correction'] },
       { to: '/student/grades', label: 'My Grades' },
     ],
   },
@@ -27,9 +27,10 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
     profile: '/teacher/profile',
     items: [
       { to: '/teacher/dashboard', label: 'Dashboard' },
-      { to: '/teacher/upload', label: 'Assignments', also: ['/teacher/question-correction'] },
+      { to: '/teacher/assignments', label: 'Assignments', also: ['/teacher/upload', '/teacher/question-correction'] },
       { to: '/teacher/grades', label: 'Students Grades', also: ['/teacher/student-details'] },
       { to: '/teacher/correction', label: 'Manual Grading & Correction' },
+      { to: '/teacher/assistant', label: 'GradeFlow Assistant' },
     ],
   },
 }
