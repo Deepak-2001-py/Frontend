@@ -176,10 +176,38 @@
 
 .app-tile:hover .app-tile-go { transform: translateX(4px); }
 
+/* Tiles with an illustration: image banner on top, icon badge overlapping its edge. */
+.app-tile-media {
+  display: block;
+  margin: -22px -22px 0;
+  height: 150px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--tone-soft);
+}
+.app-tile-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s var(--ease-out);
+}
+.app-tile:hover .app-tile-media img { transform: scale(1.05); }
+.app-tile.has-image .app-tile-icon {
+  margin-top: -23px;
+  position: relative;
+  border: 3px solid var(--surface-card);
+  box-sizing: content-box;
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-tile-media img, .app-tile:hover .app-tile-media img { transition: none; transform: none; }
+}
+
 @media (max-width: 1000px) { .app-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 520px) {
   .app-tiles { gap: 10px; }
   .app-tile { padding: 16px; }
+  .app-tile-media { margin: -16px -16px 0; height: 96px; }
   .app-tile-text { display: none; }
   .app-tile-go { display: none; }
 }

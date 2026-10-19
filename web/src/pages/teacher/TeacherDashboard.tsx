@@ -89,6 +89,12 @@ export default function TeacherDashboard() {
             <Link to="/teacher/assignments" className="ga-btn ga-btn-secondary">
               View all assignments
             </Link>
+            <Link to="/teacher/assistant" className="ga-btn ga-btn-secondary">
+              <span className="material-icons" aria-hidden>
+                auto_awesome
+              </span>
+              Ask GradeFlow
+            </Link>
           </>
         }
         aside={
@@ -118,10 +124,10 @@ export default function TeacherDashboard() {
       </Stagger>
 
       <Stagger className="app-tiles">
-        <ActionTile to="/teacher/assignments/new" icon="post_add" title="Create assignment" text="Upload a question paper and pick AI or solution-key grading." tone="brand" />
-        <ActionTile to="/teacher/queue" icon="inbox" title="Grading queue" text="Batches waiting on a spot-check or publish." tone="accent" />
-        <ActionTile to="/teacher/analytics" icon="insights" title="Class analytics" text="Scores, submission rates and tough questions." tone="sky" />
-        <ActionTile to="/teacher/assistant" icon="auto_awesome" title="GradeFlow assistant" text="Ask who struggled and what to re-teach." tone="ink" />
+        <ActionTile to="/teacher/assignments/new" icon="post_add" title="Create assignment" text="Upload a question paper and pick AI or solution-key grading." tone="brand" image="/img/dashboard/assignments.webp" />
+        <ActionTile to="/teacher/queue" icon="inbox" title="Grading queue" text="Batches by due date, waiting on a spot-check or publish." tone="accent" image="/img/dashboard/academic-calendar.webp" imagePosition="center 35%" />
+        <ActionTile to="/teacher/analytics" icon="insights" title="Class analytics" text="Scores, submission rates and tough questions." tone="sky" image="/img/dashboard/analytics.webp" imagePosition="center 30%" />
+        <ActionTile to="/teacher/grades" icon="grade" title="View grades" text="Check your students' grades across assignments and exams." tone="ink" image="/img/dashboard/view-grades.webp" imagePosition="center 22%" />
       </Stagger>
 
       <Stagger className="app-grid">

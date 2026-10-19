@@ -47,10 +47,32 @@ export function AppHero({
   )
 }
 
-export function ActionTile({ to, icon, title, text, tone = 'brand' }: { to: string; icon: string; title: string; text: string; tone?: 'brand' | 'accent' | 'sky' | 'ink' }) {
+/** Dashboard feature card. `image` adds an illustration banner; `imagePosition` sets its crop (CSS object-position). */
+export function ActionTile({
+  to,
+  icon,
+  title,
+  text,
+  tone = 'brand',
+  image,
+  imagePosition = 'center',
+}: {
+  to: string
+  icon: string
+  title: string
+  text: string
+  tone?: 'brand' | 'accent' | 'sky' | 'ink'
+  image?: string
+  imagePosition?: string
+}) {
   return (
     <motion.div variants={fadeUp} whileHover={{ y: -5 }} transition={{ type: 'spring', stiffness: 320, damping: 22 }}>
-      <Link to={to} className={`app-tile app-tone-${tone}`}>
+      <Link to={to} className={`app-tile app-tone-${tone}${image ? ' has-image' : ''}`}>
+        {image && (
+          <span className="app-tile-media">
+            <img src={image} alt="" loading="lazy" decoding="async" style={{ objectPosition: imagePosition }} />
+          </span>
+        )}
         <span className="app-tile-icon material-icons" aria-hidden>
           {icon}
         </span>

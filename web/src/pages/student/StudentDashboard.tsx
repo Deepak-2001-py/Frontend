@@ -131,10 +131,10 @@ export default function StudentDashboard() {
       </Stagger>
 
       <Stagger className="app-tiles">
-        <ActionTile to="/student/assignments" icon="assignment" title="My assignments" text="See what's due and track grading." tone="brand" />
-        <ActionTile to="/student/progress" icon="trending_up" title="My progress" text="Your grade trend and what's helping." tone="sky" />
-        <ActionTile to="/student/announcements" icon="campaign" title="Announcements" text="News and deadlines from your teachers." tone="accent" />
-        <ActionTile to="/student/grades" icon="grade" title="Grades & feedback" text="Per-question marks and comments." tone="ink" />
+        <ActionTile to="/student/assignments" icon="assignment" title="My assignments" text="See what's due and track grading." tone="brand" image="/img/dashboard/assignments.webp" />
+        <ActionTile to="/student/progress" icon="trending_up" title="My progress" text="Your grade trend and what's helping." tone="sky" image="/img/dashboard/analytics.webp" imagePosition="center 30%" />
+        <ActionTile to="/student/announcements" icon="campaign" title="Announcements" text="News and deadlines from your teachers." tone="accent" image="/img/dashboard/academic-calendar.webp" imagePosition="center 35%" />
+        <ActionTile to="/student/grades" icon="grade" title="Grades & feedback" text="Per-question marks and comments." tone="ink" image="/img/dashboard/view-grades.webp" imagePosition="center 22%" />
       </Stagger>
 
       <Stagger className="app-grid">
