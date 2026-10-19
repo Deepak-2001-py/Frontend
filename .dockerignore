@@ -11,7 +11,8 @@ Task_definition.json
 app.bat
 README.md
 
-# Backend Lambda sources (never serve these)
+# Backend sources and their config (never serve these)
+backend
 lambda_python_files
 admin/*.py
 **/__pycache__

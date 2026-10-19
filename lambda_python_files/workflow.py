@@ -25,6 +25,8 @@ New (owned by this Lambda):
   GradeAnt_Assignments PK assignment_id (S). GSI teacher_id-index (PK teacher_id).
   GradeAnt_Submissions PK assignment_id (S), SK student_id (S).
                        GSI student_id-index (PK student_id).
+  GradeAnt_Announcements PK announcement_id (S). Teacher → class notices
+                       (read by scan; volumes are small).
 
 A submission's status (wireframe §20 SUBMISSIONS chain) is derived from
 its assignment_grading rows (answer rows → ocr_done, every row
@@ -48,6 +50,7 @@ Environment
                         record for them, or via Users.classes enrolment.
   ASSIGNMENTS_TABLE     default "GradeAnt_Assignments"
   SUBMISSIONS_TABLE     default "GradeAnt_Submissions"
+  ANNOUNCEMENTS_TABLE   default "GradeAnt_Announcements"
   FLAG_CONFIDENCE       default 0.75 — rows with a lower `confidence` are spot-checked
   BEDROCK_REGION        default AWS_REGION — region for Claude on Amazon Bedrock
   BEDROCK_MODEL_ID      default "anthropic.claude-opus-5-5"
@@ -85,6 +88,7 @@ users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
 grading_table = dynamodb.Table(os.environ.get('GRADING_TABLE', 'assignment_grading'))
 assignments_table = dynamodb.Table(os.environ.get('ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'))
 submissions_table = dynamodb.Table(os.environ.get('SUBMISSIONS_TABLE', 'GradeAnt_Submissions'))
+announcements_table = dynamodb.Table(os.environ.get('ANNOUNCEMENTS_TABLE', 'GradeAnt_Announcements'))
 
 SUBMISSION_CHAIN = [
     'upload_requested', 'answer_uploaded', 'ocr_done', 'corrected', 'grading_triggered',
@@ -92,6 +96,8 @@ SUBMISSION_CHAIN = [
 ]
 RANK = {s: i for i, s in enumerate(SUBMISSION_CHAIN)}
 PERSONAS = ('balanced', 'strict', 'lenient')
+AT_RISK_PERCENT = 50
+DEFAULT_SETTINGS = {'default_persona': 'balanced', 'partial_credit': True, 'notify_submissions': True, 'notify_flagged': True}
 
 
 # ----------------------------------------------------------------------
@@ -211,6 +217,19 @@ def _required(body, *fields):
 # ----------------------------------------------------------------------
 # Data helpers
 # ----------------------------------------------------------------------
+
+def _my_assignments(caller):
+    if caller['role'] == 'admin':
+        return _scan_all(assignments_table)
+    return _query_all(assignments_table, IndexName='teacher_id-index', KeyConditionExpression=Key('teacher_id').eq(caller['user_id']))
+
+
+def _visible_assignments(caller):
+    """Published assignments a student can see (their `classes`, or all if none are recorded)."""
+    classes = caller['user'].get('classes')
+    published = _scan_all(assignments_table, FilterExpression=Attr('content_status').eq('published'))
+    return [a for a in published if a.get('class_name') in classes] if classes else published
+
 
 def _load_assignment(assignment_id, caller=None):
     item = assignments_table.get_item(Key={'assignment_id': assignment_id}).get('Item')
@@ -364,10 +383,7 @@ def _assignment_view(item, by_student=None):
 
 def list_assignments(body, caller):
     _require(caller, 'teacher', 'admin')
-    if caller['role'] == 'admin':
-        items = _scan_all(assignments_table)
-    else:
-        items = _query_all(assignments_table, IndexName='teacher_id-index', KeyConditionExpression=Key('teacher_id').eq(caller['user_id']))
+    items = _my_assignments(caller)
     users = _users_by_id() if items else {}
     out = []
     for item in sorted(items, key=lambda a: a.get('created_at', ''), reverse=True):
@@ -447,10 +463,14 @@ def set_grading_method(body, caller):
     if method not in ('ai', 'standard'):
         raise ApiError(400, "method must be 'ai' or 'standard'.")
     item = _load_assignment(assignment_id, caller)
-    persona = body.get('persona', item.get('persona', 'balanced'))
+    defaults = _user_settings(caller['user'])
+    persona = body.get('persona') or item.get('persona') or defaults['default_persona']
     if persona not in PERSONAS:
         raise ApiError(400, f"persona must be one of {', '.join(PERSONAS)}.")
-    partial = bool(body.get('partial_credit', item.get('partial_credit', True)))
+    if 'partial_credit' in body:
+        partial = bool(body['partial_credit'])
+    else:
+        partial = bool(item['partial_credit']) if 'partial_credit' in item else defaults['partial_credit']
 
     changed_method = item.get('method') != method
     status = item.get('qp_status', 'qp_parsed')
@@ -583,7 +603,7 @@ def _put_submission_status(assignment_id, student_id, status, extra=None):
 
 def _submissions(item, users=None):
     users = users if users is not None else _users_by_id()
-    by_student = _grading_rows(item)
+    by_student = _grading_rows(item, users)
     stored = {s['student_id']: s for s in _query_all(submissions_table, KeyConditionExpression=Key('assignment_id').eq(item['assignment_id']))}
     for u in _enrolled_students(item, users):
         by_student.setdefault(u['user_id'], {'summary': None, 'details': []})
@@ -763,10 +783,7 @@ def remind_student(body, caller):
 
 def list_student_assignments(body, caller):
     _require(caller, 'student')
-    classes = caller['user'].get('classes')
-    published = _scan_all(assignments_table, FilterExpression=Attr('content_status').eq('published'))
-    if classes:
-        published = [a for a in published if a.get('class_name') in classes]
+    published = _visible_assignments(caller)
     out = []
     for a in sorted(published, key=lambda x: x.get('due_at') or x.get('created_at', '')):
         entry = {'summary': None, 'details': _student_details(caller['user_id'], a)}
@@ -812,6 +829,325 @@ def request_recheck(body, caller):
         UpdateExpression='SET recheck = :r, recheck_requested_at = :t, recheck_status = :s',
         ExpressionAttributeValues={':r': _to_dynamo(clean), ':t': _now(), ':s': 'open'},
     )
+    return {'ok': True}
+
+
+
+# ----------------------------------------------------------------------
+# Teacher: grading queue, students, analytics, settings (wireframes §02, §11)
+# ----------------------------------------------------------------------
+
+def _letter(percent):
+    return 'A' if percent >= 90 else 'B' if percent >= 80 else 'C' if percent >= 70 else 'D' if percent >= 60 else 'F'
+
+
+def _mean(values):
+    values = list(values)
+    return sum(values) / len(values) if values else None
+
+
+def _submitted(sub):
+    return RANK.get(sub['status'], 0) >= RANK['answer_uploaded']
+
+
+def _stats(item, users):
+    """Submissions, parsed questions and per-student percent for one assignment."""
+    subs, by_student, _ = _submissions(item, users)
+    questions = _questions(item, by_student)
+    max_marks = sum(_num(q.get('max_marks')) for q in questions) or _num(item.get('total_marks'))
+    percents = {}
+    if max_marks > 0:
+        for sid, entry in by_student.items():
+            if entry['summary'] is not None:
+                percents[sid] = min(100.0, _num(entry['summary'].get('total_marks')) / max_marks * 100)
+    return {'subs': subs, 'by_student': by_student, 'max_marks': max_marks, 'percents': percents}
+
+
+QUEUE_ORDER = {'review': 0, 'ready': 1, 'grading': 2, 'collecting': 3, 'setup': 4, 'published': 5}
+
+
+def get_grading_queue(body, caller):
+    """§02 "batches waiting to review": every assignment with where it is in grading."""
+    _require(caller, 'teacher', 'admin')
+    items = _my_assignments(caller)
+    users = _users_by_id() if items else {}
+    out = []
+    for item in items:
+        st = _stats(item, users)
+        submitted = [s for s in st['subs'] if _submitted(s)]
+        graded = [s for s in submitted if RANK.get(s['status'], 0) >= RANK['ai_graded']]
+        grading = sum(1 for s in st['subs'] if s['status'] in ('grading_triggered', 'corrected'))
+        flagged = sum(1 for e in st['by_student'].values() if e['summary'] is not None for r in e['details'] if _is_flagged(r))
+        if item.get('qp_status') != 'rubric_reviewed' and not (graded or grading):
+            state = 'setup'  # (papers already being graded means setup was finished)
+        elif item.get('grades_status') == 'published' and not flagged and not grading:
+            state = 'published'
+        elif flagged:
+            state = 'review'
+        elif grading:
+            state = 'grading'
+        elif graded:
+            state = 'ready'
+        else:
+            state = 'collecting'
+        out.append({
+            'assignment_id': item['assignment_id'], 'qp_id': item['qp_id'], 'title': item.get('title'),
+            'class_name': item.get('class_name'), 'due_at': item.get('due_at'), 'state': state,
+            'papers': len(submitted), 'graded': len(graded), 'grading': grading, 'flagged': flagged,
+        })
+    out.sort(key=lambda r: (QUEUE_ORDER[r['state']], -r['flagged'], r.get('due_at') or '9'))
+    return {'queue': out, 'waiting': sum(1 for r in out if r['state'] in ('review', 'ready'))}
+
+
+def list_students(body, caller):
+    """§02 Students: everyone in the teacher's classes with how they're doing."""
+    _require(caller, 'teacher', 'admin')
+    items = sorted(_my_assignments(caller), key=lambda a: a.get('created_at', ''))
+    users = _users_by_id() if items else {}
+    students, classes = {}, set()
+    for item in items:
+        st = _stats(item, users)
+        classes.add(item.get('class_name'))
+        for s in st['subs']:
+            sid = s['student_id']
+            rec = students.setdefault(sid, {
+                'student_id': sid, 'student_name': s.get('student_name'), 'email': (users.get(sid) or {}).get('email'),
+                'classes': set(), 'assigned': 0, 'submitted': 0, 'late': 0, '_pcts': [], 'last_submitted_at': None, 'latest': None,
+            })
+            rec['classes'].add(item.get('class_name'))
+            rec['assigned'] += 1
+            if _submitted(s):
+                rec['submitted'] += 1
+                rec['late'] += 1 if s.get('late') else 0
+                at = s.get('submitted_at')
+                if at and (rec['last_submitted_at'] is None or at >= rec['last_submitted_at']):
+                    rec['last_submitted_at'] = at
+                    rec['latest'] = {'assignment_id': item['assignment_id'], 'qp_id': item['qp_id']}
+            if sid in st['percents']:
+                rec['_pcts'].append(st['percents'][sid])
+    out = []
+    for rec in students.values():
+        avg = _mean(rec.pop('_pcts'))
+        rec['classes'] = sorted(c for c in rec['classes'] if c)
+        rec['average'] = avg
+        rec['at_risk'] = avg is not None and avg < AT_RISK_PERCENT
+        out.append(rec)
+    out.sort(key=lambda r: (r.get('student_name') or r['student_id']).lower())
+    return {'students': out, 'classes': sorted(c for c in classes if c)}
+
+
+def get_teacher_analytics(body, caller):
+    """§11 class analytics across assignments (optionally one class)."""
+    _require(caller, 'teacher', 'admin')
+    everything = _my_assignments(caller)
+    class_filter = body.get('class_name') or None
+    items = [a for a in everything if not class_filter or a.get('class_name') == class_filter]
+    users = _users_by_id() if items else {}
+    today = datetime.datetime.now(datetime.timezone.utc).date()
+    days = [today - datetime.timedelta(days=i) for i in range(6, -1, -1)]
+    weekly = {d: 0 for d in days}
+    dist = {k: 0 for k in 'ABCDF'}
+    rows, all_pcts, risk, questions, upcoming = [], [], set(), {}, []
+    submitted_total = enrolled_total = 0
+    for item in items:
+        st = _stats(item, users)
+        for sid, p in st['percents'].items():
+            dist[_letter(p)] += 1
+            all_pcts.append(p)
+            if p < AT_RISK_PERCENT:
+                risk.add(sid)
+        submitted = [s for s in st['subs'] if _submitted(s)]
+        for s in submitted:
+            try:
+                d = datetime.date.fromisoformat(str(s.get('submitted_at'))[:10])
+            except ValueError:
+                continue
+            if d in weekly:
+                weekly[d] += 1
+        enrolled = len(_enrolled_students(item, users)) or len(st['subs'])
+        submitted_total += len(submitted)
+        enrolled_total += enrolled
+        pcts = list(st['percents'].values())
+        rows.append({
+            'assignment_id': item['assignment_id'], 'qp_id': item['qp_id'], 'title': item.get('title'),
+            'class_name': item.get('class_name'), 'enrolled': enrolled, 'submitted': len(submitted), 'graded': len(pcts),
+            'average': _mean(pcts), 'at_risk': sum(1 for p in pcts if p < AT_RISK_PERCENT), 'grades_status': item.get('grades_status'),
+        })
+        for entry in st['by_student'].values():
+            if entry['summary'] is None:
+                continue
+            for r in entry['details']:
+                mx = _num(r.get('max_marks'))
+                if mx > 0 and r.get('marks') is not None:
+                    q = questions.setdefault((item['assignment_id'], str(r.get('question_number')), r.get('subpart') or ''), {
+                        'assignment_id': item['assignment_id'], 'title': item.get('title'),
+                        'label': f"Q{r.get('question_number')}{r.get('subpart') or ''}", 'got': 0.0, 'max': 0.0,
+                    })
+                    q['got'] += _num(r['marks'])
+                    q['max'] += mx
+        if item.get('due_at') and str(item['due_at'])[:10] >= today.isoformat() and item.get('grades_status') != 'published':
+            upcoming.append({'assignment_id': item['assignment_id'], 'title': item.get('title'), 'class_name': item.get('class_name'), 'due_at': item['due_at']})
+    hardest = sorted(
+        ({**{k: v for k, v in q.items() if k not in ('got', 'max')}, 'average': q['got'] / q['max'] * 100} for q in questions.values() if q['max'] > 0),
+        key=lambda q: q['average'],
+    )[:5]
+    insight = None
+    if hardest and hardest[0]['average'] < 100:
+        h = hardest[0]
+        insight = f"{h['label']} in \"{h['title']}\" cost the most marks ({round(h['average'])}% average) — consider a recap before the next assessment."
+    rows.sort(key=lambda r: r['title'] or '')
+    return {
+        'classes': sorted({a.get('class_name') for a in everything if a.get('class_name')}),
+        'class_name': class_filter,
+        'totals': {
+            'assignments': len(items), 'enrolled': enrolled_total, 'submitted': submitted_total,
+            'submission_rate': (submitted_total / enrolled_total * 100) if enrolled_total else None,
+            'graded': len(all_pcts), 'average': _mean(all_pcts), 'at_risk': len(risk),
+        },
+        'distribution': dist,
+        'weekly': [{'date': d.isoformat(), 'label': d.strftime('%a'), 'count': n} for d, n in weekly.items()],
+        'assignments': rows,
+        'hardest': hardest,
+        'insight': insight,
+        'upcoming': sorted(upcoming, key=lambda u: str(u['due_at']))[:5],
+    }
+
+
+def _user_settings(user):
+    return {**DEFAULT_SETTINGS, **(user.get('gradeant_settings') or {})}
+
+
+def get_teacher_settings(body, caller):
+    _require(caller, 'teacher', 'admin')
+    return {'settings': _user_settings(caller['user'])}
+
+
+def update_teacher_settings(body, caller):
+    _require(caller, 'teacher', 'admin')
+    incoming = body.get('settings')
+    if not isinstance(incoming, dict):
+        raise ApiError(400, 'settings must be an object.')
+    merged = _user_settings(caller['user'])
+    for key in DEFAULT_SETTINGS:
+        if key in incoming:
+            merged[key] = incoming[key]
+    if merged['default_persona'] not in PERSONAS:
+        raise ApiError(400, f"default_persona must be one of {', '.join(PERSONAS)}.")
+    for key in ('partial_credit', 'notify_submissions', 'notify_flagged'):
+        if not isinstance(merged[key], bool):
+            raise ApiError(400, f'{key} must be true or false.')
+    users_table.update_item(
+        Key={'email': caller['email']}, UpdateExpression='SET gradeant_settings = :s',
+        ExpressionAttributeValues={':s': merged},
+    )
+    return {'settings': merged}
+
+
+# ----------------------------------------------------------------------
+# Student: progress (§03, §12) and announcements
+# ----------------------------------------------------------------------
+
+def get_progress(body, caller):
+    """Grade trend, by-class averages, due soon and a personal insight — published work only."""
+    _require(caller, 'student')
+    uid = caller['user_id']
+    results, todo = [], []
+    for a in _visible_assignments(caller):
+        details = _student_details(uid, a)
+        summaries = _query_all(
+            grading_table, IndexName='student_id-index', KeyConditionExpression=Key('student_id').eq(uid),
+            FilterExpression=Attr('assignment_id').eq(a['assignment_id']) & Attr('type').eq('summary'),
+        )
+        sub = submissions_table.get_item(Key={'assignment_id': a['assignment_id'], 'student_id': uid}).get('Item') or {}
+        entry = {'summary': summaries[0] if summaries else None, 'details': details}
+        status = _merge_status(_derived_status(entry), sub.get('status'))
+        if status in ('published', 'published_revised') and entry['summary'] is not None:
+            mx = sum(_num(r.get('max_marks')) for r in details)
+            if mx <= 0:
+                continue
+            marks = _num(entry['summary'].get('total_marks'))
+            first = min((r.get('timestamp') or r.get('created_at') or '' for r in details), default='')
+            submitted_at = _iso(sub['submitted_at']) if sub.get('submitted_at') else (_iso(first) if first != '' else None)
+            published_at = sub.get('published_at') or (_iso(entry['summary']['timestamp']) if entry['summary'].get('timestamp') else a.get('created_at'))
+            early = on_time = None
+            if a.get('due_at') and submitted_at:
+                try:
+                    gap = (datetime.date.fromisoformat(str(a['due_at'])[:10]) - datetime.date.fromisoformat(submitted_at[:10])).days
+                    early, on_time = gap >= 1, gap >= 0
+                except ValueError:
+                    pass
+            results.append({
+                'assignment_id': a['assignment_id'], 'qp_id': a['qp_id'], 'title': a.get('title'), 'class_name': a.get('class_name'),
+                'marks': marks, 'max': mx, 'percent': min(100.0, marks / mx * 100), 'date': published_at,
+                'submitted_at': submitted_at, 'due_at': a.get('due_at'), 'early': early, 'on_time': on_time,
+            })
+        elif RANK.get(status, 0) < RANK['answer_uploaded']:
+            todo.append({'assignment_id': a['assignment_id'], 'qp_id': a['qp_id'], 'title': a.get('title'),
+                         'class_name': a.get('class_name'), 'due_at': a.get('due_at')})
+    results.sort(key=lambda r: str(r['date']))
+    todo.sort(key=lambda t: str(t.get('due_at') or '9'))
+    by_class = {}
+    for r in results:
+        by_class.setdefault(r['class_name'] or 'Other', []).append(r['percent'])
+    streak = 0
+    for r in reversed(results):
+        if r['on_time'] is False or r['on_time'] is None:
+            break
+        streak += 1
+    early = [r['percent'] for r in results if r['early']]
+    late = [r['percent'] for r in results if r['early'] is False]
+    insight = None
+    if early and late and _mean(early) > _mean(late):
+        insight = f"You score about {round(_mean(early) - _mean(late))} points higher when you submit a day or more early. Keep the streak going!"
+    elif streak >= 2:
+        insight = f"{streak} on-time submissions in a row — keep the streak going!"
+    return {
+        'results': results,
+        'average': _mean(r['percent'] for r in results),
+        'by_class': [{'class_name': c, 'average': _mean(v), 'count': len(v)} for c, v in sorted(by_class.items())],
+        'todo': todo[:5],
+        'streak': streak,
+        'insight': insight,
+    }
+
+
+def post_announcement(body, caller):
+    _require(caller, 'teacher', 'admin')
+    class_name, title, message = _required(body, 'class_name', 'title', 'message')
+    mine = {a.get('class_name') for a in _my_assignments(caller)}
+    if caller['role'] != 'admin' and class_name not in mine:
+        raise ApiError(400, 'Create an assignment for that class first, then you can post to it.')
+    item = {
+        'announcement_id': f"N-{uuid.uuid4().hex[:10]}", 'class_name': str(class_name)[:100], 'title': str(title).strip()[:150],
+        'message': str(message).strip()[:2000], 'author_id': caller['user_id'], 'author_name': caller['user'].get('name') or 'Teacher',
+        'created_at': _now(),
+    }
+    if not item['title'] or not item['message']:
+        raise ApiError(400, 'A title and a message are required.')
+    announcements_table.put_item(Item=item)
+    return {'announcement': item}
+
+
+def list_announcements(body, caller):
+    if caller['role'] == 'student':
+        classes = caller['user'].get('classes') or sorted({a.get('class_name') for a in _visible_assignments(caller) if a.get('class_name')})
+        items = _scan_all(announcements_table, FilterExpression=Attr('class_name').is_in(classes)) if classes else []
+    else:
+        _require(caller, 'teacher', 'admin')
+        items = _scan_all(announcements_table) if caller['role'] == 'admin' else _scan_all(announcements_table, FilterExpression=Attr('author_id').eq(caller['user_id']))
+    items.sort(key=lambda a: a.get('created_at', ''), reverse=True)
+    return {'announcements': items[:50]}
+
+
+def delete_announcement(body, caller):
+    _require(caller, 'teacher', 'admin')
+    (announcement_id,) = _required(body, 'announcement_id')
+    item = announcements_table.get_item(Key={'announcement_id': announcement_id}).get('Item')
+    if not item:
+        raise ApiError(404, 'Announcement not found.')
+    if caller['role'] != 'admin' and item.get('author_id') != caller['user_id']:
+        raise ApiError(403, 'You can only delete your own announcements.')
+    announcements_table.delete_item(Key={'announcement_id': announcement_id})
     return {'ok': True}
 
 
@@ -913,10 +1249,7 @@ def ask_assistant(body, caller):
         assignment = _load_assignment(body['assignment_id'], caller)
         context = _grading_context(assignment, body.get('student_id'))
     else:
-        if caller['role'] == 'admin':
-            items = _scan_all(assignments_table)
-        else:
-            items = _query_all(assignments_table, IndexName='teacher_id-index', KeyConditionExpression=Key('teacher_id').eq(caller['user_id']))
+        items = _my_assignments(caller)
         context = '\n\n'.join(_grading_context(a) for a in items) or 'No assignments yet.'
 
     # Chat runs behind API Gateway's 29 s limit, so it uses low effort.
@@ -1021,6 +1354,15 @@ OPERATIONS = {
     'listStudentAssignments': list_student_assignments,
     'requestRecheck': request_recheck,
     'askAssistant': ask_assistant,
+    'getGradingQueue': get_grading_queue,
+    'listStudents': list_students,
+    'getTeacherAnalytics': get_teacher_analytics,
+    'getTeacherSettings': get_teacher_settings,
+    'updateTeacherSettings': update_teacher_settings,
+    'getProgress': get_progress,
+    'postAnnouncement': post_announcement,
+    'listAnnouncements': list_announcements,
+    'deleteAnnouncement': delete_announcement,
 }
 
 

@@ -312,7 +312,7 @@ a.app-row:hover { background: var(--surface-card); border-color: var(--orange-20
 }
 
 .app-segment button span { position: relative; z-index: 1; }
-.app-segment button.is-active { color: var(--text-strong); }
+.app-segment button.is-active { color: var(--text-strong); background: var(--surface-card); box-shadow: var(--shadow-sm); }
 .app-segment-bg { position: absolute; inset: 0; border-radius: inherit; background: var(--surface-card); box-shadow: var(--shadow-sm); }
 
 .app-drop {
@@ -410,3 +410,107 @@ a.app-row:hover { background: var(--surface-card); border-color: var(--orange-20
   color: var(--teal-800);
   font-size: var(--text-sm);
 }
+
+/* ---- Charts ---- */
+.app-trend { width: 100%; height: auto; display: block; }
+.app-trend-grid { stroke: var(--ink-150); stroke-width: 1; }
+.app-trend-axis { fill: var(--text-muted); font: 600 11px var(--font-sans); }
+.app-trend-line { fill: none; stroke: var(--orange-500); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.app-trend-dot { fill: var(--surface-card); stroke: var(--orange-600); stroke-width: 3; transform-box: fill-box; transform-origin: center; }
+
+.app-bars { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; align-items: end; height: 190px; }
+.app-bar { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; height: 100%; }
+.app-bar-fill { width: 100%; max-width: 44px; border-radius: 8px 8px 3px 3px; background: var(--gradient-brand); }
+.app-bar-val { font: 700 var(--text-xs) var(--font-sans); color: var(--text-muted); min-height: 1em; }
+.app-bar-label { font: 600 var(--text-xs) var(--font-sans); color: var(--text-muted); }
+
+/* ---- Insight card ---- */
+.app-insight {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--brand-soft), var(--accent-soft));
+  border: 1px solid var(--orange-100);
+  color: var(--text-strong);
+  line-height: var(--leading-normal);
+}
+
+.app-insight .material-icons { color: var(--orange-600); flex-shrink: 0; }
+.app-insight b { display: block; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--orange-700); margin-bottom: 2px; }
+
+/* ---- Toolbar, avatars, tables ---- */
+.app-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.app-toolbar .ga-input, .app-toolbar .ga-select { width: auto; min-width: 180px; flex: 1; max-width: 320px; }
+
+.app-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  color: var(--white);
+  font: 800 var(--text-sm) var(--font-display);
+  flex-shrink: 0;
+}
+
+.app-person { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.app-person b { display: block; color: var(--text-strong); }
+.app-person small { color: var(--text-muted); }
+
+.app-meter { display: flex; align-items: center; gap: 10px; min-width: 120px; }
+.app-meter .ga-progress { flex: 1; height: 8px; }
+.app-meter span { font: 700 var(--text-xs) var(--font-sans); color: var(--text-muted); white-space: nowrap; }
+
+/* ---- Announcements ---- */
+.app-note {
+  padding: 18px 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-soft);
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--orange-400);
+}
+
+.app-note-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.app-note h3 { margin: 0; font: 700 var(--text-md) var(--font-display); color: var(--text-strong); }
+.app-note p { margin: 8px 0 0; color: var(--text-body); line-height: var(--leading-relaxed); white-space: pre-wrap; }
+.app-note small { display: block; margin-top: 10px; color: var(--text-muted); }
+
+/* ---- Switch ---- */
+.app-switch { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border-subtle); cursor: pointer; }
+.app-switch:last-of-type { border-bottom: none; }
+.app-switch b { display: block; color: var(--text-strong); }
+.app-switch small { color: var(--text-muted); }
+.app-switch input { position: absolute; opacity: 0; pointer-events: none; }
+
+.app-switch-track {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: var(--ink-300);
+  transition: background var(--dur-base);
+}
+
+.app-switch-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.app-switch input:checked + .app-switch-track { background: var(--accent); }
+.app-switch input:checked + .app-switch-track::after { transform: translateX(20px); }
+.app-switch input:focus-visible + .app-switch-track { box-shadow: var(--ring); }
+
+a.app-person { text-decoration: none; color: inherit; }
+a.app-person:hover b { color: var(--orange-700); }
