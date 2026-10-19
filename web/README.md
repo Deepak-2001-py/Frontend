@@ -1,6 +1,6 @@
 # GradeAnt — React app
 
-React 19 + TypeScript + Vite + React Router. It replaces the static HTML pages in the repo root; the backend (API Gateway + the Lambdas in `lambda_python_files/`) is unchanged.
+React 19 + TypeScript + Vite + React Router. It replaces the static HTML pages in the repo root. The API is the Node backend in [`../backend`](../backend); the original Python Lambdas in `lambda_python_files/` serve production until it's deployed.
 
 ```bash
 npm install
@@ -9,7 +9,13 @@ npm run build      # type-check + production bundle in dist/
 npm run lint
 ```
 
-API host: `src/config.ts`, overridable with `VITE_API_BASE_URL` (see `.env.example`). To run without AWS, start the local backend (`python ../lambda_python_files/local_dev_server.py`) and set `VITE_API_BASE_URL=http://localhost:8787` in `.env.local` — demo logins are in the [root README](../README.md).
+API host: `src/config.ts`, set per mode by Vite env files (documented in `.env.example`):
+
+- `.env.development` (`npm run dev`) points at the local Node backend, `http://localhost:8787`. Start it with `cd ../backend && npm run dev`; the demo logins are in the [root README](../README.md).
+- `.env.production` (`npm run build`) points at the deployed API.
+- `VITE_UPLOAD_BASE_URL` (optional) sends `/uploadpdf` to the legacy upload Lambda without a token.
+
+Override any of these in `.env.<mode>.local`. `VITE_*` values are compiled into the bundle, so only public URLs belong there.
 
 See [`WIREFRAMES.md`](WIREFRAMES.md) for the site map and how each wireframe screen maps to a route and file.
 

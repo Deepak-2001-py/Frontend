@@ -7,29 +7,24 @@ AI-powered grading for STEM homework: teachers upload a question paper, students
 | Path | What |
 |---|---|
 | [`web/`](web/) | **The web app** — React 19 + TypeScript + Vite. Marketing site, student / teacher / admin areas. Start here. |
-| [`lambda_python_files/`](lambda_python_files/) | Backend AWS Lambdas (Python): auth, grades, OCR corrections, grade updates, and the assignment **workflow** API. Includes a local dev server and tests. |
-| [`admin/lambda_admin.py`](admin/lambda_admin.py) | Admin-console Lambda (users, reset requests, content, tickets, audit logs, settings). |
+| [`backend/`](backend/) | **The API** — Node.js + Express. Runs locally with no AWS account, and on AWS Lambda Web Functions in production. Replaces the Python Lambdas below. See [`backend/README.md`](backend/README.md). |
+| [`lambda_python_files/`](lambda_python_files/), [`admin/lambda_admin.py`](admin/lambda_admin.py) | The original Python Lambdas, kept unchanged as the rollback path and as the reference for the parity check until the Node API has run in production. |
 | Root `*.html`, `student/`, `teacher/`, `css/`, `javascript/`, … | The **legacy static site** the React app replaces. Still what the root `Dockerfile` serves. |
 | `GradeAnt Website Wireframes (standalone).html`, `workflows/`, `*.dc.html` | Design wireframes and schema docs. [`web/WIREFRAMES.md`](web/WIREFRAMES.md) maps every wireframe screen to its route and file. |
 
-## Run the web app
+## Run it locally
 
-You need **Node.js 20.19+ or 22.12+** (and **Python 3.12+** for the local backend).
-
-### Option A — fully local (no AWS needed)
-
-The local backend runs the real Lambda code against an in-memory DynamoDB, pre-filled with demo users and a graded assignment.
+You need **Node.js 22+**. No AWS account is needed: the API uses an in-process DynamoDB loaded with demo data, local file storage, and logged emails.
 
 ```bash
-# Terminal 1 — backend on http://localhost:8787
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r lambda_python_files/requirements-dev.txt
-python lambda_python_files/local_dev_server.py
+# Terminal 1 — API on http://localhost:8787
+cd backend
+npm install
+npm run dev
 
 # Terminal 2 — web app on http://localhost:5173
 cd web
 npm install
-echo "VITE_API_BASE_URL=http://localhost:8787" > .env.local
 npm run dev
 ```
 
@@ -41,43 +36,48 @@ Open http://localhost:5173 and log in (pick the matching role on the login page)
 | Teacher | `teacher@gradeant.dev` |
 | Student | `riya@gradeant.dev`, `sam@gradeant.dev`, `li@gradeant.dev` |
 
-Data lives in memory and resets when the backend restarts. File uploads are accepted but not stored, and the GradeFlow assistant gives a canned reply unless you start the backend with `USE_BEDROCK=1` (it then calls Claude on Amazon Bedrock with your AWS credentials).
+How the two environments are selected:
 
-### Option B — against the deployed AWS API
+- **API.** `npm run dev` loads `backend/.env.development`, which uses local services. `npm run start:prod`, or running on Lambda, loads `backend/.env.production`, which uses AWS. Every setting is documented in [`backend/.env.example`](backend/.env.example).
+- **Web app.** `npm run dev` uses `web/.env.development`, which points at `http://localhost:8787`. `npm run build` uses `web/.env.production`, which points at the deployed API.
+- **Overrides.** Use `.env.<mode>.local` (gitignored) to change either. The web app only ever gets public URLs; secrets and AWS credentials stay in the backend.
 
-```bash
-cd web
-npm install
-npm run dev            # uses the API Gateway URL in web/src/config.ts
-```
-
-To point at a different stage, copy `web/.env.example` to `web/.env.local` and set `VITE_API_BASE_URL`. The assignment screens (create assignment, grading run, submissions, student inbox, assistant) need the `workflow` Lambda deployed at `/workflow` — see below.
+The original Python dev server still works if you need it: `python lambda_python_files/local_dev_server.py`, with `VITE_API_BASE_URL=http://localhost:8787` in `web/.env.development.local`.
 
 ### Other commands
 
 ```bash
+cd backend
+npm test                       # API tests
+npm run check:parity           # same requests against the Python Lambdas and the Node API, diffed (needs PYTHON=…)
+npm run package -- --verify    # Lambda Web Functions deployment zip, checked like Lambda would run it
+
 cd web
-npm run build          # type-check + production bundle in web/dist/
-npm run preview        # serve the production build locally
+npm run build                  # type-check + production bundle in web/dist/
+npm run preview                # serve the production build locally
 npm run lint
 
-# backend tests (from the repo root, with the venv active)
-pytest lambda_python_files/tests
+pytest lambda_python_files/tests   # original Python tests (with lambda_python_files/requirements-dev.txt)
 ```
 
 ## Deploying
 
-**Web app.** `web/Dockerfile` builds the app and serves it with NGINX (`web/nginx.conf` adds the SPA fallback and 301s every old `.html` URL to its new route):
+**API.** [`backend/README.md`](backend/README.md#deploying-to-aws-lambda-web-functions) covers the execution role and IAM permissions, secrets, packaging, `aws lambda-web` commands, and switching the web app over.
+
+- **Status.** Nothing has been deployed yet; production still runs the Python Lambdas behind API Gateway.
+- **Shared state.** Both share the same DynamoDB tables and JWT secret, so the switch and a rollback are just a change of `VITE_API_BASE_URL`.
+
+**Web app.** `web/Dockerfile` builds the app and serves it with NGINX, and `web/nginx.conf` adds the SPA fallback and 301s every old `.html` URL to its new route. The build uses `web/.env.production` unless you pass build args:
 
 ```bash
 cd web
-docker build --build-arg VITE_API_BASE_URL=https://<api-id>.execute-api.<region>.amazonaws.com/<stage> -t gradeant-web .
+docker build --build-arg VITE_API_BASE_URL=https://<api-endpoint> -t gradeant-web .
 docker run -p 8080:80 gradeant-web
 ```
 
 > **Note:** the GitHub Action in `.github/workflows/aws.yml` still builds the **root** `Dockerfile` (the legacy static site) on every push to `main`. Point it at `web/` to ship the React app.
 
-**Lambdas.** One API Gateway REST API with **Lambda proxy integration** for each route. Every Lambda must share the same `JWT_SECRET`.
+**Python Lambdas (current production).** One API Gateway REST API with Lambda proxy integration per route, all sharing the same `JWT_SECRET`:
 
 | Route | File | Tables |
 |---|---|---|
@@ -88,5 +88,3 @@ docker run -p 8080:80 gradeant-web
 | `POST /admin` | `admin/lambda_admin.py` | `GradeAnt_*` admin tables, `Users` |
 | `POST /workflow` | `lambda_python_files/workflow.py` | `GradeAnt_Assignments`, `GradeAnt_Submissions`, `GradeAnt_Announcements`, `assignment_grading`, `Users`; Claude on Amazon Bedrock |
 | `POST /uploadpdf` | *(not in this repo)* | S3 presigned uploads |
-
-Dependencies for the Lambdas are in `lambda_python_files/requirements.txt` (bundle them as a layer). Each file's header documents its environment variables, table keys and IAM permissions; `workflow.py` also lists the two new tables and the recommended `assignment_id-index` on `assignment_grading`.

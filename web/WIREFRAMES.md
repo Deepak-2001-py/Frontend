@@ -116,8 +116,9 @@ web/
 ### Summary
 
 Every wireframe section now has a screen. The new ones (04, 13, 14, 15, 19 roster, 20) are backed
-by `lambda_python_files/workflow.py` (tested in `lambda_python_files/tests/`); until it's deployed at
-`/workflow` they show "The assignment workflow service isn't available yet". Still open: a Pricing
+by the `/workflow` API: `backend/src/services/workflow/` (Node, which runs locally with `npm run dev`),
+ported from `lambda_python_files/workflow.py`. Against an API without `/workflow` they show "The
+assignment workflow service isn't available yet". Still open: a Pricing
 page, a product video, and removing `/signup`.
 
 ## 3a. Sidebar navigation (from the wireframes)
@@ -154,7 +155,7 @@ the redesigned `Sidebar`. The dashboards and upload pages are built on it; the g
 student-details and profile pages keep their markup and get the same look from
 `styles/app-bridge.css`.
 
-## 5. Workflow API (`lambda_python_files/workflow.py`)
+## 5. Workflow API (`backend/src/services/workflow/`, ported from `lambda_python_files/workflow.py`)
 
 `POST {API_BASE_URL}/workflow` (path overridable with `VITE_WORKFLOW_PATH`), bearer token, body
 `{ "operation": "...", ...payload }`, like `/admin`. Types are in `src/lib/workflow.ts`.

@@ -4,10 +4,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-# Optional: docker build --build-arg VITE_API_BASE_URL=https://.../prod .
+# Defaults come from .env.production; override per build, e.g.
+#   docker build --build-arg VITE_API_BASE_URL=https://<web-function-endpoint> .
 ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-RUN npm run build
+ARG VITE_UPLOAD_BASE_URL
+# An empty variable would override .env.production, so drop the ones not passed.
+RUN [ -n "$VITE_API_BASE_URL" ] || unset VITE_API_BASE_URL; \
+    [ -n "$VITE_UPLOAD_BASE_URL" ] || unset VITE_UPLOAD_BASE_URL; \
+    npm run build
 
 FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
