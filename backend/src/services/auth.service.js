@@ -6,7 +6,8 @@ import config from '../config/index.js'
 import { HttpError, badRequest, reply, unauthorized } from '../lib/errors.js'
 import { hashLoginPassword, passwordProblem, verifyLoginPassword } from '../lib/passwords.js'
 import { isoNaive } from '../lib/py.js'
-import { decodeLoginToken, issueLoginToken } from '../lib/tokens.js'
+import * as supabase from '../lib/supabaseAuth.js'
+import { decodeLoginToken, issueLoginToken, usesSupabase } from '../lib/tokens.js'
 import { pendingResetRequestsFor, resetRequests } from '../repositories/admin.repository.js'
 import { getUserByEmail, putUser, setLastLogin, setPassword, setPhotoKey } from '../repositories/users.repository.js'
 
@@ -45,6 +46,7 @@ export async function signup(body) {
 
   const userId = randomUUID()
   const timestamp = isoNaive()
+  if (usesSupabase()) await supabase.createUser(email, String(password))
   await putUser({
     user_id: userId,
     email,
@@ -60,7 +62,7 @@ export async function signup(body) {
     userRole,
     name,
     email,
-    token: await issueLoginToken(userId, email),
+    token: usesSupabase() ? await supabase.signIn(email, String(password)) : await issueLoginToken(userId, email),
   })
 }
 
@@ -71,9 +73,14 @@ export async function login(body) {
   const user = await getUserByEmail(email)
   if (!user) throw unauthorized('Invalid credentials')
   if (userRole !== field(user, 'userRole')) throw unauthorized('Invalid credentials')
-  if (!(await verifyLoginPassword(field(user, 'password'), password))) throw unauthorized('Invalid credentials')
-
-  const token = await issueLoginToken(user.user_id, user.email)
+  let token
+  if (usesSupabase()) {
+    token = await supabase.signIn(email, String(password))
+    if (!token) throw unauthorized('Invalid credentials')
+  } else {
+    if (!(await verifyLoginPassword(field(user, 'password'), password))) throw unauthorized('Invalid credentials')
+    token = await issueLoginToken(user.user_id, user.email)
+  }
   await setLastLogin(email, isoNaive())
   return {
     message: 'Login successful',
@@ -131,10 +138,12 @@ export async function changePassword(token, body) {
   if (!user) throw unauthorized('Invalid or expired token')
   const current = body.currentPassword || ''
   const next = body.newPassword || ''
-  if (!(await verifyLoginPassword(user.password, current))) throw badRequest('Current password is incorrect.')
+  const currentOk = usesSupabase() ? Boolean(await supabase.signIn(user.email, String(current))) : await verifyLoginPassword(user.password, current)
+  if (!currentOk) throw badRequest('Current password is incorrect.')
   const problem = passwordProblem(next)
   if (problem) throw badRequest(problem)
   if (next === current) throw badRequest('Choose a password different from your current one.')
+  if (usesSupabase()) await supabase.setPassword(user.email, String(next))
   await setPassword(user.email, await hashLoginPassword(next), isoNaive())
   return { message: 'Password updated.' }
 }

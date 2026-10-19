@@ -1,0 +1,17 @@
+# Local Supabase for GradeAnt development (`npx supabase start`, needs Docker).
+# Only Supabase Auth is used, to check logins when running `npm run dev:supabase` in backend/.
+# Production does not use Supabase.
+project_id = "gradeant"
+
+[api]
+port = 54321
+
+[auth]
+# The web app keeps the token until it expires and does not refresh it: 24 h, like the API's own tokens.
+jwt_expiry = 86400
+# Accounts are created by the API (signup, admin invites) or the demo seed, not from the browser.
+enable_signup = false
+site_url = "http://localhost:5173"
+
+[auth.email]
+enable_confirmations = false

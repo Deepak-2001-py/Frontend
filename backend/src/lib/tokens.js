@@ -7,6 +7,10 @@ import jwt from 'jsonwebtoken'
 import { getJwtSecret, getSessionTokenSecret } from '../aws/secrets.js'
 import config from '../config/index.js'
 import { unauthorized } from './errors.js'
+import { getUser, tokenExpiry } from './supabaseAuth.js'
+import { getUserByEmail } from '../repositories/users.repository.js'
+
+export const usesSupabase = () => config.auth.driver === 'supabase'
 
 const nowSeconds = () => Math.floor(Date.now() / 1000)
 
@@ -16,8 +20,18 @@ export async function issueLoginToken(userId, email) {
   return jwt.sign(payload, await getJwtSecret(), { algorithm: 'HS256' })
 }
 
-/** Payload of a valid login JWT, or a reason it's invalid: 'expired' | 'invalid'. */
+/**
+ * Payload ({ email, user_id }) of a valid login token, or a reason it's invalid:
+ * 'expired' | 'invalid'. With AUTH_DRIVER=supabase the token is a Supabase access token,
+ * checked with Supabase Auth; user_id comes from the Users table (matched by email).
+ */
 export async function decodeLoginToken(token) {
+  if (usesSupabase()) {
+    const user = await getUser(token)
+    if (!user) return { error: tokenExpiry(token) < nowSeconds() ? 'expired' : 'invalid' }
+    const row = await getUserByEmail(user.email)
+    return { payload: { email: user.email, user_id: row?.user_id } }
+  }
   try {
     return { payload: jwt.verify(token, await getJwtSecret(), { algorithms: ['HS256'] }) }
   } catch (err) {
@@ -41,6 +55,12 @@ const safeEqual = (a, b) => {
  * admin console's error messages (and, like it, treats a missing exp as expired).
  */
 export async function verifyLoginJwtForAdmin(token) {
+  if (usesSupabase()) {
+    const { payload, error } = await decodeLoginToken(token)
+    if (error === 'expired') throw unauthorized('Session expired.')
+    if (error) throw unauthorized('Invalid session token.')
+    return payload
+  }
   const secret = await getJwtSecret()
   if (!secret) throw unauthorized('Server misconfigured: JWT_SECRET is not set.')
   let header, payload

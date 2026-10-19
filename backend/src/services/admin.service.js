@@ -12,7 +12,8 @@ import {
   verifyAdminPassword,
 } from '../lib/passwords.js'
 import { pyRepr, sortBy, truthy } from '../lib/py.js'
-import { makeSessionToken, verifyLoginJwtForAdmin, verifySessionToken } from '../lib/tokens.js'
+import * as supabase from '../lib/supabaseAuth.js'
+import { makeSessionToken, usesSupabase, verifyLoginJwtForAdmin, verifySessionToken } from '../lib/tokens.js'
 import {
   adminUsers,
   analytics,
@@ -225,6 +226,7 @@ async function generateTempPassword(p, claims) {
     // Requests from the login page reset the login account (Users, keyed by email).
     try {
       await setTempPassword(request.user_email, request.user_id, await hashLoginPassword(temp))
+      if (usesSupabase()) await supabase.setPassword(request.user_email, temp)
     } catch (err) {
       if (isConditionalCheckFailed(err)) throw notFound('That account no longer exists.')
       throw err

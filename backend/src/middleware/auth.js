@@ -4,7 +4,7 @@
 // Users table on every request, so a demoted or deleted user loses access at once.
 import { getJwtSecret } from '../aws/secrets.js'
 import { HttpError, unauthorized } from '../lib/errors.js'
-import { decodeLoginToken } from '../lib/tokens.js'
+import { decodeLoginToken, usesSupabase } from '../lib/tokens.js'
 import { getUserByEmail } from '../repositories/users.repository.js'
 
 export function bearerToken(req) {
@@ -14,7 +14,7 @@ export function bearerToken(req) {
 
 /** Returns { user_id, email, role, user } or throws a 401 HttpError. */
 export async function authenticate(req) {
-  if (!(await getJwtSecret())) throw new HttpError(500, 'Server misconfigured: JWT_SECRET is not set.')
+  if (!usesSupabase() && !(await getJwtSecret())) throw new HttpError(500, 'Server misconfigured: JWT_SECRET is not set.')
   const token = bearerToken(req)
   if (token === null) throw unauthorized('Missing Authorization: Bearer <token> header.')
   const { payload, error } = await decodeLoginToken(token)

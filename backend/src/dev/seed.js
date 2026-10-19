@@ -37,7 +37,19 @@ const RESULTS = {
   ],
 }
 
+/** With AUTH_DRIVER=supabase the demo accounts need a login in Supabase Auth too. */
+async function seedSupabaseUsers() {
+  const { createUser } = await import('../lib/supabaseAuth.js')
+  try {
+    for (const [, email] of PEOPLE) await createUser(email, DEMO_PASSWORD, { update: true })
+    console.log(JSON.stringify({ level: 'info', msg: 'demo users are ready in Supabase Auth' }))
+  } catch (err) {
+    console.warn(JSON.stringify({ level: 'warn', msg: 'could not create the demo users in Supabase Auth', detail: err?.message }))
+  }
+}
+
 export async function seedDemoData() {
+  if (config.auth.driver === 'supabase') await seedSupabaseUsers()
   const users = table(config.tables.users)
   if (await users.get({ email: 'teacher@gradeant.dev' })) return // already seeded
 

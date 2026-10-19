@@ -40,6 +40,13 @@ function loadEnvFiles(mode) {
   return loaded
 }
 
+// --auth=supabase (npm run dev:supabase) selects the Supabase Auth driver for this run.
+function authArg() {
+  const arg = process.argv.find((a) => a.startsWith('--auth='))
+  if (arg) process.env.AUTH_DRIVER = arg.slice('--auth='.length)
+}
+authArg()
+
 const mode = pickMode()
 const envFiles = loadEnvFiles(mode)
 const env = process.env
@@ -142,6 +149,10 @@ const config = {
   },
 
   auth: {
+    // jwt: this API issues and verifies its own HS256 tokens (production).
+    // supabase: local development only — Supabase Auth checks passwords and issues the
+    // tokens; the Users table still holds each account's role and profile.
+    driver: oneOf('AUTH_DRIVER', ['jwt', 'supabase'], 'jwt'),
     // Either the value itself (local only) or a Secrets Manager secret ARN/name.
     jwtSecret: str('JWT_SECRET'),
     jwtSecretArn: str('JWT_SECRET_ARN'),
@@ -151,6 +162,14 @@ const config = {
     sessionTokenSecretArn: str('SESSION_TOKEN_SECRET_ARN'),
     sessionTokenTtlSeconds: int('SESSION_TOKEN_TTL_SECONDS', 24 * 60 * 60),
     inviteTokenTtlSeconds: int('INVITE_TOKEN_TTL_SECONDS', 7 * 24 * 60 * 60),
+  },
+
+  // Local Supabase (`npx supabase start`); only read when AUTH_DRIVER=supabase.
+  supabase: {
+    url: str('SUPABASE_URL', 'http://127.0.0.1:54321').replace(/\/+$/, ''),
+    anonKey: str('SUPABASE_ANON_KEY'),
+    // Server-side only: creates users (signup, demo seed) and resets passwords.
+    serviceRoleKey: str('SUPABASE_SERVICE_ROLE_KEY'),
   },
 
   storage: {
@@ -193,6 +212,10 @@ const config = {
 
 function validate(c) {
   const problems = []
+  if (c.auth.driver === 'supabase') {
+    if (c.isProduction) problems.push('AUTH_DRIVER=supabase is for local development only')
+    if (!c.supabase.anonKey) problems.push('AUTH_DRIVER=supabase needs SUPABASE_ANON_KEY (npx supabase status -o env)')
+  }
   if (c.isProduction) {
     if (!c.auth.jwtSecret && !c.auth.jwtSecretArn) problems.push('JWT_SECRET_ARN (or JWT_SECRET) is required')
     if (c.cors.origins.length === 0) problems.push('CORS_ALLOWED_ORIGINS is required (the web app origin)')

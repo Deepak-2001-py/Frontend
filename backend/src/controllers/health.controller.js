@@ -5,6 +5,7 @@ import path from 'node:path'
 import { pingDatabase } from '../aws/dynamodb.js'
 import { getJwtSecret } from '../aws/secrets.js'
 import config from '../config/index.js'
+import { ping } from '../lib/supabaseAuth.js'
 
 const { version } = JSON.parse(readFileSync(path.join(config.root, 'package.json'), 'utf8'))
 const started = Date.now()
@@ -31,11 +32,13 @@ export async function ready(req, res) {
       checks[name] = { ok: false, ms: Date.now() - t, error: err?.name || 'Error' }
     }
   }
+  const supabaseCheck = config.auth.driver === 'supabase' ? [run('supabaseAuth', ping)] : []
   await Promise.all([
     run('dynamodb', pingDatabase),
     run('jwtSecret', async () => {
       if (!(await getJwtSecret())) throw Object.assign(new Error(), { name: 'NotConfigured' })
     }),
+    ...supabaseCheck,
   ])
   const ok = Object.values(checks).every((c) => c.ok)
   res.status(ok ? 200 : 503).json({ status: ok ? 'ok' : 'degraded', ...base(), drivers: config.drivers, checks })

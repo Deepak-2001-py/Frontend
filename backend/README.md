@@ -25,7 +25,7 @@ backend/
 │   ├── middleware/       CORS, bearer-token auth, JSON body + error handling, request logging
 │   ├── lib/              tokens, password hashing, errors, Python-compatible helpers
 │   └── dev/              table schema, in-memory DynamoDB, demo seed (development only)
-├── test/                 node:test suites (42 tests)
+├── test/                 node:test suites (52 tests)
 └── scripts/              package.mjs (deployment zip), parity.mjs (Python vs Node comparison)
 ```
 
@@ -68,6 +68,7 @@ How local development behaves:
 |---|---|---|
 | `npm run dev` | development (auto-restarts on changes) | `.env.development` |
 | `npm run start:prod` | production | `.env.production` |
+| `npm run dev:supabase` | development, with Supabase Auth for logins | `.env.development` |
 | `npm test` | test | `.env.test` |
 | Lambda Web Function | production (detected from `AWS_LAMBDA_HTTP_ENDPOINT`, or `APP_ENV`) | `.env.production` |
 
@@ -88,6 +89,33 @@ Each integration has a *driver* setting, so local and AWS implementations swap w
 | `JOBS_DRIVER` | `inline` | `inline` or `sqs` |
 
 Every variable is documented in [`.env.example`](.env.example).
+
+### Supabase Auth for local logins (optional, development only)
+
+By default local logins use this API's own tokens, like production. To check logins with a local Supabase instead:
+
+```bash
+# once: start local Supabase (needs Docker). Uses ../supabase/config.toml (tokens last 24 h)
+npx supabase start
+npx supabase status -o env            # prints ANON_KEY and SERVICE_ROLE_KEY
+
+# backend/.env.development.local  (gitignored)
+SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+
+npm run dev:supabase                  # same as npm run dev with AUTH_DRIVER=supabase
+```
+
+How it works:
+
+- The React app is unchanged: `/auth/login` still takes email, password and role.
+- Supabase Auth checks the password and issues the token. The browser keeps that token, and every API verifies it with Supabase.
+- The role and profile still come from the Users table (matched by email), so role checks work as before.
+- On start-up the demo accounts are created in Supabase with the password `Password123!`, and reset to it if changed. Signup, "change password" and admin temporary passwords also update Supabase.
+- Data and uploaded files are unaffected: still in-memory DynamoDB and `.data/storage`. Supabase holds only the logins.
+- `npx supabase start` uses Docker, and it isn't wired into the tests. The tests run against a fake of Supabase's Auth API.
+- Accounts: an account must exist in both Supabase and the Users table to log in. Admin-invited users get no Supabase account in development.
+- Production refuses to start with `AUTH_DRIVER=supabase`.
 
 ### Secrets
 
@@ -163,8 +191,8 @@ These are listed by the parity check below. Everything else matches.
 ## Tests
 
 ```bash
-npm test                    # 42 tests: workflow (Python suite ported, with/without the assignment_id GSI),
-                            # HTTP/auth/CORS/uploads/admin, Bedrock client against a fake endpoint,
+npm test                    # 52 tests: workflow (Python suite ported, with/without the assignment_id GSI),
+                            # HTTP/auth/CORS/uploads/admin, Supabase Auth against a fake, Bedrock client against a fake endpoint,
                             # Lambda startup contract, Python-compatible helpers
 
 # Python vs Node: the same 210 requests against both implementations, diffed
