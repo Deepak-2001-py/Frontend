@@ -101,8 +101,14 @@ export default function StudentDashboard() {
               </span>
               {next ? 'Submit next assignment' : 'My assignments'}
             </Link>
-            <Link to="/student/grades" className="ga-btn ga-btn-secondary">
-              View my grades
+            <Link to="/student/assignments" className="ga-btn ga-btn-secondary">
+              View all assignments
+            </Link>
+            <Link to="/student/progress" className="ga-btn ga-btn-secondary">
+              <span className="material-icons" aria-hidden>
+                insights
+              </span>
+              My progress
             </Link>
           </>
         }
@@ -131,10 +137,10 @@ export default function StudentDashboard() {
       </Stagger>
 
       <Stagger className="app-tiles">
-        <ActionTile to="/student/assignments" icon="assignment" title="My assignments" text="See what's due and track grading." tone="brand" image="/img/dashboard/assignments.webp" />
-        <ActionTile to="/student/progress" icon="trending_up" title="My progress" text="Your grade trend and what's helping." tone="sky" image="/img/dashboard/analytics.webp" imagePosition="center 30%" />
-        <ActionTile to="/student/announcements" icon="campaign" title="Announcements" text="News and deadlines from your teachers." tone="accent" image="/img/dashboard/academic-calendar.webp" imagePosition="center 35%" />
-        <ActionTile to="/student/grades" icon="grade" title="Grades & feedback" text="Per-question marks and comments." tone="ink" image="/img/dashboard/view-grades.webp" imagePosition="center 22%" />
+        <ActionTile to="/student/assignments" icon="assignment" title="My assignments" text="Upload your answers and track each paper through grading." tone="brand" image="/img/dashboard/assignments.webp" />
+        <ActionTile to="/student/announcements" icon="campaign" title="Announcements" text="Due dates, news and reminders from your teachers." tone="accent" image="/img/dashboard/academic-calendar.webp" imagePosition="center 35%" />
+        <ActionTile to="/student/progress" icon="insights" title="My progress" text="Your grade trend, class averages and what's helping." tone="sky" image="/img/dashboard/analytics.webp" imagePosition="center 30%" />
+        <ActionTile to="/student/grades" icon="grade" title="View grades" text="Check your grades and feedback across assignments and exams." tone="ink" image="/img/dashboard/view-grades.webp" imagePosition="center 22%" />
       </Stagger>
 
       <Stagger className="app-grid">
