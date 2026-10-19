@@ -1,8 +1,8 @@
 // Parity check: runs the same scripted requests against the original Python
-// Lambdas (scripts/parity/run_python.py, on moto) and this Node API (on the
-// in-process DynamoDB emulator), seeded from the same fixture, and diffs every
-// response after masking values that are random by design (ids, tokens,
-// timestamps).
+// Lambdas (scripts/parity/run_python.py, on moto, old tables) and this Node API
+// (the new data model, filled from the same fixture by the migration), and diffs
+// every response after masking values that are random by design (ids, tokens,
+// timestamps). Set TEST_DB_DRIVER=postgres (+ TEST_DATABASE_URL) to run Node on Postgres.
 //
 //   PYTHON=/path/to/venv/bin/python npm run check:parity
 //
@@ -21,6 +21,10 @@ const SESSION_SECRET = 'parity-session-secret-0123456789abcdef'
 // Intentional behaviour changes, each documented in backend/README.md.
 const PY_RESERVED_WORD_BUG =
   'Python bug fixed: lambda_admin.py completeFirstLogin writes "SET consumed", a DynamoDB reserved word, so it always fails with a 500'
+const ONE_USERS_TABLE =
+  'One users table: the admin list shows every account, sorted by name (Python listed only GradeAnt_Users, in scan order)'
+const ONE_PASSWORD =
+  "One password per account: the console checks the account's login password (the fixture's separate console password is gone)"
 const INVALID_JSON = 'Malformed JSON is a 400 with the endpoint\'s usual error shape (Python returned a 500 with the parser\'s exception text)'
 const KNOWN_DIFFERENCES = {
   'grades.invalidJson': INVALID_JSON,
@@ -31,7 +35,18 @@ const KNOWN_DIFFERENCES = {
   'admin.firstLogin.again': PY_RESERVED_WORD_BUG,
   'admin.session.profile': `${PY_RESERVED_WORD_BUG} (so Python never issued the session token used here)`,
   'admin.session.tampered': `${PY_RESERVED_WORD_BUG} (so Python never issued the session token used here)`,
+  // The data model (docs/database-architecture.md):
+  'correct.qsubmit.ok': 'Question text is stored once per paper: a correction updates 1 record (Python rewrote every graded student\'s copy)',
+  'admin.users.all': ONE_USERS_TABLE,
+  'admin.users.role': ONE_USERS_TABLE,
+  'admin.users.afterChanges': ONE_USERS_TABLE,
+  'admin.password.ok': ONE_PASSWORD,
+  'admin.audit.all': `${ONE_PASSWORD} (so there is no "Changed own password" entry)`,
+  'wf.announcements.noClass':
+    "Students see their classes' announcements; Python fell back to every published assignment's class for a student with no classes",
 }
+// Fields the data model adds to existing responses (ignored when Python's response lacks them).
+const ADDED_FIELDS = ['class_id']
 
 Object.assign(process.env, {
   APP_ENV: 'test',
@@ -56,12 +71,12 @@ const pyResults = JSON.parse(
 
 // ---- Node --------------------------------------------------------------------------
 console.log('Running the same cases against the Node API…')
-const { post, startServer, stopServer, table } = await import('../test/helpers.js')
+const { config, importTables, post, startServer, stopServer } = await import('../test/helpers.js')
 const { default: jwt } = await import('jsonwebtoken')
 const { setClaudeOverride } = await import('../src/aws/bedrock.js')
 const { hashAdminPassword, hashLoginPassword } = await import('../src/lib/passwords.js')
 
-await startServer({ assignmentIndex: true, seed: false })
+await startServer()
 
 async function resolveValue(v) {
   if (v && typeof v === 'object' && '$loginHash' in v) return hashLoginPassword(v.$loginHash)
@@ -72,9 +87,12 @@ async function resolveValue(v) {
   }
   return v
 }
-for (const [name, items] of Object.entries(fixture.tables)) {
-  for (const item of items) await table(name).put(await resolveValue(item))
-}
+// Node runs on the new data model: the fixture's old tables go through the migration.
+const logicalName = Object.fromEntries(Object.entries(config.legacyTables).map(([logical, name]) => [name, logical]))
+const legacy = {}
+for (const [name, items] of Object.entries(fixture.tables)) legacy[logicalName[name]] = await Promise.all(items.map(resolveValue))
+const imported = await importTables(legacy)
+if (imported.warnings.length) console.log(`Migration warnings: ${imported.warnings.join('; ')}`)
 
 const claudeCalls = []
 setClaudeOverride(async ({ system, messages, effort, outputFormat }) => {
@@ -158,9 +176,22 @@ let same = 0
 let orderOnly = 0
 let known = 0
 let different = 0
+/** Node's response without ADDED_FIELDS that Python's response doesn't have. */
+function withoutAdded(node, py) {
+  if (Array.isArray(node)) return node.map((x, i) => withoutAdded(x, Array.isArray(py) ? py[i] : undefined))
+  if (node && typeof node === 'object') {
+    return Object.fromEntries(
+      Object.entries(node)
+        .filter(([k]) => !(ADDED_FIELDS.includes(k) && !(py && typeof py === 'object' && k in py)))
+        .map(([k, v]) => [k, withoutAdded(v, py && typeof py === 'object' ? py[k] : undefined)]),
+    )
+  }
+  return node
+}
+
 for (const name of [...cases.map((c) => c.name), '__claude_calls__']) {
   const py = mask(pyResults[name])
-  const nd = mask(nodeResults[name])
+  const nd = mask(withoutAdded(nodeResults[name], pyResults[name]))
   if (isDeepStrictEqual(py, nd)) {
     same++
     continue

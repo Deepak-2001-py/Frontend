@@ -40,12 +40,18 @@ function loadEnvFiles(mode) {
   return loaded
 }
 
-// --auth=supabase (npm run dev:supabase) selects the Supabase Auth driver for this run.
-function authArg() {
-  const arg = process.argv.find((a) => a.startsWith('--auth='))
-  if (arg) process.env.AUTH_DRIVER = arg.slice('--auth='.length)
+// --db=<driver> and --auth=<driver> override DB_DRIVER / AUTH_DRIVER for one run
+// (npm run dev:offline uses --db=memory --auth=jwt).
+function driverArgs() {
+  for (const [flag, name] of [
+    ['--db=', 'DB_DRIVER'],
+    ['--auth=', 'AUTH_DRIVER'],
+  ]) {
+    const arg = process.argv.find((a) => a.startsWith(flag))
+    if (arg) process.env[name] = arg.slice(flag.length)
+  }
 }
-authArg()
+driverArgs()
 
 const mode = pickMode()
 const envFiles = loadEnvFiles(mode)
@@ -114,7 +120,9 @@ const config = {
   },
 
   drivers: {
-    db: oneOf('DB_DRIVER', ['memory', 'dynamodb'], isProduction ? 'dynamodb' : 'memory'),
+    // memory: in-process DynamoDB emulator (offline dev, tests) · dynamodb: production ·
+    // postgres: Supabase Postgres (development only)
+    db: oneOf('DB_DRIVER', ['memory', 'dynamodb', 'postgres'], isProduction ? 'dynamodb' : 'memory'),
     storage: oneOf('STORAGE_DRIVER', ['local', 's3'], isProduction ? 's3' : 'local'),
     mail: oneOf('MAIL_DRIVER', ['log', 'ses'], isProduction ? 'ses' : 'log'),
     notify: oneOf('NOTIFY_DRIVER', ['log', 'sns'], isProduction ? 'sns' : 'log'),
@@ -127,31 +135,52 @@ const config = {
     region: dataRegion,
     // Point DynamoDB at DynamoDB Local (e.g. http://localhost:8000) when DB_DRIVER=dynamodb.
     dynamodbEndpoint: str('DYNAMODB_ENDPOINT'),
-    // Seed demo data into the database on startup (in-memory DB always seeds).
+    // Load the demo accounts and assignment into an empty local database on startup.
     seedDemoData: bool('SEED_DEMO_DATA', false),
   },
 
-  tables: {
-    users: str('USERS_TABLE', 'Users'),
-    grading: str('GRADING_TABLE', 'assignment_grading'),
-    gradingAssignmentIndex: str('GRADING_ASSIGNMENT_INDEX', 'assignment_id-index'),
-    assignments: str('ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'),
-    submissions: str('SUBMISSIONS_TABLE', 'GradeAnt_Submissions'),
-    announcements: str('ANNOUNCEMENTS_TABLE', 'GradeAnt_Announcements'),
-    adminUsers: str('ADMIN_USERS_TABLE', 'GradeAnt_Users'),
-    resetRequests: str('RESET_REQUESTS_TABLE', 'GradeAnt_ResetRequests'),
-    content: str('CONTENT_TABLE', 'GradeAnt_Content'),
-    tickets: str('TICKETS_TABLE', 'GradeAnt_Tickets'),
-    auditLogs: str('AUDIT_LOGS_TABLE', 'GradeAnt_AuditLogs'),
-    settings: str('SETTINGS_TABLE', 'GradeAnt_Settings'),
-    invites: str('INVITES_TABLE', 'GradeAnt_Invites'),
-    analytics: str('ANALYTICS_TABLE', 'GradeAnt_Analytics'),
+  // The data model (docs/database-architecture.md): DynamoDB table names.
+  tables: (() => {
+    const prefix = str('DYNAMODB_TABLE_PREFIX', 'gradeant-')
+    return {
+      users: `${prefix}users`,
+      classes: `${prefix}classes`,
+      assignments: `${prefix}assignments`,
+      questionPapers: `${prefix}question-papers`,
+      submissions: `${prefix}submissions`,
+      resetRequests: `${prefix}reset-requests`,
+      auditLog: `${prefix}audit-log`,
+      announcements: `${prefix}announcements`,
+      app: `${prefix}app`,
+    }
+  })(),
+
+  // Postgres (DB_DRIVER=postgres): the local Supabase database in development.
+  database: {
+    url: str('DATABASE_URL'),
+  },
+
+  // The tables the Python Lambdas used. Only `npm run migrate:legacy` reads them.
+  legacyTables: {
+    users: str('LEGACY_USERS_TABLE', 'Users'),
+    grading: str('LEGACY_GRADING_TABLE', 'assignment_grading'),
+    assignments: str('LEGACY_ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'),
+    submissions: str('LEGACY_SUBMISSIONS_TABLE', 'GradeAnt_Submissions'),
+    announcements: str('LEGACY_ANNOUNCEMENTS_TABLE', 'GradeAnt_Announcements'),
+    adminUsers: str('LEGACY_ADMIN_USERS_TABLE', 'GradeAnt_Users'),
+    resetRequests: str('LEGACY_RESET_REQUESTS_TABLE', 'GradeAnt_ResetRequests'),
+    content: str('LEGACY_CONTENT_TABLE', 'GradeAnt_Content'),
+    tickets: str('LEGACY_TICKETS_TABLE', 'GradeAnt_Tickets'),
+    auditLogs: str('LEGACY_AUDIT_LOGS_TABLE', 'GradeAnt_AuditLogs'),
+    settings: str('LEGACY_SETTINGS_TABLE', 'GradeAnt_Settings'),
+    invites: str('LEGACY_INVITES_TABLE', 'GradeAnt_Invites'),
+    analytics: str('LEGACY_ANALYTICS_TABLE', 'GradeAnt_Analytics'),
   },
 
   auth: {
     // jwt: this API issues and verifies its own HS256 tokens (production).
     // supabase: local development only — Supabase Auth checks passwords and issues the
-    // tokens; the Users table still holds each account's role and profile.
+    // tokens; the users table still holds each account's role, status and profile.
     driver: oneOf('AUTH_DRIVER', ['jwt', 'supabase'], 'jwt'),
     // Either the value itself (local only) or a Secrets Manager secret ARN/name.
     jwtSecret: str('JWT_SECRET'),
@@ -214,12 +243,16 @@ function validate(c) {
   const problems = []
   if (c.auth.driver === 'supabase') {
     if (c.isProduction) problems.push('AUTH_DRIVER=supabase is for local development only')
-    if (!c.supabase.anonKey) problems.push('AUTH_DRIVER=supabase needs SUPABASE_ANON_KEY (npx supabase status -o env)')
+    if (!c.supabase.anonKey) problems.push('AUTH_DRIVER=supabase needs SUPABASE_ANON_KEY: run `npm run supabase:env` (or use npm run dev:offline)')
+  }
+  if (c.drivers.db === 'postgres' && !c.database.url) {
+    problems.push('DB_DRIVER=postgres needs DATABASE_URL (local Supabase: postgresql://postgres:postgres@127.0.0.1:54322/postgres)')
   }
   if (c.isProduction) {
     if (!c.auth.jwtSecret && !c.auth.jwtSecretArn) problems.push('JWT_SECRET_ARN (or JWT_SECRET) is required')
     if (c.cors.origins.length === 0) problems.push('CORS_ALLOWED_ORIGINS is required (the web app origin)')
     if (c.drivers.db === 'memory') problems.push('DB_DRIVER=memory is for local development only')
+    if (c.drivers.db === 'postgres') problems.push('DB_DRIVER=postgres (Supabase) is for local development only; production uses DynamoDB')
     if (c.drivers.jobs === 'sqs' && !c.jobs.queueUrl) problems.push('JOBS_DRIVER=sqs needs JOBS_QUEUE_URL')
   }
   if (problems.length) throw new Error(`Invalid ${c.mode} configuration:\n  - ${problems.join('\n  - ')}`)

@@ -7,7 +7,7 @@ import path from 'node:path'
 import { after, before, describe, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 import jwt from 'jsonwebtoken'
-import { config, get, post, putUsers, startServer, stopServer, table } from './helpers.js'
+import { config, get, post, putUsers, repositories, startServer, stopServer } from './helpers.js'
 
 const ANON = 'anon-key'
 const SERVICE = 'service-role-key'
@@ -69,7 +69,7 @@ before(async () => {
   config.auth.driver = 'supabase'
   Object.assign(config.supabase, { url: `http://127.0.0.1:${fake.address().port}`, anonKey: ANON, serviceRoleKey: SERVICE })
   await startServer()
-  // Roles and profiles live in the Users table; passwords only in "Supabase".
+  // Roles and profiles live in the users table; passwords only in "Supabase".
   await putUsers([
     { email: 'admin@x.edu', user_id: 'A1', name: 'Alex', userRole: 'admin' },
     { email: 't@x.edu', user_id: 'T1', name: 'Priya', userRole: 'teacher' },
@@ -91,7 +91,7 @@ after(async () => {
 const login = (email, password, userType) => post('/auth/login', { email, password, userType })
 
 describe('AUTH_DRIVER=supabase', () => {
-  test('login checks Supabase and returns its token; role comes from the Users table', async () => {
+  test('login checks Supabase and returns its token; role comes from the users table', async () => {
     const [status, body] = await login('t@x.edu', 'Teach1234', 'teacher')
     assert.equal(status, 200)
     assert.equal(body.userRole, 'teacher')
@@ -137,7 +137,7 @@ describe('AUTH_DRIVER=supabase', () => {
     assert.equal(status, 201)
     assert.equal(jwt.verify(body.token, SECRET).email, 'new@x.edu')
     assert.equal(accounts.get('new@x.edu').password, 'NewPass123')
-    assert.equal((await table(config.tables.users).get({ email: 'new@x.edu' })).userRole, 'student')
+    assert.equal((await repositories.users.getByEmail('new@x.edu')).role, 'student')
     assert.equal((await post('/auth/signup', { email: 'new@x.edu', password: 'NewPass123' }))[0], 409)
   })
 
@@ -177,6 +177,7 @@ describe('AUTH_DRIVER=supabase', () => {
     accounts.delete('teacher@gradeant.dev')
     accounts.set('riya@gradeant.dev', { id: 'sb-riya', password: 'changed-by-hand' })
     const { seedDemoData, DEMO_PASSWORD } = await import('../src/dev/seed.js')
+    await startServer() // an empty database: the demo accounts reuse the ids A1, T1, S1…
     await seedDemoData()
     for (const email of ['admin@gradeant.dev', 'teacher@gradeant.dev', 'riya@gradeant.dev', 'sam@gradeant.dev', 'li@gradeant.dev']) {
       assert.equal(accounts.get(email)?.password, DEMO_PASSWORD, email)
@@ -200,6 +201,12 @@ describe('configuration', () => {
     const { code, out } = await run({ APP_ENV: 'production', AUTH_DRIVER: 'supabase', JWT_SECRET: 'x', CORS_ALLOWED_ORIGINS: 'https://a.example', SUPABASE_ANON_KEY: 'k' })
     assert.notEqual(code, 0)
     assert.match(out, /AUTH_DRIVER=supabase is for local development only/)
+  })
+
+  test('production refuses the Supabase database', async () => {
+    const { code, out } = await run({ APP_ENV: 'production', DB_DRIVER: 'postgres', DATABASE_URL: 'postgresql://x', JWT_SECRET: 'x', CORS_ALLOWED_ORIGINS: 'https://a.example' })
+    assert.notEqual(code, 0)
+    assert.match(out, /DB_DRIVER=postgres \(Supabase\) is for local development only/)
   })
 
   test('supabase needs the anon key', async () => {

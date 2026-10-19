@@ -97,6 +97,15 @@ export async function setPassword(email, password) {
   return user
 }
 
+/** Changes the email of the Supabase user with `currentEmail` (profile edits). */
+export async function setEmail(currentEmail, email) {
+  const user = await findByEmail(currentEmail)
+  if (!user) return null
+  const { status } = await call(`/admin/users/${user.id}`, { method: 'PUT', admin: true, body: { email, email_confirm: true } })
+  if (status !== 200) throw new HttpError(502, `Supabase could not change the email (${status}).`)
+  return user
+}
+
 /** Used by /health/ready. */
 export async function ping() {
   const { status } = await call('/health')

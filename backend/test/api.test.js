@@ -2,7 +2,7 @@
 // uploads through presigned URLs (local storage driver), and the admin console.
 import assert from 'node:assert/strict'
 import { after, before, describe, test } from 'node:test'
-import { baseUrl, config, get, post, putUsers, startServer, stopServer, tokenFor } from './helpers.js'
+import { baseUrl, config, get, post, putUsers, repositories, startServer, stopServer, tokenFor } from './helpers.js'
 
 const { hashLoginPassword } = await import('../src/lib/passwords.js')
 const { sentMail } = await import('../src/aws/ses.js')
@@ -34,7 +34,7 @@ describe('platform', () => {
     assert.equal(body.status, 'ok')
     const [readyStatus, ready] = await get('/health/ready')
     assert.equal(readyStatus, 200)
-    assert.equal(ready.checks.dynamodb.ok, true)
+    assert.equal(ready.checks.database.ok, true)
     assert.equal(ready.checks.jwtSecret.ok, true)
   })
 
@@ -97,11 +97,31 @@ describe('auth and password resets', () => {
     assert.equal(status, 200)
     assert.equal(session.must_change_password, true)
 
+    // The request stays temp_issued until the user replaces the temporary password.
+    assert.equal((await repositories.resets.get(request.id)).status, 'temp_issued')
+    assert.equal((await repositories.users.get('S1')).account_status, 'temp_password')
     const [changed] = await post('/auth/change-password', { currentPassword: temp.tempPassword, newPassword: 'Fresh123pass' }, { token: session.token })
     assert.equal(changed, 200)
     assert.equal((await login('a@x.edu', 'Fresh123pass'))[1].must_change_password, false)
+    assert.equal((await repositories.resets.get(request.id)).status, 'completed')
+    assert.equal((await repositories.users.get('S1')).account_status, 'active')
     const [, audit] = await post('/admin', { operation: 'listAuditLogs', search: 'temp' }, { token: adminToken })
     assert.equal(audit.entries[0].action, 'Generated temp password')
+  })
+
+  test('an expired temporary password is refused and the request expires', async () => {
+    await post('/auth/forgot-password', { email: 't@x.edu' })
+    const adminToken = (await login('admin@x.edu'))[1].token
+    const [, list] = await post('/admin', { operation: 'listResetRequests' }, { token: adminToken })
+    const request = list.requests.find((r) => r.userEmail === 't@x.edu')
+    const [, temp] = await post('/admin', { operation: 'generateTempPassword', requestId: request.id }, { token: adminToken })
+    await repositories.resets.update(request.id, { temp_pw_expires_at: '2020-01-01T00:00:00+00:00' })
+    const [status, body] = await login('t@x.edu', temp.tempPassword)
+    assert.equal(status, 401)
+    assert.match(body.message, /expired/)
+    assert.equal((await repositories.resets.get(request.id)).status, 'expired')
+    // Put the teacher back for the other tests.
+    await repositories.users.update('T1', { password_hash: USERS[1].password, account_status: 'active', active_reset_id: null, must_change_password: false })
   })
 
   test('admin console is admin-only; invites send an email', async () => {
@@ -125,6 +145,60 @@ describe('auth and password resets', () => {
     assert.ok(mail[0].html.includes('New &lt;Teacher&gt;'))
     const [, users] = await post('/admin', { operation: 'listUsers', status: 'invited' }, { token: adminToken })
     assert.equal(users.users[0].email, 'new@x.edu')
+    // The same email isn't invited twice.
+    const [, again] = await post('/admin', { operation: 'inviteUsers', invitees: [{ email: 'NEW@x.edu', role: 'teacher' }] }, { token: adminToken })
+    assert.deepEqual(again, { invited: 0, skipped: ['NEW@x.edu'] })
+  })
+
+  test('one account, one password: an invited user signs in to the app and the console with it', async () => {
+    const adminToken = (await login('admin@x.edu'))[1].token
+    await post(
+      '/admin',
+      { operation: 'inviteUsers', invitees: [{ email: 'kid@x.edu', name: 'Kid', role: 'student', className: 'BIO-101' }] },
+      { token: adminToken },
+    )
+    const invite = await repositories.users.getByEmail('kid@x.edu')
+    assert.equal(invite.account_status, 'invited')
+    assert.equal((await login('kid@x.edu', PASSWORD, 'student'))[0], 401) // no password yet
+    // The invite enrolled the student in BIO-101.
+    const bio = await repositories.classes.getByName('bio-101')
+    assert.deepEqual((await repositories.classes.members(bio.class_id)).map((m) => m.student_id), [invite.user_id])
+
+    const token = sentMail.at(-1).html.match(/token=([\w-]+)/)[1]
+    const [, details] = await post('/admin', { operation: 'getInviteDetails', token })
+    assert.equal(details.fullName, 'Kid')
+    const [status] = await post('/admin', { operation: 'completeFirstLogin', token, password: 'KidPass123' })
+    assert.equal(status, 200)
+    const [loginStatus, session] = await login('kid@x.edu', 'KidPass123', 'student')
+    assert.equal(loginStatus, 200)
+    assert.equal((await post('/auth/me', {}, { token: session.token }))[1].status, 'active')
+
+    // An admin's console password is their login password too.
+    const [changed] = await post('/admin', { operation: 'changeOwnPassword', currentPassword: PASSWORD, newPassword: 'Admin12345' }, { token: adminToken })
+    assert.equal(changed, 200)
+    assert.equal((await login('admin@x.edu', 'Admin12345'))[0], 200)
+    await post('/admin', { operation: 'changeOwnPassword', currentPassword: 'Admin12345', newPassword: PASSWORD }, { token: adminToken })
+  })
+
+  test('suspended accounts are refused; deleted ones are gone but their data stays', async () => {
+    const adminToken = (await login('admin@x.edu'))[1].token
+    const kid = await repositories.users.getByEmail('kid@x.edu')
+    const kidToken = (await login('kid@x.edu', 'KidPass123', 'student'))[1].token
+    await post('/admin', { operation: 'updateUserStatus', userId: kid.user_id, status: 'suspended' }, { token: adminToken })
+    assert.equal((await login('kid@x.edu', 'KidPass123', 'student'))[0], 403)
+    assert.equal((await post('/workflow', { operation: 'listStudentAssignments' }, { token: kidToken }))[0], 403)
+    await post('/admin', { operation: 'updateUserStatus', userId: kid.user_id, status: 'active' }, { token: adminToken })
+    assert.equal((await login('kid@x.edu', 'KidPass123', 'student'))[0], 200)
+
+    assert.equal((await post('/admin', { operation: 'deleteUser', userId: 'nobody' }, { token: adminToken }))[0], 404)
+    assert.equal((await post('/admin', { operation: 'deleteUser', userId: kid.user_id }, { token: adminToken }))[0], 200)
+    assert.equal((await login('kid@x.edu', 'KidPass123', 'student'))[0], 401)
+    assert.equal((await post('/workflow', { operation: 'listStudentAssignments' }, { token: kidToken }))[0], 401)
+    const [, list] = await post('/admin', { operation: 'listUsers', search: 'kid' }, { token: adminToken })
+    assert.equal(list.total, 0)
+    assert.equal((await repositories.users.get(kid.user_id)).account_status, 'deactivated')
+    const bio = await repositories.classes.getByName('BIO-101')
+    assert.equal((await repositories.classes.members(bio.class_id))[0].member_status, 'removed')
   })
 })
 

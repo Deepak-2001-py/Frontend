@@ -1,8 +1,8 @@
-// GET /health: liveness (no I/O). GET /health/ready: also checks DynamoDB
+// GET /health: liveness (no I/O). GET /health/ready: also checks the database
 // (and the secret store) so a deployment can be verified end to end.
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { pingDatabase } from '../aws/dynamodb.js'
+import { pingDatabase } from '../repositories/index.js'
 import { getJwtSecret } from '../aws/secrets.js'
 import config from '../config/index.js'
 import { ping } from '../lib/supabaseAuth.js'
@@ -34,7 +34,7 @@ export async function ready(req, res) {
   }
   const supabaseCheck = config.auth.driver === 'supabase' ? [run('supabaseAuth', ping)] : []
   await Promise.all([
-    run('dynamodb', pingDatabase),
+    run('database', pingDatabase),
     run('jwtSecret', async () => {
       if (!(await getJwtSecret())) throw Object.assign(new Error(), { name: 'NotConfigured' })
     }),

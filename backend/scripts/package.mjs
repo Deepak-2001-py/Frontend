@@ -24,8 +24,9 @@ mkdirSync(STAGE, { recursive: true })
 for (const entry of ['index.js', 'worker.js', 'package.json', 'package-lock.json', '.env.production', 'src']) {
   cpSync(path.join(ROOT, entry), path.join(STAGE, entry), { recursive: true })
 }
-// Development-only code (in-memory DynamoDB, demo seed) is never loaded in production.
+// Development-only code (in-memory DynamoDB, Supabase Postgres) is never loaded in production.
 rmSync(path.join(STAGE, 'src', 'dev', 'localDynamo.js'), { force: true })
+rmSync(path.join(STAGE, 'src', 'repositories', 'postgres.js'), { force: true })
 console.log('Installing production dependencies…')
 execFileSync(npm, ['ci', '--omit=dev', '--ignore-scripts', '--no-audit', '--no-fund'], { cwd: STAGE, stdio: 'inherit', shell: process.platform === 'win32' })
 

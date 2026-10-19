@@ -2,10 +2,11 @@
 // the post-upload correction workspace.
 //   Student: getAnswersForCorrection / submitAnswerCorrections (OCR'd answer text)
 //   Teacher: getQuestionsForCorrection / submitQuestionCorrections (parsed question
-//            text, fanned out to every student's denormalised copy)
+//            text, stored once per question paper)
 import { isConditionalCheckFailed, badRequest, forbidden, reply } from '../lib/errors.js'
 import { isoNaive, pyStr, sortBy, truthy } from '../lib/py.js'
-import { getRow, studentRows, summaryRows, updateRow } from '../repositories/grading.repository.js'
+import { answerContext, getAssignment, ownsAssignment, paperQuestions, studentGrades } from '../repositories/gradebook.js'
+import { papers, submissions } from '../repositories/index.js'
 
 const keyStr = (v) => pyStr(truthy(v) ? v : '')
 const isMissing = (v) => v === undefined || v === null
@@ -15,19 +16,12 @@ export async function getAnswersForCorrection(body, caller) {
   if (!truthy(studentId) || !truthy(assignmentId)) throw badRequest('student_id and assignment_id are required')
   if (caller.role === 'student' && studentId !== caller.user_id) throw forbidden('You can only view your own answers.')
 
-  const items = await studentRows(studentId, {
-    assignmentId,
-    type: 'notSummary',
-    ...(truthy(qpId) ? { qpId } : {}),
-  })
-
-  // A teacher (not admin) may only browse a submission that's unowned or already theirs.
-  if (caller.role === 'teacher') {
-    const owners = new Set(items.map((i) => i.teacher_id).filter(Boolean))
-    if (owners.size && !owners.has(caller.user_id)) {
-      throw forbidden("This student's answers belong to a different teacher's class.")
-    }
+  const assignment = await getAssignment(assignmentId)
+  // A teacher (not admin) may only browse a submission of their own (or an unowned) assignment.
+  if (caller.role === 'teacher' && assignment && !ownsAssignment(caller, assignment)) {
+    throw forbidden("This student's answers belong to a different teacher's class.")
   }
+  const items = assignment && (!truthy(qpId) || assignment.qp_id === qpId) ? (await studentGrades(assignment, studentId)).entry.details : []
 
   const answers = items.map((item) => ({
     evaluation_id: item.evaluation_id ?? null,
@@ -79,30 +73,20 @@ export async function submitAnswerCorrections(body, caller) {
     }
     try {
       // Only the owning student may correct their own answer.
-      const existing = await getRow(evaluationId)
+      const { answer: existing, submission } = await answerContext(evaluationId)
       if (!existing) {
         errors.push(`No record found with evaluation_id ${evaluationId}`)
         continue
       }
-      if (existing.student_id !== caller.user_id) {
+      if (submission?.student_id !== caller.user_id) {
         errors.push(`evaluation_id ${evaluationId} belongs to a different student.`)
         continue
       }
-      await updateRow(evaluationId, {
-        UpdateExpression:
-          'SET student_answer = :sa, is_latex = :il, #st = :status, corrected_by = :cb, corrected_at = :ca, updated_at = :ua',
-        ConditionExpression: '#qn = :qn',
-        ExpressionAttributeNames: { '#st': 'status', '#qn': 'question_number' },
-        ExpressionAttributeValues: {
-          ':sa': answer,
-          ':il': isLatex,
-          ':status': 'corrected',
-          ':cb': caller.user_id,
-          ':ca': now,
-          ':ua': now,
-          ':qn': questionNumber,
-        },
-      })
+      await submissions.updateAnswer(
+        evaluationId,
+        { student_answer: pyStr(answer), is_latex: isLatex, status: 'corrected', corrected_by: caller.user_id, corrected_at: now, updated_at: now },
+        { questionNumber },
+      )
       updated.push({ evaluation_id: evaluationId, question_number: questionNumber, updated: true, is_latex: isLatex })
     } catch (err) {
       if (isConditionalCheckFailed(err)) errors.push(`No matching question_number ${pyStr(questionNumber)} for evaluation_id ${evaluationId}`)
@@ -124,53 +108,39 @@ export async function submitAnswerCorrections(body, caller) {
   return reply(errors.length ? 207 : 200, response)
 }
 
-/** Roster for a question paper — every student's summary row (type-index). */
-const classRoster = (qpId, assignmentId) => summaryRows(assignmentId, qpId)
-
-/** One canonical copy of each question's parsed text, so the teacher reviews it once. */
+/** The question paper's parsed questions, so the teacher reviews each one once. */
 export async function getQuestionsForCorrection(body, caller) {
   if (!['teacher', 'admin'].includes(caller.role)) throw forbidden('Only a teacher or admin can review question text.')
   const { qp_id: qpId, assignment_id: assignmentId } = body
   if (!truthy(qpId) || !truthy(assignmentId)) throw badRequest('qp_id and assignment_id are required')
 
-  let roster = await classRoster(qpId, assignmentId)
-  if (caller.role === 'teacher') roster = roster.filter((g) => !g.teacher_id || g.teacher_id === caller.user_id)
-  if (!roster.length) return { qp_id: qpId, assignment_id: assignmentId, questions: [] }
-
-  const byKey = new Map()
-  for (const student of roster) {
-    if (!truthy(student.student_id)) continue
-    const details = await studentRows(student.student_id, { assignmentId, qpId, type: 'notSummary' })
-    for (const item of details) {
-      const key = JSON.stringify([pyStr(item.question_number), item.subpart || ''])
-      if (!byKey.has(key)) {
-        byKey.set(key, {
-          question_number: item.question_number ?? null,
-          subpart: item.subpart ?? null,
-          question: item.question ?? null,
-          is_latex: item.question_is_latex ?? false,
-          max_marks: item.max_marks ?? null,
-          question_reviewed: truthy(item.question_reviewed_at),
-          question_reviewed_by: item.question_reviewed_by ?? null,
-          question_reviewed_at: item.question_reviewed_at ?? null,
-        })
-      }
-    }
-    // One representative student's rows are enough: question text is identical across the class.
-    if (byKey.size) break
+  const assignment = await getAssignment(assignmentId)
+  if (!assignment || assignment.qp_id !== qpId || !ownsAssignment(caller, assignment)) {
+    return { qp_id: qpId, assignment_id: assignmentId, questions: [] }
   }
-  const questions = sortBy([...byKey.values()], (q) => [keyStr(q.question_number), keyStr(q.subpart)])
-  return { qp_id: qpId, assignment_id: assignmentId, questions }
+  const questions = (await paperQuestions(assignment)).map((q) => ({
+    question_number: q.question_number ?? null,
+    subpart: q.subpart ?? null,
+    question: q.question ?? null,
+    is_latex: q.is_latex ?? false,
+    max_marks: q.max_marks ?? null,
+    question_reviewed: truthy(q.reviewed_at),
+    question_reviewed_by: q.reviewed_by ?? null,
+    question_reviewed_at: q.reviewed_at ?? null,
+  }))
+  return { qp_id: qpId, assignment_id: assignmentId, questions: sortBy(questions, (q) => [keyStr(q.question_number), keyStr(q.subpart)]) }
 }
 
-/** Teacher corrects question text; each correction fans out to every student's copy. */
+/** Teacher corrects question text (once per question; every student's view reads it). */
 export async function submitQuestionCorrections(body, caller) {
   if (!['teacher', 'admin'].includes(caller.role)) throw forbidden('Only a teacher or admin can correct question text.')
   const { qp_id: qpId, assignment_id: assignmentId, corrections } = body
   if (!truthy(qpId) || !truthy(assignmentId)) throw badRequest('qp_id and assignment_id are required')
   if (!Array.isArray(corrections) || !corrections.length) throw badRequest('corrections (non-empty array) is required')
 
-  const roster = await classRoster(qpId, assignmentId)
+  const assignment = await getAssignment(assignmentId)
+  // Questions of another teacher's assignment are skipped, not overwritten.
+  const allowed = Boolean(assignment) && assignment.qp_id === qpId && ownsAssignment(caller, assignment)
   const now = isoNaive()
   const updatedQuestions = []
   const errors = []
@@ -189,36 +159,18 @@ export async function submitQuestionCorrections(body, caller) {
       errors.push(`corrected_question is required for question_number ${pyStr(questionNumber)}`)
       continue
     }
-
     let recordsUpdated = 0
-    for (const student of roster) {
-      const studentId = student.student_id
-      if (!truthy(studentId)) continue
-      // Rows already owned by a different teacher are skipped, not overwritten.
-      const owner = student.teacher_id
-      if (owner && caller.role !== 'admin' && owner !== caller.user_id) continue
+    if (allowed) {
       try {
-        const details = await studentRows(studentId, { assignmentId, qpId, questionNumber, type: 'notSummary' })
-        for (const item of details) {
-          if (truthy(subpart) && item.subpart !== subpart) continue
-          await updateRow(item.evaluation_id, {
-            UpdateExpression:
-              'SET question = :q, question_is_latex = :il, question_reviewed_by = :rb, question_reviewed_at = :ra, updated_at = :ua',
-            ConditionExpression: '#qn = :qn',
-            ExpressionAttributeNames: { '#qn': 'question_number' },
-            ExpressionAttributeValues: {
-              ':q': text,
-              ':il': isLatex,
-              ':rb': caller.user_id,
-              ':ra': now,
-              ':ua': now,
-              ':qn': questionNumber,
-            },
-          })
-          recordsUpdated += 1
-        }
+        const updated = await papers.updateQuestions(qpId, questionNumber, truthy(subpart) ? subpart : undefined, {
+          question: pyStr(text),
+          is_latex: isLatex,
+          reviewed_by: caller.user_id,
+          reviewed_at: now,
+        })
+        recordsUpdated = updated.length
       } catch (err) {
-        errors.push(`Failed to update student ${studentId}, question ${pyStr(questionNumber)}: ${err?.message}`)
+        errors.push(`Failed to update question ${pyStr(questionNumber)}: ${err?.message}`)
       }
     }
     updatedQuestions.push({ question_number: questionNumber, subpart, records_updated: recordsUpdated })

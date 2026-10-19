@@ -1,8 +1,9 @@
-// Password hashing in the two storage formats already in the tables, so
-// existing accounts keep working:
-//   Users.password (login)          base64(32-byte salt + PBKDF2-SHA256, 100k)
-//   GradeAnt_Users.password_hash    "<salt hex>:<hash hex>", PBKDF2-SHA256, 200k
-// Hashing runs on the libuv pool so it never blocks the event loop.
+// Password hashing in the two formats the old tables used, so migrated
+// accounts keep working. users.password_hash holds either:
+//   login format (old Users.password)        base64(32-byte salt + PBKDF2-SHA256, 100k)
+//   admin format (old GradeAnt_Users)        "<salt hex>:<hash hex>", PBKDF2-SHA256, 200k
+// New passwords use the login format. Hashing runs on the libuv pool so it never
+// blocks the event loop.
 import { pbkdf2, randomBytes, randomInt, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util'
 
@@ -33,6 +34,14 @@ export async function verifyAdminPassword(password, stored) {
   const candidate = Buffer.from(await hashAdminPassword(password, saltHex))
   const expected = Buffer.from(String(stored))
   return candidate.length === expected.length && timingSafeEqual(candidate, expected)
+}
+
+export const hashPassword = (password) => hashLoginPassword(String(password))
+
+/** Checks a password against users.password_hash, in either format. */
+export async function verifyPassword(stored, provided) {
+  if (!stored) return false
+  return String(stored).includes(':') ? verifyAdminPassword(String(provided), stored) : verifyLoginPassword(stored, provided)
 }
 
 /** Same rules the change-password page shows: 8+ chars, an uppercase letter, a number. */

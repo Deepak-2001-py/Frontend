@@ -8,7 +8,7 @@ import { getJwtSecret, getSessionTokenSecret } from '../aws/secrets.js'
 import config from '../config/index.js'
 import { unauthorized } from './errors.js'
 import { getUser, tokenExpiry } from './supabaseAuth.js'
-import { getUserByEmail } from '../repositories/users.repository.js'
+import { users } from '../repositories/index.js'
 
 export const usesSupabase = () => config.auth.driver === 'supabase'
 
@@ -23,13 +23,13 @@ export async function issueLoginToken(userId, email) {
 /**
  * Payload ({ email, user_id }) of a valid login token, or a reason it's invalid:
  * 'expired' | 'invalid'. With AUTH_DRIVER=supabase the token is a Supabase access token,
- * checked with Supabase Auth; user_id comes from the Users table (matched by email).
+ * checked with Supabase Auth; user_id comes from the users table (matched by email).
  */
 export async function decodeLoginToken(token) {
   if (usesSupabase()) {
     const user = await getUser(token)
     if (!user) return { error: tokenExpiry(token) < nowSeconds() ? 'expired' : 'invalid' }
-    const row = await getUserByEmail(user.email)
+    const row = await users.getByEmail(user.email)
     return { payload: { email: user.email, user_id: row?.user_id } }
   }
   try {

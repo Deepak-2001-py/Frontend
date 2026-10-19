@@ -1,18 +1,18 @@
 // Shared data helpers for the assignment workflow (port of workflow.py's
-// "Plumbing" and "Data helpers" sections).
+// "Plumbing" and "Data helpers" sections), on the data model of
+// docs/database-architecture.md.
 //
 // A submission's status (wireframe §20 SUBMISSIONS chain) is derived from its
-// assignment_grading rows (answer rows → ocr_done, every row corrected →
-// corrected, a summary row → ai_graded, an unresolved low-confidence row →
-// queued_for_review) and merged with the statuses the workflow records itself
+// answers and score (answers → ocr_done, every answer corrected → corrected, a
+// score → ai_graded, an unresolved low-confidence answer → queued_for_review) and
+// merged with the status the workflow records on the submission
 // (grading_triggered, teacher_reviewed, published, published_revised). The
 // later of the two wins.
 import config from '../../config/index.js'
 import { badRequest, forbidden, notFound } from '../../lib/errors.js'
 import { isoUtc, num, pyMin, pyStr, sortBy, sum, truthy } from '../../lib/py.js'
-import * as grading from '../../repositories/grading.repository.js'
-import { listDirectory } from '../../repositories/users.repository.js'
-import * as wf from '../../repositories/workflow.repository.js'
+import { assignments, submissions as submissionStore } from '../../repositories/index.js'
+import * as gradebook from '../../repositories/gradebook.js'
 
 export const SUBMISSION_CHAIN = [
   'upload_requested',
@@ -46,19 +46,17 @@ export function required(body, ...fields) {
   return fields.map((f) => body[f])
 }
 
-/** Assignments the caller manages (all of them for an admin). */
-export const myAssignments = (caller) =>
-  caller.role === 'admin' ? wf.scanAssignments() : wf.assignmentsByTeacher(caller.user_id)
-
-/** Published assignments a student can see (their `classes`, or all if none are recorded). */
-export async function visibleAssignments(caller) {
-  const classes = caller.user.classes
-  const published = await wf.publishedAssignments()
-  return truthy(classes) ? published.filter((a) => classes.includes(a.class_name)) : published
+/** Assignments the caller manages (all of them for an admin), with their question papers. */
+export async function myAssignments(caller) {
+  const items = caller.role === 'admin' ? await assignments.listAll() : await assignments.listByTeacher(caller.user_id)
+  return gradebook.withPapers(items)
 }
 
+/** Published assignments a student can see: their classes', plus any they've submitted to. */
+export const visibleAssignments = (caller) => gradebook.assignmentsForStudent(caller.user_id)
+
 export async function loadAssignment(assignmentId, caller) {
-  const item = await wf.getAssignment(assignmentId)
+  const item = await gradebook.getAssignment(assignmentId)
   if (!item) throw notFound('Assignment not found.')
   if (caller && caller.role === 'teacher' && item.teacher_id !== caller.user_id) {
     throw forbidden('This assignment belongs to a different teacher.')
@@ -66,37 +64,8 @@ export async function loadAssignment(assignmentId, caller) {
   return item
 }
 
-export const studentDetails = (studentId, assignment) =>
-  grading.studentRows(studentId, { assignmentId: assignment.assignment_id, qpId: assignment.qp_id, type: 'notSummary' })
-
-/** Every assignment_grading row for this assignment, grouped by student: Map<student_id, {summary, details}>. */
-export async function gradingRows(assignment, users) {
-  const rows = await grading.assignmentRows(assignment.assignment_id, assignment.qp_id)
-  if (rows !== null) {
-    const byStudent = new Map()
-    for (const r of rows) {
-      if (!byStudent.has(r.student_id)) byStudent.set(r.student_id, { summary: null, details: [] })
-      const entry = byStudent.get(r.student_id)
-      if (r.type === 'summary') entry.summary = r
-      else entry.details.push(r)
-    }
-    return byStudent
-  }
-
-  // No assignment_id index: find candidate students (graded, recorded by the
-  // workflow, or enrolled via Users.classes) and read their rows.
-  const summaries = await grading.summaryRows(assignment.assignment_id, assignment.qp_id)
-  const candidates = new Set(summaries.map((s) => s.student_id))
-  for (const s of await wf.submissionsForAssignment(assignment.assignment_id)) candidates.add(s.student_id)
-  for (const u of enrolledStudents(assignment, users ?? (await usersById()))) candidates.add(u.user_id)
-  const byStudent = new Map()
-  for (const studentId of candidates) {
-    const details = await studentDetails(studentId, assignment)
-    const summary = summaries.find((s) => s.student_id === studentId) ?? null
-    if (details.length || summary !== null) byStudent.set(studentId, { summary, details })
-  }
-  return byStudent
-}
+/** Every student's grading rows for this assignment: Map<student_id, {summary, details}>. */
+export const gradingRows = async (assignment) => (await gradebook.gradingGrid(assignment)).byStudent
 
 export function isFlagged(row) {
   const conf = row.confidence
@@ -121,47 +90,30 @@ export function mergeStatus(derived, stored) {
   return best
 }
 
-/** Map<user_id, user> for everyone in the Users table. */
-export async function usersById() {
-  const users = await listDirectory()
-  return new Map(users.filter((u) => truthy(u.user_id)).map((u) => [u.user_id, u]))
-}
+/** Map<user_id, user> for these students. */
+export const usersById = (ids) => gradebook.peopleById(ids)
 
-/** Students whose Users.classes lists this assignment's class. */
-export function enrolledStudents(assignment, users) {
-  const cls = assignment.class_name
-  return [...users.values()].filter(
-    (u) => u.userRole === 'student' && truthy(cls) && (Array.isArray(u.classes) ? u.classes : []).includes(cls),
-  )
-}
+/** Students enrolled in this assignment's class. */
+export const enrolledStudents = (assignment) => gradebook.enrolledStudentIds(assignment)
 
-/** One canonical copy of each parsed question (question text is denormalised onto every student's rows). */
-export async function questions(assignment, byStudent) {
-  const rows = byStudent ?? (await gradingRows(assignment))
-  const out = new Map()
-  for (const entry of rows.values()) {
-    for (const r of entry.details) {
-      const key = JSON.stringify([pyStr(r.question_number), r.subpart || ''])
-      if (!out.has(key)) {
-        out.set(key, {
-          question_number: r.question_number ?? null,
-          subpart: r.subpart ?? null,
-          question: r.question ?? null,
-          max_marks: r.max_marks ?? null,
-          ocr_confidence: r.question_confidence ?? null,
-          question_reviewed: truthy(r.question_reviewed_at),
-        })
-      }
-    }
-  }
-  return sortBy([...out.values()], (q) => [num(q.question_number, 0), pyStr(q.subpart || '')])
+/** The assignment's parsed questions, sorted by number. */
+export async function questions(assignment) {
+  const qs = (await gradebook.paperQuestions(assignment)).map((q) => ({
+    question_number: q.question_number ?? null,
+    subpart: q.subpart ?? null,
+    question: q.question ?? null,
+    max_marks: q.max_marks ?? null,
+    ocr_confidence: q.ocr_confidence ?? null,
+    question_reviewed: truthy(q.reviewed_at),
+  }))
+  return sortBy(qs, (q) => [num(q.question_number, 0), pyStr(q.subpart || '')])
 }
 
 export const marksTotal = (qs) => sum(qs.map((q) => num(q.max_marks)))
 
 export async function assignmentView(item, byStudent) {
   const rows = byStudent ?? (await gradingRows(item))
-  const qs = await questions(item, rows)
+  const qs = await questions(item)
   let qpStatus = item.qp_status ?? 'qp_uploaded'
   if (qs.length && ['upload_requested', 'qp_uploaded'].includes(qpStatus)) qpStatus = 'qp_parsed'
   let submitted = 0
@@ -176,7 +128,7 @@ export async function assignmentView(item, byStudent) {
   }
 }
 
-/** assignment_grading timestamps are epoch seconds/ms; workflow ones are ISO strings. */
+/** Row timestamps are epoch seconds/ms; workflow ones are ISO strings. */
 export function iso(value) {
   if (typeof value === 'number' || (typeof value === 'string' && /^\d+$/.test(value))) {
     const n = Number(value)
@@ -188,14 +140,13 @@ export function iso(value) {
 /** Earliest row timestamp, or '' (min over timestamp/created_at, like workflow.py). */
 export const firstRowTime = (rows) => pyMin(rows.map((r) => r.timestamp || r.created_at || ''), '')
 
-/** Roster rows for one assignment, plus the grading rows and users they were built from. */
-export async function submissions(item, users) {
-  const people = users ?? (await usersById())
-  const byStudent = await gradingRows(item, people)
-  const stored = new Map((await wf.submissionsForAssignment(item.assignment_id)).map((s) => [s.student_id, s]))
-  for (const u of enrolledStudents(item, people)) {
-    if (!byStudent.has(u.user_id)) byStudent.set(u.user_id, { summary: null, details: [] })
+/** Roster rows for one assignment, plus the grading rows and people they were built from. */
+export async function submissions(item) {
+  const { byStudent, stored } = await gradebook.gradingGrid(item)
+  for (const studentId of await enrolledStudents(item)) {
+    if (!byStudent.has(studentId)) byStudent.set(studentId, { summary: null, details: [] })
   }
+  const people = await usersById(byStudent.keys())
   const due = item.due_at
   const out = []
   for (const [studentId, entry] of byStudent) {
@@ -225,21 +176,10 @@ export async function submissions(item, users) {
   return { subs: sortBy(out, (r) => (r.student_name || r.student_id).toLowerCase()), byStudent, users: people }
 }
 
-export async function putSubmissionStatus(assignmentId, studentId, status, extra = {}) {
-  let expression = 'SET #s = :s, updated_at = :t'
-  const values = { ':s': status, ':t': now() }
-  const names = { '#s': 'status' }
-  Object.entries(extra).forEach(([k, v], i) => {
-    names[`#x${i}`] = k
-    values[`:x${i}`] = v
-    expression += `, #x${i} = :x${i}`
-  })
-  await wf.updateSubmission(assignmentId, studentId, {
-    UpdateExpression: expression,
-    ExpressionAttributeNames: names,
-    ExpressionAttributeValues: values,
-  })
+/** Records a workflow status on the student's submission (creating it if needed). */
+export async function putSubmissionStatus(assignment, studentId, status, extra = {}) {
+  const sub = await gradebook.ensureSubmission(assignment, studentId)
+  await submissionStore.update(sub.submission_id, { status, status_changed_at: now(), ...extra })
 }
 
-export const userSettings = (user) => ({ ...DEFAULT_SETTINGS, ...(truthy(user.gradeant_settings) ? user.gradeant_settings : {}) })
-
+export const userSettings = (user) => ({ ...DEFAULT_SETTINGS, ...(truthy(user.settings) ? user.settings : {}) })

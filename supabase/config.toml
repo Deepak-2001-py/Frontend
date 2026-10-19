@@ -1,10 +1,15 @@
 # Local Supabase for GradeAnt development (`npx supabase start`, needs Docker).
-# Only Supabase Auth is used, to check logins when running `npm run dev:supabase` in backend/.
-# Production does not use Supabase.
+# `npm run dev` in backend/ uses its Postgres database (schema: migrations/, applied by
+# `npx supabase start` / `npx supabase db reset`) and Supabase Auth for logins.
+# Production does not use Supabase: it runs on DynamoDB (docs/database-architecture.md).
 project_id = "gradeant"
 
 [api]
 port = 54321
+
+[db]
+# DATABASE_URL in backend/.env.development points here.
+port = 54322
 
 [auth]
 # The web app keeps the token until it expires and does not refresh it: 24 h, like the API's own tokens.

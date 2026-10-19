@@ -14,7 +14,10 @@
       { "user_id": "A1", "name": "Alex Admin", "email": "admin@x.edu", "role": "admin", "status": "active", "school": "Lincoln HS", "password_hash": { "$adminHash": "AdminPass123" } },
       { "user_id": "T1", "name": "Priya", "email": "t@x.edu", "role": "teacher", "status": "active", "school": "Lincoln HS" },
       { "user_id": "S1", "name": "Okafor", "email": "a@x.edu", "role": "student", "status": "active", "school": "Lincoln HS" },
-      { "user_id": "S2", "name": "Marin", "email": "b@x.edu", "role": "student", "status": "suspended", "school": "Hill Academy" }
+      { "user_id": "S2", "name": "Marin", "email": "b@x.edu", "role": "student", "status": "active", "school": "Hill Academy" },
+      { "user_id": "A9", "name": "New Admin", "email": "newadmin@x.edu", "role": "admin", "status": "invited" },
+      { "user_id": "S8", "name": "Late", "email": "late@x.edu", "role": "student", "status": "invited", "school": "PHY-204" },
+      { "user_id": "S9", "name": "Used", "email": "used@x.edu", "role": "student", "status": "active", "school": "PHY-204" }
     ],
     "GradeAnt_Assignments": [
       {

@@ -2,28 +2,25 @@
 //   getSingleStudentGrade   a student may only read their own grades
 //   getAllStudentGrades     class roster, teacher/admin only
 //   updateStudentGrade      total marks, teacher/admin only
-// Teacher-to-teacher isolation is best-effort, as before: rows that already
-// name a different owning teacher_id are hidden or refused; ownerless rows are not.
+// A teacher may only see or change grades of assignments they own (or that have no owner).
 import { badRequest, forbidden, notFound } from '../lib/errors.js'
-import { truthy } from '../lib/py.js'
-import { studentRows, summaryRows, updateRow } from '../repositories/grading.repository.js'
+import { isoUtc, truthy } from '../lib/py.js'
+import { getAssignment, gradingGrid, ownsAssignment, studentGrades, summaryRow } from '../repositories/gradebook.js'
+import { assignments, submissions } from '../repositories/index.js'
 
 export async function getSingleStudentGrade(body, caller) {
   const { student_id: studentId, assignment_id: assignmentId } = body
   if (!truthy(studentId) || !truthy(assignmentId)) throw badRequest('Missing required parameters: student_id and assignment_id')
   if (caller.role === 'student' && studentId !== caller.user_id) throw forbidden('You can only view your own grades.')
 
-  // (The field names are swapped relative to their contents, as the frontend expects.)
-  const details = await studentRows(studentId, { assignmentId, type: 'notSummary' })
-  const summary = await studentRows(studentId, { assignmentId, type: 'summary' })
-
-  if (caller.role === 'teacher') {
-    const owners = new Set(summary.map((i) => i.teacher_id).filter(Boolean))
-    if (owners.size && !owners.has(caller.user_id)) {
-      throw forbidden("This student's results belong to a different teacher's class.")
-    }
+  const assignment = await getAssignment(assignmentId)
+  if (!assignment) return { student_id: studentId, assignment_id: assignmentId, details: [], summary: [] }
+  if (caller.role === 'teacher' && !ownsAssignment(caller, assignment)) {
+    throw forbidden("This student's results belong to a different teacher's class.")
   }
-  return { student_id: studentId, assignment_id: assignmentId, details, summary }
+  const { entry } = await studentGrades(assignment, studentId)
+  // (The field names are swapped relative to their contents, as the frontend expects.)
+  return { student_id: studentId, assignment_id: assignmentId, details: entry.details, summary: entry.summary ? [entry.summary] : [] }
 }
 
 export async function getAllStudentGrades(body, caller) {
@@ -31,8 +28,12 @@ export async function getAllStudentGrades(body, caller) {
   const { qp_id: qpId, assignment_id: assignmentId } = body
   if (!truthy(qpId) || !truthy(assignmentId)) throw badRequest('Missing required parameters: qp_id and assignment_id')
 
-  let grades = await summaryRows(assignmentId, qpId)
-  if (caller.role === 'teacher') grades = grades.filter((g) => !g.teacher_id || g.teacher_id === caller.user_id)
+  const assignment = await getAssignment(assignmentId)
+  let grades = []
+  if (assignment && assignment.qp_id === qpId && ownsAssignment(caller, assignment)) {
+    const { byStudent } = await gradingGrid(assignment)
+    grades = [...byStudent.values()].map((e) => e.summary).filter(Boolean)
+  }
   return { qp_id: qpId, assignment_id: assignmentId, student_count: grades.length, grades }
 }
 
@@ -42,18 +43,17 @@ export async function updateStudentGrade(body, caller) {
   if (![studentId, qpId, totalMarks].every(truthy)) {
     throw badRequest('student_id, qp_id, type, and total_marks are required')
   }
-  const rows = await studentRows(studentId, { type: 'summary' })
-  const item = rows.find((i) => i.qp_id === qpId && i.type === 'summary')
+  const score = Number(totalMarks)
+  if (!Number.isFinite(score)) throw badRequest('total_marks must be a number')
+  const graded = (await submissions.listByStudent(studentId)).filter((s) => s.total_marks !== undefined && s.total_marks !== null)
+  const owners = new Map((await assignments.getMany(graded.map((s) => s.assignment_id))).map((a) => [a.assignment_id, a]))
+  const rows = graded.map((s) => summaryRow(s, owners.get(s.assignment_id)))
+  const sub = graded.find((s) => s.qp_id === qpId)
   // (get_grades.py returned nothing here, which API Gateway turned into a 502.)
-  if (!item) throw notFound('No summary record found for that student and question paper.')
+  if (!sub) throw notFound('No summary record found for that student and question paper.')
+  if (!ownsAssignment(caller, owners.get(sub.assignment_id))) throw forbidden('This assignment belongs to a different teacher.')
 
-  if (item.teacher_id && caller.role !== 'admin' && item.teacher_id !== caller.user_id) {
-    throw forbidden('This assignment belongs to a different teacher.')
-  }
-  await updateRow(item.evaluation_id, {
-    UpdateExpression: 'SET total_marks = :tm, teacher_id = :tid',
-    ExpressionAttributeValues: { ':tm': totalMarks, ':tid': caller.user_id },
-  })
+  await submissions.update(sub.submission_id, { total_marks: score, score_updated_at: isoUtc(), score_updated_by: caller.user_id })
   // Same (pre-update) rows the Python handler echoed back.
   return { message: 'Total marks updated successfully', updatedAttributes: rows }
 }

@@ -2,7 +2,7 @@
   "name": "gradeant-api",
   "version": "1.0.0",
   "private": true,
-  "description": "GradeAnt API \u2014 Node.js + Express, runs locally and on AWS Lambda Web Functions",
+  "description": "GradeAnt API — Node.js + Express, runs locally and on AWS Lambda Web Functions",
   "type": "module",
   "main": "index.js",
   "engines": {
@@ -10,11 +10,14 @@
   },
   "scripts": {
     "dev": "node --watch-path=src --watch-path=index.js index.js --mode=development",
-    "dev:supabase": "node --watch-path=src --watch-path=index.js index.js --mode=development --auth=supabase",
+    "dev:offline": "node --watch-path=src --watch-path=index.js index.js --mode=development --db=memory --auth=jwt",
+    "supabase:env": "node scripts/supabase-env.mjs",
     "start": "node index.js",
     "start:prod": "node index.js --mode=production",
     "test": "node --test --test-concurrency=1 --test-reporter=spec \"test/*.test.js\"",
     "check:parity": "node scripts/parity.mjs",
+    "migrate:legacy": "node scripts/migrate-legacy.mjs",
+    "tables:print": "node scripts/tables.mjs",
     "package": "node scripts/package.mjs"
   },
   "dependencies": {
@@ -33,6 +36,7 @@
     "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
-    "dynalite": "^4.0.0"
+    "dynalite": "^4.0.0",
+    "pg": "^8.23.1"
   }
 }

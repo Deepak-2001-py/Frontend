@@ -2,14 +2,14 @@
 import { askClaude } from '../../aws/bedrock.js'
 import { badRequest } from '../../lib/errors.js'
 import { num, pyStr, sortBy, trunc, truthy } from '../../lib/py.js'
-import * as wf from '../../repositories/workflow.repository.js'
+import { getAssignment, updateAssignment } from '../../repositories/gradebook.js'
 import { defaultRubric } from './assignments.js'
 import { gradingRows, isFlagged, loadAssignment, myAssignments, questions, requireRole, usersById } from './context.js'
 
 async function gradingContext(assignment, studentId) {
   let byStudent = await gradingRows(assignment)
   if (truthy(studentId)) byStudent = new Map([...byStudent].filter(([k]) => k === studentId))
-  const users = await usersById()
+  const users = await usersById(byStudent.keys())
   const lines = [
     `Assignment: ${pyStr(assignment.title ?? null)} (${pyStr(assignment.class_name ?? null)})`,
     `Grading method: ${pyStr(assignment.method ?? 'not chosen')}, persona: ${pyStr(assignment.persona ?? 'balanced')}`,
@@ -118,7 +118,7 @@ export function parseRubricItems(text) {
 
 /** Background job: GradeFlow drafts a marking rubric from the reviewed questions. */
 export async function draftRubric(assignmentId) {
-  const item = await wf.getAssignment(assignmentId)
+  const item = await getAssignment(assignmentId)
   if (!item || item.qp_status !== 'rubric_generating') return
   const qs = await questions(item)
   const rubric = defaultRubric(qs)
@@ -162,16 +162,15 @@ export async function draftRubric(assignmentId) {
     }
   }
   try {
-    await wf.updateAssignment(assignmentId, {
-      UpdateExpression: 'SET rubric = :r, qp_status = :s',
-      ConditionExpression: 'qp_status = :generating',
-      // (null subparts are dropped, as workflow.py's _to_dynamo did.)
-      ExpressionAttributeValues: {
-        ':r': rubric.map(({ subpart, ...r }) => (subpart === null || subpart === undefined ? r : { ...r, subpart })),
-        ':s': 'rubric_generated',
-        ':generating': 'rubric_generating',
+    await updateAssignment(
+      item,
+      {
+        // (null subparts are dropped, as workflow.py's _to_dynamo did.)
+        rubric: rubric.map(({ subpart, ...r }) => (subpart === null || subpart === undefined ? r : { ...r, subpart })),
+        qp_status: 'rubric_generated',
       },
-    })
+      { ifQpStatus: 'rubric_generating' },
+    )
   } catch (err) {
     // The teacher switched method (or approved) while the draft was running.
     if (err?.name !== 'ConditionalCheckFailedException') throw err

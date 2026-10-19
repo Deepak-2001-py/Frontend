@@ -1,9 +1,12 @@
 // /updatedb — port of lambda_python_files/update_db.py: teacher/admin edits
-// to marks. Every row touched is stamped with teacher_id = caller, and a row
-// already owned by another teacher is refused (admins excepted).
+// to marks. Each change records who made it (score_updated_by / overridden_by,
+// plus the answer's revision history); a teacher can't change marks on another
+// teacher's assignment (admins excepted).
 import { isConditionalCheckFailed, badRequest, forbidden, notFound, reply, HttpError } from '../lib/errors.js'
 import { isoNaive, pyStr, truthy } from '../lib/py.js'
-import { getRow, updateRow } from '../repositories/grading.repository.js'
+import { conditionFailed } from '../repositories/common.js'
+import { answerContext, ownsAssignment, summaryRow } from '../repositories/gradebook.js'
+import { assignments, submissions } from '../repositories/index.js'
 
 /** Decimal(str(value)): a finite number, or throws like Python's Decimal would. */
 function decimal(value) {
@@ -12,7 +15,12 @@ function decimal(value) {
   return n
 }
 
-const ownedByOther = (row, caller) => row?.teacher_id && caller.role !== 'admin' && row.teacher_id !== caller.user_id
+/** The submission (summary) for this evaluation_id and its assignment, if any. */
+async function summaryContext(evaluationId) {
+  const submission = truthy(evaluationId) ? await submissions.get(evaluationId) : undefined
+  const assignment = submission ? await assignments.get(submission.assignment_id) : undefined
+  return { submission, assignment }
+}
 
 export async function updateMarks(body, caller) {
   if (!['teacher', 'admin'].includes(caller.role)) throw forbidden('Only a teacher or admin can update grades.')
@@ -31,17 +39,13 @@ export async function updateMarks(body, caller) {
     try {
       if (!summary || typeof summary !== 'object') throw new Error('summary must be a list of objects')
       const totalMarks = decimal(summary.total_marks)
-      const existing = truthy(evaluationId) ? await getRow(evaluationId) : undefined
       if (!truthy(evaluationId)) throw new Error('Missing evaluation_id in summary record')
-      if (ownedByOther(existing, caller)) {
+      const { submission, assignment } = await summaryContext(evaluationId)
+      if (!submission) throw conditionFailed()
+      if (!ownsAssignment(caller, assignment)) {
         errors.push(`evaluation_id ${evaluationId} belongs to a different teacher.`)
       } else {
-        await updateRow(evaluationId, {
-          UpdateExpression: 'SET total_marks = :tm, updated_at = :ua, teacher_id = :tid',
-          ConditionExpression: '#type = :summary',
-          ExpressionAttributeNames: { '#type': 'type' },
-          ExpressionAttributeValues: { ':tm': totalMarks, ':ua': isoNaive(), ':tid': caller.user_id, ':summary': 'summary' },
-        })
+        await submissions.update(evaluationId, { total_marks: totalMarks, score_updated_at: isoNaive(), score_updated_by: caller.user_id })
         updated.push({
           type: 'summary',
           evaluation_id: evaluationId,
@@ -76,24 +80,19 @@ export async function updateMarks(body, caller) {
         continue
       }
       const marksValue = decimal(marks)
-      const existing = await getRow(evaluationId)
-      if (ownedByOther(existing, caller)) {
+      const { answer, assignment } = await answerContext(evaluationId)
+      if (!answer) throw conditionFailed()
+      if (!ownsAssignment(caller, assignment)) {
         errors.push(`evaluation_id ${evaluationId} belongs to a different teacher.`)
         continue
       }
-      let expression = 'SET marks = :m, updated_at = :ua, teacher_id = :tid'
-      const values = { ':m': marksValue, ':ua': isoNaive(), ':tid': caller.user_id, ':qn': questionNumber }
       const hasMax = maxMarks !== undefined && maxMarks !== null
-      if (hasMax) {
-        expression += ', max_marks = :mm'
-        values[':mm'] = decimal(maxMarks)
-      }
-      await updateRow(evaluationId, {
-        UpdateExpression: expression,
-        ConditionExpression: '#qn = :qn',
-        ExpressionAttributeNames: { '#qn': 'question_number' },
-        ExpressionAttributeValues: values,
-      })
+      const now = isoNaive()
+      const fields = { marks: marksValue, updated_at: now, overridden_by: caller.user_id, overridden_at: now }
+      if (hasMax) fields.max_marks = decimal(maxMarks)
+      const change = { at: now, by: caller.user_id, marks: answer.marks ?? null, max_marks: answer.max_marks ?? null }
+      fields.revision_history = [...(Array.isArray(answer.revision_history) ? answer.revision_history : []), change]
+      await submissions.updateAnswer(evaluationId, fields, { questionNumber })
       const row = {
         type: 'details',
         evaluation_id: evaluationId,
@@ -102,7 +101,7 @@ export async function updateMarks(body, caller) {
         question_number: pyStr(questionNumber),
         subpart: subpart ?? null,
       }
-      if (hasMax) row.max_marks = values[':mm']
+      if (hasMax) row.max_marks = fields.max_marks
       updated.push(row)
     } catch (err) {
       if (isConditionalCheckFailed(err)) {
@@ -142,8 +141,8 @@ export async function updateStudentGrade(body, caller) {
   if (!truthy(evaluationId)) throw badRequest('evaluation_id is required')
   if (totalMarks === undefined || totalMarks === null) throw badRequest('total_marks is required')
 
-  const existing = await getRow(evaluationId)
-  if (ownedByOther(existing, caller)) throw forbidden('This assignment belongs to a different teacher.')
+  const { submission, assignment } = await summaryContext(evaluationId)
+  if (submission && !ownsAssignment(caller, assignment)) throw forbidden('This assignment belongs to a different teacher.')
   let value
   try {
     value = decimal(totalMarks)
@@ -151,17 +150,12 @@ export async function updateStudentGrade(body, caller) {
     throw badRequest(`Invalid number format: ${err.message}`)
   }
   try {
-    const res = await updateRow(evaluationId, {
-      UpdateExpression: 'SET total_marks = :tm, updated_at = :ua, teacher_id = :tid',
-      ConditionExpression: '#type = :summary',
-      ExpressionAttributeNames: { '#type': 'type' },
-      ExpressionAttributeValues: { ':tm': value, ':ua': isoNaive(), ':tid': caller.user_id, ':summary': 'summary' },
-      ReturnValues: 'ALL_NEW',
-    })
+    if (!submission) throw conditionFailed()
+    const updated = await submissions.update(evaluationId, { total_marks: value, score_updated_at: isoNaive(), score_updated_by: caller.user_id })
     return {
       message: 'Total marks updated successfully',
       evaluation_id: evaluationId,
-      updated_attributes: res.Attributes ?? {},
+      updated_attributes: summaryRow(updated, assignment) ?? {},
       total_marks: value,
     }
   } catch (err) {

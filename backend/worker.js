@@ -2,7 +2,7 @@
 // regular (event) Lambda function on Node.js 22+ with handler "worker.handler"
 // and the jobs queue as its SQS event source. Failed messages are reported
 // individually so SQS retries only those (enable ReportBatchItemFailures).
-import { initDatabase } from './src/aws/dynamodb.js'
+import { initDatabase } from './src/repositories/index.js'
 import { runJob } from './src/services/jobs.service.js'
 
 const ready = initDatabase()

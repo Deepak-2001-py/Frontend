@@ -3,11 +3,12 @@
 // listening within 10 seconds. Locally it listens on HOST:PORT (default
 // 127.0.0.1:8787).
 //
-//   npm run dev          development (.env.development: in-memory DynamoDB, local files)
-//   npm run start:prod   production  (.env.production: AWS services)
+//   npm run dev          development (.env.development: local Supabase Postgres + Auth, local files)
+//   npm run dev:offline  development without Supabase (in-memory DynamoDB, API-issued logins)
+//   npm run start:prod   production  (.env.production: DynamoDB and the other AWS services)
 import config from './src/config/index.js'
 import { createApp } from './src/app.js'
-import { closeDatabase, initDatabase } from './src/aws/dynamodb.js'
+import { closeDatabase, initDatabase } from './src/repositories/index.js'
 
 await initDatabase()
 

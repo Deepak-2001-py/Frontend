@@ -1,61 +1,53 @@
-// Table definitions the backend expects (keys and GSIs). Used to create tables
-// in the local emulator / DynamoDB Local; also the reference for production.
+// DynamoDB table definitions for the data model (docs/database-architecture.md §2).
+// Used to create the tables in the in-process emulator / DynamoDB Local, and the
+// reference for production (`npm run tables:print` prints them as CreateTable input).
 import { CreateTableCommand, ListTablesCommand } from '@aws-sdk/client-dynamodb'
 import config from '../config/index.js'
 
-const gsi = (IndexName, hash) => ({
-  IndexName,
-  KeySchema: [{ AttributeName: hash, KeyType: 'HASH' }],
-  Projection: { ProjectionType: 'ALL' },
-})
+// Logical table → number of GSIs (gsi<n>pk / gsi<n>sk, projecting ALL).
+const GSIS = {
+  users: 1,
+  classes: 1,
+  assignments: 2,
+  questionPapers: 0,
+  submissions: 3,
+  resetRequests: 1,
+  auditLog: 0,
+  announcements: 2,
+  app: 1,
+}
 
-export function tableDefinitions({ assignmentIndex = true } = {}) {
-  const t = config.tables
-  const defs = [
-    { name: t.users, keys: [['email', 'HASH']] },
-    {
-      name: t.grading,
-      keys: [['evaluation_id', 'HASH']],
-      gsis: [
-        gsi('student_id-index', 'student_id'),
-        gsi('type-index', 'type'),
-        ...(assignmentIndex ? [gsi(t.gradingAssignmentIndex, 'assignment_id')] : []),
-      ],
-    },
-    { name: t.assignments, keys: [['assignment_id', 'HASH']], gsis: [gsi('teacher_id-index', 'teacher_id')] },
-    {
-      name: t.submissions,
-      keys: [
-        ['assignment_id', 'HASH'],
-        ['student_id', 'RANGE'],
-      ],
-      gsis: [gsi('student_id-index', 'student_id')],
-    },
-    { name: t.announcements, keys: [['announcement_id', 'HASH']] },
-    { name: t.adminUsers, keys: [['user_id', 'HASH']] },
-    { name: t.resetRequests, keys: [['request_id', 'HASH']] },
-    { name: t.content, keys: [['post_id', 'HASH']] },
-    { name: t.tickets, keys: [['ticket_id', 'HASH']] },
-    { name: t.auditLogs, keys: [['log_id', 'HASH']] },
-    { name: t.settings, keys: [['setting_key', 'HASH']] },
-    { name: t.invites, keys: [['token', 'HASH']] },
-    { name: t.analytics, keys: [['metric_key', 'HASH']] },
-  ]
-  return defs.map(({ name, keys, gsis = [] }) => {
-    const attrs = new Set([...keys.map(([k]) => k), ...gsis.map((g) => g.KeySchema[0].AttributeName)])
+export function tableDefinitions() {
+  return Object.entries(GSIS).map(([logical, gsiCount]) => {
+    const gsis = Array.from({ length: gsiCount }, (_, i) => `gsi${i + 1}`)
+    const attrs = ['pk', 'sk', ...gsis.flatMap((g) => [`${g}pk`, `${g}sk`])]
     return {
-      TableName: name,
+      TableName: config.tables[logical],
       BillingMode: 'PAY_PER_REQUEST',
-      KeySchema: keys.map(([AttributeName, KeyType]) => ({ AttributeName, KeyType })),
-      AttributeDefinitions: [...attrs].sort().map((AttributeName) => ({ AttributeName, AttributeType: 'S' })),
-      ...(gsis.length ? { GlobalSecondaryIndexes: gsis } : {}),
+      KeySchema: [
+        { AttributeName: 'pk', KeyType: 'HASH' },
+        { AttributeName: 'sk', KeyType: 'RANGE' },
+      ],
+      AttributeDefinitions: attrs.map((AttributeName) => ({ AttributeName, AttributeType: 'S' })),
+      ...(gsis.length
+        ? {
+            GlobalSecondaryIndexes: gsis.map((g) => ({
+              IndexName: g,
+              KeySchema: [
+                { AttributeName: `${g}pk`, KeyType: 'HASH' },
+                { AttributeName: `${g}sk`, KeyType: 'RANGE' },
+              ],
+              Projection: { ProjectionType: 'ALL' },
+            })),
+          }
+        : {}),
     }
   })
 }
 
-export async function createTables(client, { ifMissing = false, assignmentIndex = true } = {}) {
+export async function createTables(client, { ifMissing = false } = {}) {
   const existing = ifMissing ? new Set((await client.send(new ListTablesCommand({}))).TableNames ?? []) : new Set()
-  for (const def of tableDefinitions({ assignmentIndex })) {
+  for (const def of tableDefinitions()) {
     if (existing.has(def.TableName)) continue
     await client.send(new CreateTableCommand(def))
   }

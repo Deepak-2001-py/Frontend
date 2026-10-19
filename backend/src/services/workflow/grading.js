@@ -4,8 +4,8 @@ import { publishNotification } from '../../aws/sns.js'
 import config from '../../config/index.js'
 import { conflict, forbidden, notFound } from '../../lib/errors.js'
 import { num, pyStr, sortBy, trunc, truthy } from '../../lib/py.js'
-import * as grading from '../../repositories/grading.repository.js'
-import * as wf from '../../repositories/workflow.repository.js'
+import { answerContext, ensureSubmission, ownsAssignment, updateAssignment } from '../../repositories/gradebook.js'
+import { submissions as submissionStore, users } from '../../repositories/index.js'
 import {
   enrolledStudents,
   gradingRows,
@@ -33,8 +33,8 @@ export async function listSubmissions(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const [assignmentId] = required(body, 'assignment_id')
   const item = await loadAssignment(assignmentId, caller)
-  const { subs, users } = await submissions(item)
-  return { submissions: subs, enrolled: enrolledStudents(item, users).length || subs.length }
+  const { subs } = await submissions(item)
+  return { submissions: subs, enrolled: (await enrolledStudents(item)).length || subs.length }
 }
 
 const rubricKey = (questionNumber, subpart) => JSON.stringify([pyStr(questionNumber), subpart || ''])
@@ -43,17 +43,18 @@ export async function listFlagged(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const [assignmentId] = required(body, 'assignment_id')
   const item = await loadAssignment(assignmentId, caller)
-  const users = await usersById()
+  const byStudent = await gradingRows(item)
+  const people = await usersById(byStudent.keys())
   const rubric = new Map((Array.isArray(item.rubric) ? item.rubric : []).map((r) => [rubricKey(r.question_number, r.subpart), r]))
   const items = []
-  for (const [studentId, entry] of await gradingRows(item)) {
+  for (const [studentId, entry] of byStudent) {
     if (entry.summary === null) continue
     for (const r of entry.details) {
       if (!isFlagged(r)) continue
       items.push({
         evaluation_id: r.evaluation_id,
         student_id: studentId,
-        student_name: users.get(studentId)?.name ?? null,
+        student_name: people.get(studentId)?.name ?? null,
         question_number: r.question_number ?? null,
         subpart: r.subpart ?? null,
         confidence: num(r.confidence),
@@ -70,15 +71,10 @@ export async function listFlagged(body, caller) {
 export async function acceptFlagged(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const [evaluationId] = required(body, 'evaluation_id')
-  const row = await grading.getRow(evaluationId)
-  if (!row || row.type === 'summary') throw notFound('Answer not found.')
-  const assignment = row.assignment_id ? await wf.getAssignment(row.assignment_id) : undefined
-  const owner = assignment?.teacher_id || row.teacher_id
-  if (caller.role === 'teacher' && owner && owner !== caller.user_id) throw forbidden('This answer belongs to a different teacher.')
-  await grading.updateRow(evaluationId, {
-    UpdateExpression: 'SET flag_resolved_at = :t, flag_resolved_by = :u, flag_resolution = :r',
-    ExpressionAttributeValues: { ':t': now(), ':u': caller.user_id, ':r': 'accepted' },
-  })
+  const { answer, assignment } = await answerContext(evaluationId)
+  if (!answer) throw notFound('Answer not found.')
+  if (!ownsAssignment(caller, assignment)) throw forbidden('This answer belongs to a different teacher.')
+  await submissionStore.updateAnswer(evaluationId, { flag_resolved_at: now(), flag_resolved_by: caller.user_id, flag_resolution: 'accepted' })
   return { ok: true }
 }
 
@@ -94,14 +90,11 @@ export async function publishGrades(body, caller) {
   for (const s of subs) {
     if (s.total_marks === undefined || s.total_marks === null) continue
     const status = s.status === 'published' || s.status === 'published_revised' ? 'published_revised' : 'published'
-    await putSubmissionStatus(assignmentId, s.student_id, status, { published_at: at })
+    await putSubmissionStatus(item, s.student_id, status, { published_at: at })
     published.push(s.student_id)
   }
   if (!published.length) throw conflict('No graded papers to publish yet.')
-  await wf.updateAssignment(assignmentId, {
-    UpdateExpression: 'SET grades_status = :g, published_at = :t',
-    ExpressionAttributeValues: { ':g': 'published', ':t': at },
-  })
+  await updateAssignment(item, { grades_status: 'published', published_at: at })
   await publishNotification({
     subject: trunc(`Grades published: ${item.title ?? assignmentId}`, 100),
     message: JSON.stringify({ assignment_id: assignmentId, student_ids: published }),
@@ -113,8 +106,8 @@ export async function remindStudent(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const [assignmentId, studentId] = required(body, 'assignment_id', 'student_id')
   const item = await loadAssignment(assignmentId, caller)
-  const student = (await usersById()).get(studentId)
-  if (!student || student.userRole !== 'student') throw notFound('Student not found.')
+  const student = await users.get(studentId)
+  if (!student || student.role !== 'student') throw notFound('Student not found.')
   const sender = config.mail.sesSenderEmail
   let emailed = false
   if (sender && truthy(student.email)) {
@@ -127,10 +120,7 @@ export async function remindStudent(body, caller) {
     })
     emailed = true
   }
-  await wf.updateSubmission(assignmentId, studentId, {
-    UpdateExpression: 'SET reminded_at = :t, #s = if_not_exists(#s, :s)',
-    ExpressionAttributeNames: { '#s': 'status' },
-    ExpressionAttributeValues: { ':t': now(), ':s': 'upload_requested' },
-  })
+  const sub = await ensureSubmission(item, studentId, { status: 'upload_requested' })
+  await submissionStore.update(sub.submission_id, { reminded_at: now(), ...(sub.status ? {} : { status: 'upload_requested' }) })
   return { ok: true, emailed }
 }

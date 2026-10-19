@@ -1,8 +1,8 @@
 // Student: assignment inbox, re-check requests (§14) and progress (§03, §12).
 import { badRequest, conflict } from '../../lib/errors.js'
 import { daysBetween, isoDate, mean, num, pyRound, pyStr, sortBy, trunc, truthy } from '../../lib/py.js'
-import * as grading from '../../repositories/grading.repository.js'
-import * as wf from '../../repositories/workflow.repository.js'
+import { studentGrades } from '../../repositories/gradebook.js'
+import { submissions } from '../../repositories/index.js'
 import {
   RANK,
   derivedStatus,
@@ -13,15 +13,11 @@ import {
   rank,
   required,
   requireRole,
-  studentDetails,
   visibleAssignments,
 } from './context.js'
 
 async function studentEntry(studentId, assignment) {
-  const details = await studentDetails(studentId, assignment)
-  const summaries = await grading.studentRows(studentId, { assignmentId: assignment.assignment_id, type: 'summary' })
-  const sub = (await wf.getSubmission(assignment.assignment_id, studentId)) ?? {}
-  const entry = { summary: summaries[0] ?? null, details }
+  const { sub = {}, entry } = await studentGrades(assignment, studentId)
   return { entry, sub, status: mergeStatus(derivedStatus(entry), sub.status) }
 }
 
@@ -66,14 +62,11 @@ export async function requestRecheck(body, caller) {
     if (truthy(i.subpart)) item.subpart = i.subpart
     return item
   })
-  const sub = await wf.getSubmission(assignmentId, caller.user_id)
+  const sub = await submissions.getFor(assignmentId, caller.user_id)
   if (!sub || !['published', 'published_revised'].includes(sub.status)) {
     throw conflict('You can request a re-check once your grades are published.')
   }
-  await wf.updateSubmission(assignmentId, caller.user_id, {
-    UpdateExpression: 'SET recheck = :r, recheck_requested_at = :t, recheck_status = :s',
-    ExpressionAttributeValues: { ':r': clean, ':t': now(), ':s': 'open' },
-  })
+  await submissions.update(sub.submission_id, { recheck: clean, recheck_requested_at: now(), recheck_status: 'open' })
   return { ok: true }
 }
 

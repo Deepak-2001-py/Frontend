@@ -1,7 +1,7 @@
 // Teacher: grading queue, students, analytics and settings (wireframes §02, §11).
 import { badRequest } from '../../lib/errors.js'
 import { isoDate, mean, num, pyRound, pyStr, sortBy, truthy } from '../../lib/py.js'
-import { setGradingSettings } from '../../repositories/users.repository.js'
+import { users as userStore } from '../../repositories/index.js'
 import {
   AT_RISK_PERCENT,
   DEFAULT_SETTINGS,
@@ -16,16 +16,15 @@ import {
   requireRole,
   submissions,
   userSettings,
-  usersById,
 } from './context.js'
 
 const letter = (p) => (p >= 90 ? 'A' : p >= 80 ? 'B' : p >= 70 ? 'C' : p >= 60 ? 'D' : 'F')
 const isSubmitted = (s) => rank(s.status) >= RANK.answer_uploaded
 
 /** Submissions, parsed questions and per-student percent for one assignment. */
-async function stats(item, users) {
-  const { subs, byStudent } = await submissions(item, users)
-  const qs = await questions(item, byStudent)
+async function stats(item) {
+  const { subs, byStudent, users } = await submissions(item)
+  const qs = await questions(item)
   const maxMarks = marksTotal(qs) || num(item.total_marks)
   const percents = new Map()
   if (maxMarks > 0) {
@@ -33,7 +32,7 @@ async function stats(item, users) {
       if (entry.summary !== null) percents.set(sid, Math.min(100, (num(entry.summary.total_marks) / maxMarks) * 100))
     }
   }
-  return { subs, byStudent, maxMarks, percents }
+  return { subs, byStudent, users, maxMarks, percents }
 }
 
 const QUEUE_ORDER = { review: 0, ready: 1, grading: 2, collecting: 3, setup: 4, published: 5 }
@@ -42,10 +41,9 @@ const QUEUE_ORDER = { review: 0, ready: 1, grading: 2, collecting: 3, setup: 4, 
 export async function getGradingQueue(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const items = await myAssignments(caller)
-  const users = items.length ? await usersById() : new Map()
   const out = []
   for (const item of items) {
-    const st = await stats(item, users)
+    const st = await stats(item)
     const submitted = st.subs.filter(isSubmitted)
     const graded = submitted.filter((s) => rank(s.status) >= RANK.ai_graded)
     const gradingCount = st.subs.filter((s) => s.status === 'grading_triggered' || s.status === 'corrected').length
@@ -79,11 +77,10 @@ export async function getGradingQueue(body, caller) {
 export async function listStudents(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const items = sortBy(await myAssignments(caller), (a) => a.created_at ?? '')
-  const users = items.length ? await usersById() : new Map()
   const students = new Map()
   const classes = new Set()
   for (const item of items) {
-    const st = await stats(item, users)
+    const st = await stats(item)
     classes.add(item.class_name)
     for (const s of st.subs) {
       const sid = s.student_id
@@ -91,7 +88,7 @@ export async function listStudents(body, caller) {
         students.set(sid, {
           student_id: sid,
           student_name: s.student_name,
-          email: users.get(sid)?.email ?? null,
+          email: st.users.get(sid)?.email ?? null,
           classes: new Set(),
           assigned: 0,
           submitted: 0,
@@ -139,7 +136,6 @@ export async function getTeacherAnalytics(body, caller) {
   const everything = await myAssignments(caller)
   const classFilter = truthy(body.class_name) ? body.class_name : null
   const items = everything.filter((a) => !classFilter || a.class_name === classFilter)
-  const users = items.length ? await usersById() : new Map()
 
   const today = new Date().toISOString().slice(0, 10)
   const days = Array.from({ length: 7 }, (_, i) => new Date(Date.parse(`${today}T00:00:00Z`) - (6 - i) * 86400000))
@@ -154,7 +150,7 @@ export async function getTeacherAnalytics(body, caller) {
   let enrolledTotal = 0
 
   for (const item of items) {
-    const st = await stats(item, users)
+    const st = await stats(item)
     for (const [sid, p] of st.percents) {
       dist[letter(p)] += 1
       allPcts.push(p)
@@ -165,7 +161,7 @@ export async function getTeacherAnalytics(body, caller) {
       const d = isoDate(s.submitted_at)
       if (d && weekly.has(d)) weekly.set(d, weekly.get(d) + 1)
     }
-    const enrolled = enrolledStudents(item, users).length || st.subs.length
+    const enrolled = (await enrolledStudents(item)).length || st.subs.length
     submittedTotal += submitted.length
     enrolledTotal += enrolled
     const pcts = [...st.percents.values()]
@@ -252,6 +248,6 @@ export async function updateTeacherSettings(body, caller) {
   for (const key of ['partial_credit', 'notify_submissions', 'notify_flagged']) {
     if (typeof merged[key] !== 'boolean') throw badRequest(`${key} must be true or false.`)
   }
-  await setGradingSettings(caller.email, merged)
+  await userStore.update(caller.user_id, { settings: merged })
   return { settings: merged }
 }

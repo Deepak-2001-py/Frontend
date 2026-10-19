@@ -1,11 +1,12 @@
 // Bearer-token authentication for /getgrades, /correctanswer, /updatedb and
 // /workflow (same rules as their Python Lambdas): an HS256 JWT from
-// /auth/login, whose account must still exist. The role is read fresh from the
-// Users table on every request, so a demoted or deleted user loses access at once.
+// /auth/login, whose account must still exist. The role and account status are
+// read fresh on every request, so a demoted, suspended or deleted user loses
+// access at once.
 import { getJwtSecret } from '../aws/secrets.js'
 import { HttpError, unauthorized } from '../lib/errors.js'
 import { decodeLoginToken, usesSupabase } from '../lib/tokens.js'
-import { getUserByEmail } from '../repositories/users.repository.js'
+import { users } from '../repositories/index.js'
 
 export function bearerToken(req) {
   const header = req.get('authorization') ?? ''
@@ -22,9 +23,10 @@ export async function authenticate(req) {
   if (error) throw unauthorized('Invalid session token.')
   const { email, user_id: userId } = payload
   if (!email || !userId) throw unauthorized('Malformed session token.')
-  const user = await getUserByEmail(email)
-  if (!user || user.user_id !== userId) throw unauthorized('Account no longer exists.')
-  return { user_id: userId, email, role: user.userRole ?? 'student', user }
+  const user = await users.getByEmail(email)
+  if (!user || user.user_id !== userId || user.account_status === 'deactivated') throw unauthorized('Account no longer exists.')
+  if (user.account_status === 'suspended') throw new HttpError(403, 'Your account is suspended. Contact your administrator.')
+  return { user_id: userId, email: user.email, role: user.role ?? 'student', user }
 }
 
 /** Express middleware: sets req.caller. */

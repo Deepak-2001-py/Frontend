@@ -10,17 +10,22 @@ AI-powered grading for STEM homework: teachers upload a question paper, students
 | [`backend/`](backend/) | **The API** — Node.js + Express. Runs locally with no AWS account, and on AWS Lambda Web Functions in production. Replaces the Python Lambdas below. See [`backend/README.md`](backend/README.md). |
 | [`lambda_python_files/`](lambda_python_files/), [`admin/lambda_admin.py`](admin/lambda_admin.py) | The original Python Lambdas, kept unchanged as the rollback path and as the reference for the parity check until the Node API has run in production. |
 | Root `*.html`, `student/`, `teacher/`, `css/`, `javascript/`, … | The **legacy static site** the React app replaces. Still what the root `Dockerfile` serves. |
+| [`docs/database-architecture.md`](docs/database-architecture.md), [`supabase/`](supabase/) | **The data model**: final schema and flows, DynamoDB tables (production), Supabase Postgres schema (development). |
 | `GradeAnt Website Wireframes (standalone).html`, `workflows/`, `*.dc.html` | Design wireframes and schema docs. [`web/WIREFRAMES.md`](web/WIREFRAMES.md) maps every wireframe screen to its route and file. |
 
 ## Run it locally
 
-You need **Node.js 22+**. No AWS account is needed: the API uses an in-process DynamoDB loaded with demo data, local file storage, and logged emails.
+You need **Node.js 22+** and **Docker** (for the local Supabase stack). No AWS account is needed: the API uses Supabase Postgres (loaded with demo data) and Supabase Auth, local file storage, and logged emails.
 
 ```bash
-# Terminal 1 — API on http://localhost:8787
+# Once: local Supabase (Postgres + Auth), then its keys into backend/.env.development.local
+npx supabase start
 cd backend
 npm install
-npm run dev
+npm run supabase:env
+
+# Terminal 1 — API on http://localhost:8787
+npm run dev                # without Docker: npm run dev:offline (in-memory DynamoDB, the API's own logins)
 
 # Terminal 2 — web app on http://localhost:5173
 cd web
@@ -38,7 +43,7 @@ Open http://localhost:5173 and log in (pick the matching role on the login page)
 
 How the two environments are selected:
 
-- **API.** `npm run dev` loads `backend/.env.development`, which uses local services. `npm run start:prod`, or running on Lambda, loads `backend/.env.production`, which uses AWS. Every setting is documented in [`backend/.env.example`](backend/.env.example).
+- **API.** `npm run dev` loads `backend/.env.development`, which uses local services and Supabase. `npm run start:prod`, or running on Lambda, loads `backend/.env.production`, which uses AWS (DynamoDB for data). Every setting is documented in [`backend/.env.example`](backend/.env.example).
 - **Web app.** `npm run dev` uses `web/.env.development`, which points at `http://localhost:8787`. `npm run build` uses `web/.env.production`, which points at the deployed API.
 - **Overrides.** Use `.env.<mode>.local` (gitignored) to change either. The web app only ever gets public URLs; secrets and AWS credentials stay in the backend.
 
