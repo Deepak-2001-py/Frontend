@@ -10,6 +10,7 @@ import { decodeLoginToken, issueLoginToken } from '../lib/tokens.js'
 import { pendingResetRequestsFor, resetRequests } from '../repositories/admin.repository.js'
 import { getUserByEmail, putUser, setLastLogin, setPassword, setPhotoKey } from '../repositories/users.repository.js'
 
+const SIGNUP_ROLES = ['student', 'teacher']
 const PHOTO_URL_TTL = 3600
 const PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
 
@@ -40,7 +41,9 @@ export async function signup(body) {
   const email = field(body, 'email')
   const password = field(body, 'password')
   const name = body.name ?? ''
-  const userRole = body.role ?? ''
+  const userRole = body.role || 'student'
+  // Public signup may only create self-service roles; admins are created by an admin.
+  if (!SIGNUP_ROLES.includes(userRole)) throw badRequest('Role must be student or teacher.')
   if (await getUserByEmail(email)) return reply(409, { message: 'User already exists' })
 
   const userId = randomUUID()

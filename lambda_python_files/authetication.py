@@ -118,6 +118,9 @@ def verify_token(token):
         print("Token verification failed: Invalid token")
         return None
 
+SIGNUP_ROLES = ('student', 'teacher')
+
+
 def signup(event):
     """Handle user signup"""
     print("Processing signup request")
@@ -128,7 +131,13 @@ def signup(event):
         email = body['email']
         password = body['password']
         name = body.get('name', '')
-        userRole=body.get('role','')
+        userRole=body.get('role') or 'student'
+        # Public signup may only create self-service roles; admins are created by an admin.
+        if userRole not in SIGNUP_ROLES:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'message': 'Role must be student or teacher.'})
+            }
         print(f"Signup request for email: {email}, name: {name}")
         
         # Check if user already exists

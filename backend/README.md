@@ -157,7 +157,7 @@ These are listed by the parity check below. Everything else matches.
 
 ### Security notes on behaviour that was kept as-is
 
-- **Self-signup can create admins.** `POST /auth/signup` accepts any `role`, including `admin`, as `authetication.py` does. The wireframes have no self-signup at all. Consider rejecting `admin`, or removing the route.
+- **Self-signup is limited to `student` and `teacher`.** `POST /auth/signup` rejects any other `role` (including `admin`) with a 400, and defaults a missing role to `student`. `authetication.py` enforces the same rule.
 - **Two password stores for admins.** The admin console's "change own password" updates `GradeAnt_Users.password_hash`, but login reads `Users.password`, so it doesn't change the login password. This matches `lambda_admin.py`.
 
 ## Tests
