@@ -3,12 +3,18 @@
 // validated before the server starts.
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { createServer } from 'node:net'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+
+// These tests are about the aws (Lambda) target, whatever config/app.yaml currently selects.
+const AWS_CONFIG = path.join(mkdtempSync(path.join(tmpdir(), 'gradeant-rt-')), 'app.yaml')
+writeFileSync(AWS_CONFIG, readFileSync(path.join(ROOT, '..', 'config', 'app.yaml'), 'utf8').replace(/^deployment: [a-z]+\b/m, 'deployment: aws'))
 
 const freePort = () =>
   new Promise((resolve) => {
@@ -21,7 +27,7 @@ const freePort = () =>
 function run(env, args = []) {
   const child = spawn(process.execPath, ['index.js', ...args], {
     cwd: ROOT,
-    env: { PATH: process.env.PATH, ...env },
+    env: { PATH: process.env.PATH, APP_CONFIG_FILE: AWS_CONFIG, ...env },
     stdio: ['ignore', 'pipe', 'pipe'],
   })
   let output = ''

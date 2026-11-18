@@ -9,7 +9,9 @@ import { parse } from 'yaml'
 import { validateAppConfig } from '../src/config/appConfig.js'
 
 const FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../config/app.yaml')
-const shipped = () => parse(readFileSync(FILE, 'utf8'))
+// The file as shipped, with the deployment switch pinned to aws: these checks are about the
+// aws URLs, whatever target config/app.yaml currently selects. Hybrid tests set it themselves.
+const shipped = () => ({ ...parse(readFileSync(FILE, 'utf8')), deployment: 'aws' })
 const fails = (mutate, pattern, mode = 'development') => {
   const doc = shipped()
   mutate(doc)
@@ -59,8 +61,10 @@ describe('config/app.yaml', () => {
 describe('config/app.yaml deployment switch', () => {
   const AWS = { database: 'dynamodb', ai: 'gemini', email: 'ses', secrets: 'aws', grading: 'lambda' }
 
-  test('the shipped file selects aws with today\'s providers', () => {
-    const c = validateAppConfig(shipped(), 'production')
+  test('the aws target has the AWS providers', () => {
+    const doc = shipped()
+    doc.deployment = 'aws'
+    const c = validateAppConfig(doc, 'production')
     assert.equal(c.deployment.name, 'aws')
     assert.deepEqual(c.deployment.providers, AWS)
   })

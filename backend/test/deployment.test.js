@@ -16,7 +16,7 @@ const SHIPPED = path.join(BACKEND, '..', 'config', 'app.yaml')
 function yamlWith(deployment) {
   const dir = mkdtempSync(path.join(tmpdir(), 'gradeant-cfg-'))
   const file = path.join(dir, 'app.yaml')
-  writeFileSync(file, readFileSync(SHIPPED, 'utf8').replace(/^deployment: aws\b/m, `deployment: ${deployment}`))
+  writeFileSync(file, readFileSync(SHIPPED, 'utf8').replace(/^deployment: [a-z]+\b/m,`deployment: ${deployment}`))
   return file
 }
 

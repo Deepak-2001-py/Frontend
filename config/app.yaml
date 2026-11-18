@@ -219,7 +219,7 @@ permissions:
 #  every provider reads its keys from the host's environment variables.
 #  Moving existing data is a separate one-time step (a migration script), not
 #  this switch. Without this section GradeAnt behaves as `aws`.
-deployment: aws                      # aws | hybrid
+deployment: hybrid                   # aws | hybrid
 
 deployments:
   aws:

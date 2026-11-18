@@ -33,10 +33,15 @@ def use_doc(monkeypatch, tmp_path):
     config.app_config.cache_clear()
 
 
-def test_shipped_file_is_aws(use_doc):
-    use_doc(shipped())
+def test_aws_target_is_aws(use_doc):
+    use_doc({**shipped(), 'deployment': 'aws'})
     assert config.providers() == config.AWS_PROVIDERS
     assert config.database() == 'dynamodb'
+
+
+def test_shipped_file_selects_hybrid(use_doc):
+    use_doc(shipped())
+    assert config.providers()['database'] == 'supabase'
 
 
 def test_missing_section_means_aws(use_doc):
