@@ -8,6 +8,9 @@
   base = "web"
   command = "npm ci && npm run build"
   publish = "dist"
+  # The build reads ../config/app.yaml (API address, deployment switch), so a change there
+  # must rebuild too. Netlify otherwise skips builds with no changes under web/.
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- . ../config/"
 
 [build.environment]
   NODE_VERSION = "22"
