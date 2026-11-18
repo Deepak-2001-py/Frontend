@@ -4,15 +4,17 @@
 import { randomBytes, randomUUID } from 'node:crypto'
 import { sendEmail } from '../aws/ses.js'
 import config from '../config/index.js'
-import { badRequest, forbidden, isConditionalCheckFailed, notFound, unauthorized } from '../lib/errors.js'
+import { badRequest, conflict, forbidden, isConditionalCheckFailed, notFound, unauthorized } from '../lib/errors.js'
 import {
   generateTempPassword as makeTempPassword,
   hashAdminPassword,
   hashLoginPassword,
+  passwordProblem,
   verifyAdminPassword,
 } from '../lib/passwords.js'
-import { pyRepr, sortBy, truthy } from '../lib/py.js'
-import { makeSessionToken, verifyLoginJwtForAdmin, verifySessionToken } from '../lib/tokens.js'
+import { canSignUp, requirePermission } from '../lib/permissions.js'
+import { isoNaive, pyRepr, sortBy, truthy } from '../lib/py.js'
+import { issueLoginToken, verifyLoginJwtForAdmin, verifySessionToken } from '../lib/tokens.js'
 import {
   adminUsers,
   analytics,
@@ -25,7 +27,7 @@ import {
   settings,
   tickets,
 } from '../repositories/admin.repository.js'
-import { getUserByEmail, setTempPassword } from '../repositories/users.repository.js'
+import { createUser, getUserByEmail, setAccountStatus, setTempPassword } from '../repositories/users.repository.js'
 
 // ---- Auth ------------------------------------------------------------------------
 
@@ -40,9 +42,15 @@ export async function bearerClaims(authorization) {
     if (!email || !userId) throw unauthorized('Malformed session token.')
     const user = await getUserByEmail(email)
     if (!user || user.user_id !== userId) throw unauthorized('Account no longer exists.')
+    if (user.status === 'suspended') throw unauthorized('This account is suspended.')
     return { sub: userId, role: user.userRole ?? 'student', name: user.name ?? 'Admin', email }
   }
-  return verifySessionToken(token)
+  // Session tokens carry a role claim, but it's re-read from the account on every
+  // request so a deleted, suspended or demoted admin loses access at once.
+  const claims = await verifySessionToken(token)
+  const account = claims?.sub ? await adminUsers.get({ user_id: String(claims.sub) }) : undefined
+  if (!account || account.status === 'suspended') throw unauthorized('Account no longer active.')
+  return { ...claims, role: account.role ?? 'student', name: account.name ?? claims.name }
 }
 
 async function requireAdmin(authorization) {
@@ -83,13 +91,20 @@ async function listUsers(p) {
 
 async function updateUserStatus(p, claims) {
   if (!p.userId || !['active', 'suspended', 'invited'].includes(p.status)) throw badRequest('userId and a valid status are required.')
+  const account = await adminUsers.get({ user_id: String(p.userId) })
   await adminUsers.update({ Key: { user_id: p.userId }, ...setFields({ status: p.status }) })
+  // The login account lives in the Users table (keyed by email): mirror a suspension
+  // there too, or the user could keep signing in to the app.
+  if (account?.email && p.status !== 'invited') await setAccountStatus(account.email, p.status)
   await writeAuditLog(claims.sub, `Set user status to ${p.status}`, p.userId)
   return { success: true }
 }
 
 async function deleteUser(p, claims) {
   if (!p.userId) throw badRequest('userId is required.')
+  const account = await adminUsers.get({ user_id: String(p.userId) })
+  // Block the login account rather than deleting it, so grades stay attributable.
+  if (account?.email) await setAccountStatus(account.email, 'suspended')
   await adminUsers.delete({ user_id: p.userId })
   await writeAuditLog(claims.sub, 'Deleted user', p.userId)
   return { success: true }
@@ -120,6 +135,11 @@ async function sendInviteEmail(email, name, link) {
 async function inviteUsers(p, claims) {
   const invitees = Array.isArray(p.invitees) ? p.invitees : []
   if (!invitees.length) throw badRequest('At least one invitee is required.')
+  // Only roles whose config/app.yaml roles.<role>.signup includes "invite".
+  for (const person of invitees) {
+    const role = person?.role || 'student'
+    if (str(person?.email).trim() && !canSignUp(role, 'invite')) throw badRequest(`${str(role)} accounts can't be created by invite.`)
+  }
   let invited = 0
   for (const person of invitees) {
     const email = str(person?.email).trim()
@@ -139,7 +159,8 @@ async function inviteUsers(p, claims) {
       expires_at: Date.now() / 1000 + config.auth.inviteTokenTtlSeconds,
       consumed: false,
     })
-    await sendInviteEmail(email, name, `${config.mail.appBaseUrl}/admin/first_login_setup.html?token=${token}`)
+    // The web app's first-login page (config/app.yaml pages.firstLogin).
+    await sendInviteEmail(email, name, `${config.mail.appBaseUrl}${config.app.pages.firstLogin}?token=${token}`)
     invited += 1
   }
   await writeAuditLog(claims.sub, `Invited ${invited} user(s)`, invitees.map((x) => str(x?.email)).join(', '))
@@ -167,14 +188,42 @@ async function completeFirstLogin(p) {
   const invite = await invites.get({ token: String(token) })
   if (!invite || invite.consumed) throw badRequest('This invite link is invalid or has already been used.')
   if (Number(invite.expires_at ?? 0) < Date.now() / 1000) throw badRequest('This invite link has expired — ask your admin to resend it.')
+  const problem = passwordProblem(String(password))
+  if (problem) throw badRequest(problem)
 
+  const account = await adminUsers.get({ user_id: invite.user_id })
+  const email = str(account?.email).trim()
+  if (!email) throw badRequest('This invite has no email address — ask your admin to resend it.')
+
+  // Invites are the only way to get a teacher or admin account, so this creates
+  // the app login account (Users, keyed by email) that /auth/login and every app
+  // API read. It never overwrites an existing account (and so never changes its role).
+  const at = isoNaive()
+  try {
+    await createUser({
+      user_id: invite.user_id,
+      email,
+      name: invite.full_name ?? '',
+      password: await hashLoginPassword(String(password)),
+      userRole: invite.role,
+      status: 'active',
+      created_at: at,
+      updated_at: at,
+      // The class the admin invited a student into: students only see their own classes' work.
+      ...(invite.role === 'student' && truthy(invite.class_name) ? { classes: [invite.class_name] } : {}),
+    })
+  } catch (err) {
+    if (isConditionalCheckFailed(err)) throw conflict('An account with this email already exists. Log in with it, or ask your admin for help.')
+    throw err
+  }
   await adminUsers.update({
     Key: { user_id: invite.user_id },
     ...setFields({ status: 'active', password_hash: await hashAdminPassword(String(password)) }),
   })
   await invites.update({ Key: { token: String(token) }, ...setFields({ consumed: true }) })
   return {
-    token: await makeSessionToken({ sub: invite.user_id, role: invite.role }, config.auth.sessionTokenTtlSeconds),
+    // A normal login token, accepted by the app APIs and the admin console alike.
+    token: await issueLoginToken(invite.user_id, email),
     userId: invite.user_id,
     role: invite.role,
     fullName: invite.full_name,
@@ -457,5 +506,7 @@ export async function dispatch(body, authorization) {
   }
   const [handler, requiresAuth] = OPERATIONS[operation]
   const claims = requiresAuth ? await requireAdmin(authorization) : null
+  // config/app.yaml permissions.admin can turn individual console operations off.
+  if (requiresAuth) requirePermission('admin', operation, claims.role, 'This action is admin-only.')
   return handler(body, claims)
 }

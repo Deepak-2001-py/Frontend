@@ -1,8 +1,8 @@
-// GET /health: liveness (no I/O). GET /health/ready: also checks DynamoDB
+// GET /health: liveness (no I/O). GET /health/ready: also checks the database (DynamoDB or Postgres)
 // (and the secret store) so a deployment can be verified end to end.
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { pingDatabase } from '../aws/dynamodb.js'
+import { pingDatabase } from '../data/index.js'
 import { getJwtSecret } from '../aws/secrets.js'
 import config from '../config/index.js'
 
@@ -31,8 +31,10 @@ export async function ready(req, res) {
       checks[name] = { ok: false, ms: Date.now() - t, error: err?.name || 'Error' }
     }
   }
+  // "dynamodb" on AWS (as before, so existing monitors keep working); "database" on Supabase/Postgres.
+  const usesPostgres = config.drivers.db === 'postgres' || config.drivers.db === 'pglite'
   await Promise.all([
-    run('dynamodb', pingDatabase),
+    run(usesPostgres ? 'database' : 'dynamodb', pingDatabase),
     run('jwtSecret', async () => {
       if (!(await getJwtSecret())) throw Object.assign(new Error(), { name: 'NotConfigured' })
     }),

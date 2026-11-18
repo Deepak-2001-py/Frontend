@@ -5,7 +5,7 @@ import assert from 'node:assert/strict'
 import { after, before, beforeEach, describe, test } from 'node:test'
 import { config, post, putUsers, startServer, stopServer, table, tokenFor } from './helpers.js'
 
-const { setClaudeOverride } = await import('../src/aws/bedrock.js')
+const { setAIOverride: setClaudeOverride } = await import('../src/ai/index.js')
 
 const USERS = [
   { email: 't@x.edu', user_id: 'T1', name: 'Priya', userRole: 'teacher' },
@@ -13,6 +13,8 @@ const USERS = [
   { email: 'a@x.edu', user_id: 'S1', name: 'Okafor', userRole: 'student', classes: ['PHY-204'] },
   { email: 'b@x.edu', user_id: 'S2', name: 'Marin', userRole: 'student', classes: ['PHY-204'] },
   { email: 'c@x.edu', user_id: 'S3', name: 'Tanaka', userRole: 'student', classes: ['PHY-204'] },
+  { email: 'd@x.edu', user_id: 'S4', name: 'Nobody', userRole: 'student' }, // no classes recorded
+  { email: 'e@x.edu', user_id: 'S5', name: 'Chem', userRole: 'student', classes: ['CHEM-101'] },
 ]
 
 let calls = []
@@ -207,6 +209,24 @@ for (const assignmentIndex of [false, true]) {
       // Starting grading again after publishing doesn't un-publish the assignment.
       assert.equal((await call('t@x.edu', 'startGrading', { assignment_id: a.assignment_id }))[0], 200)
       assert.equal((await call('t@x.edu', 'getAssignment', { assignment_id: a.assignment_id }))[1].grades_status, 'published')
+    })
+
+    test('class boundaries: reminders, inbox and announcements stay within a class', async () => {
+      const [, a] = await call('t@x.edu', 'createAssignment', { title: 'HW', class_name: 'PHY-204' })
+      await call('t@x.edu', 'postAnnouncement', { class_name: 'PHY-204', title: 'Hi', message: 'PHY only' })
+      // A student of another class, or with none, can't be reminded through this assignment.
+      for (const sid of ['S5', 'S4']) {
+        assert.equal((await call('t@x.edu', 'remindStudent', { assignment_id: a.assignment_id, student_id: sid }))[0], 404, sid)
+      }
+      // A student with no classes sees no assignments or announcements (not every school's).
+      assert.deepEqual((await call('d@x.edu', 'listStudentAssignments'))[1].assignments, [])
+      assert.deepEqual((await call('d@x.edu', 'listAnnouncements'))[1].announcements, [])
+      assert.deepEqual((await call('d@x.edu', 'getProgress'))[1].todo, [])
+      // A student of another class doesn't see PHY-204's work either.
+      assert.deepEqual((await call('e@x.edu', 'listStudentAssignments'))[1].assignments, [])
+      assert.deepEqual((await call('e@x.edu', 'listAnnouncements'))[1].announcements, [])
+      // The enrolled student does.
+      assert.ok((await call('c@x.edu', 'listStudentAssignments'))[1].assignments.some((x) => x.assignment_id === a.assignment_id))
     })
 
     test('reminder and assistant', async () => {

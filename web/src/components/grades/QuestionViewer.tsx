@@ -197,28 +197,29 @@ function ReadOnlyCard({ q, status }: { q: QuestionDetail; status: MarksStatus })
   const ts = formatTimestamp(q.timestamp)
   return (
     <>
-      <div className="question-header">
-        <h3>
-          Question {String(q.question_number ?? '')}
-          {q.subpart ? ` (${q.subpart})` : ''}
-        </h3>
-        {STATUS_BADGE[status] && <span className={`status-badge status-badge-${status}`}>{STATUS_BADGE[status]}</span>}
-      </div>
-      <div className="question-meta">
-        <span className="marks">
-          Marks: <span className="obtained">{String(q.marks || 0)}</span> /{' '}
-          <span className="max">{String(q.max_marks || 0)}</span>
-        </span>
-        {ts && <span className="timestamp">Answered on: {ts}</span>}
+      <div className="gr-q-head">
+        <div className="gr-q-title">
+          <h3>
+            Question {String(q.question_number ?? '')}
+            {q.subpart ? ` (${q.subpart})` : ''}
+          </h3>
+          {STATUS_BADGE[status] && <span className={`status-badge status-badge-${status}`}>{STATUS_BADGE[status]}</span>}
+        </div>
+        <div className="gr-q-marks" aria-label={`${String(q.marks || 0)} out of ${String(q.max_marks || 0)} marks`}>
+          {String(q.marks || 0)}
+          <span> / {String(q.max_marks || 0)}</span>
+        </div>
       </div>
       <p className="question-text" dangerouslySetInnerHTML={{ __html: renderContent(q.question || 'Question not available') }} />
-      <div className="answer-section">
-        <h4>Your Answer:</h4>
+      <div className="gr-q-block">
+        <h4>Your answer</h4>
         <pre dangerouslySetInnerHTML={{ __html: renderContent(q.student_answer || 'No answer provided') }} />
       </div>
       <div className="reasoning-section rubric">
-        <FeedbackToggle feedback={q.feedback} status={status} />
+        {/* Corrections open by default: they are what the student came for. */}
+        <FeedbackToggle feedback={q.feedback} status={status} defaultOpen={status !== 'correct'} />
       </div>
+      {ts && <p className="gr-q-time">Answered on {ts}</p>}
     </>
   )
 }

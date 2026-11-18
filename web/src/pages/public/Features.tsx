@@ -1,94 +1,91 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import { CountUp, CtaBand, LandingPage, PageHero, Reveal, SectionHead } from '../../components/landing/LandingKit'
+import { CtaBand, LandingPage, PageHero, ProductShot, Reveal, SectionHead } from '../../components/landing/LandingKit'
 import { fadeUp } from '../../components/landing/motion'
+import { BeforeAfterScreen, HeroSplit, ReviewScreen } from '../../components/landing/Screens'
+import { MEDIA } from '../../components/landing/site'
+
+// Product page. Only claims that are true today: no accuracy figures until there
+// is a published measurement to link to, and only the subjects tested (math, physics).
 
 const KEY_FEATURES = [
-  { icon: 'auto_awesome', title: 'Intelligent grading', text: 'Grades across STEM subjects — from equations to worded answers — consistently, with less bias.', tone: 'brand' },
-  { icon: 'chat', title: 'Personalised feedback', text: 'Highlights strengths, pinpoints gaps and gives every student an actionable next step.', tone: 'accent' },
-  { icon: 'document_scanner', title: 'Multi-format support', text: 'Typed text, images and handwriting — our visual language model understands them all.', tone: 'sky' },
-  { icon: 'insights', title: 'Performance analytics', text: 'Track progress over time, spot knowledge gaps and plan targeted interventions.', tone: 'accent' },
-  { icon: 'groups', title: 'Instructor collaboration', text: 'Share rubrics, feedback templates and grades with TAs and co-instructors.', tone: 'sky' },
-  { icon: 'lock', title: 'Privacy & security', text: 'Encryption, role-based access and FERPA-aligned handling keep student data protected.', tone: 'brand' },
+  { icon: 'checklist', title: 'Step-by-step grading', text: 'Every step of a worked answer is marked against your rubric, with partial credit for correct method.', tone: 'brand' },
+  { icon: 'chat', title: 'Drafted feedback', text: 'A short note on each answer: what was right, what went wrong and how to fix it. You edit before it is sent.', tone: 'accent' },
+  { icon: 'document_scanner', title: 'Handwriting and scans', text: 'Reads handwritten working, equations and units from scanned pages, photos and PDFs.', tone: 'brand' },
+  { icon: 'flag', title: 'Flags what it is unsure of', text: 'Low-confidence readings and unusual methods go to a review queue instead of being guessed.', tone: 'accent' },
+  { icon: 'insights', title: 'Class view', text: 'Score spread and the hardest questions for each assignment, once grading finishes.', tone: 'brand' },
+  { icon: 'lock', title: 'Security and privacy', text: 'Role-based access: student work is visible only to the teachers of that course.', tone: 'accent', link: { to: '/security', label: 'How we handle data →' } },
 ] as const
 
-const ROWS = [
+const ROWS: { eyebrow: string; title: string; text: string; points: string[]; bar: string; src: string | null; alt: string; draw: ReactNode }[] = [
   {
     eyebrow: 'Grading',
-    title: 'From answer sheet to scored, explained feedback',
-    text: 'GradeFlow™ identifies every question on the paper, scores each answer against your rubric and explains the marks — so students know exactly why.',
-    points: ['Automatic question-number identification', 'Partial credit for correct method', 'Feedback on every answer'],
-    img: '/img/grading.png',
-    alt: 'GradeFlow scoring a student response and writing feedback',
-    tone: 'brand',
+    title: 'Marks for every step, not just the final answer',
+    text: 'GradeAnt finds each question on the page, follows the working line by line and marks it against your rubric, so a slip in the last line does not cost the whole question.',
+    points: ['Questions identified automatically', 'Partial credit for correct method', 'Feedback on every answer'],
+    bar: 'Q2 · step-by-step grading',
+    src: MEDIA.hero,
+    alt: 'A handwritten physics answer with marks for each step',
+    draw: <HeroSplit />,
   },
   {
-    eyebrow: 'Handwriting',
-    title: 'Real handwritten work, read properly',
-    text: 'Students photograph or scan their pages. The visual language model reads working, units and equations — and anything it is unsure of is flagged for a human check.',
-    points: ['Photos, scans and PDFs', 'Equations, units and diagrams', 'Low-confidence text flagged'],
-    img: '/img/pdf_upload.png',
-    alt: 'A handwritten answer sheet next to its question paper',
-    tone: 'accent',
+    eyebrow: 'Feedback',
+    title: 'Feedback the student can act on',
+    text: 'For each answer GradeAnt drafts a note that points to the step that went wrong and shows the fix. You can edit any note before it is published.',
+    points: ['Points to the exact step', 'Shows the corrected working', 'Edited and approved by the teacher'],
+    bar: 'Q3 · before and after',
+    src: MEDIA.beforeAfter,
+    alt: 'A handwritten integration answer next to the feedback it produced',
+    draw: <BeforeAfterScreen />,
   },
   {
-    eyebrow: 'Workflow',
-    title: 'Built around how teachers already work',
-    text: 'Create an assignment, students are alerted, submissions flow in and you finalise grades from one dashboard — with you approving everything before it is published.',
-    points: ['Assignment alerts for students', 'One dashboard for every class', 'Publish only when you are ready'],
-    img: '/img/teacher_workflow.png',
-    alt: 'Teacher workflow: create assignment, alert students, finalise grades',
-    tone: 'sky',
+    eyebrow: 'Review',
+    title: 'You approve every grade',
+    text: 'Answers GradeAnt is unsure about are queued for you. Change any mark, then publish when you are ready. Students see nothing before that.',
+    points: ['Review queue for flagged answers', 'Change any mark', 'Publish only when you are ready'],
+    bar: 'Teacher review',
+    src: MEDIA.review,
+    alt: 'Teacher review screen with flagged answers',
+    draw: <ReviewScreen />,
   },
-] as const
-
-const STEPS = [
-  { icon: 'upload_file', title: 'Upload assignments', text: 'Import submissions in any format through the dashboard.' },
-  { icon: 'psychology', title: 'AI assessment', text: 'The VLM-powered system analyses each answer against your rubric.' },
-  { icon: 'rate_review', title: 'Review & adjust', text: 'Check AI grades and feedback and tweak anything you like.' },
-  { icon: 'send', title: 'Distribute results', text: 'Release personalised feedback and grades in a few clicks.' },
-]
-
-const MODELS = [
-  { icon: 'hub', title: 'VLM + LLM agents', steps: ['Parsing', 'Question identification', 'Grading'] },
-  { icon: 'visibility', title: 'Visual language model', steps: ['Image analysis', 'Text extraction', 'Context understanding'] },
-  { icon: 'tips_and_updates', title: 'Personalised feedback', steps: ['Strengths', 'Gaps', 'Next steps'] },
 ]
 
 export default function Features() {
   return (
-    <LandingPage title="Features">
+    <LandingPage
+      title="Product"
+      description="GradeAnt reads handwritten math and physics, marks every step against your rubric, drafts feedback and flags what it is unsure of for teacher review."
+    >
       <PageHero
-        eyebrow="Features"
-        title={
-          <>
-            Transform your <span className="lp-gradient-text">grading experience</span>
-          </>
-        }
-        lead="Save time, give better feedback and improve learning outcomes with GradeAnt's intelligent grading platform."
+        eyebrow="Product"
+        title="Step-by-step grading for handwritten math and physics"
+        lead="GradeAnt reads scanned student work, marks each step against your rubric and drafts feedback. You review and publish."
       >
-        <Link to="/get-started" className="lp-btn lp-btn-primary lp-btn-lg">
-          Get started free →
+        <Link to="/request-a-pilot" className="lp-btn lp-btn-primary lp-btn-lg">
+          Request a pilot
         </Link>
         <Link to="/demo" className="lp-btn lp-btn-secondary lp-btn-lg">
-          <span className="material-icons" aria-hidden>
-            play_circle
-          </span>
-          See the demo
+          Take the product tour
         </Link>
       </PageHero>
 
       <section className="lp-section" style={{ paddingTop: 24 }}>
         <div className="lp-container">
-          <SectionHead eyebrow="Key features" title="Everything in one grading platform" />
+          <SectionHead eyebrow="Key features" title="What GradeAnt does today" />
           <Reveal className="lp-cards">
             {KEY_FEATURES.map((f) => (
-              <motion.article key={f.title} className={`lp-feature lp-tone-${f.tone}`} variants={fadeUp} whileHover={{ y: -6 }}>
+              <motion.article key={f.title} className={`lp-feature lp-tone-${f.tone}`} variants={fadeUp}>
                 <span className="lp-feature-icon material-icons" aria-hidden>
                   {f.icon}
                 </span>
                 <h3>{f.title}</h3>
                 <p>{f.text}</p>
+                {'link' in f && (
+                  <Link to={f.link.to} className="lp-inline-link">
+                    {f.link.label}
+                  </Link>
+                )}
               </motion.article>
             ))}
           </Reveal>
@@ -98,7 +95,7 @@ export default function Features() {
       <section className="lp-section lp-section-soft">
         <div className="lp-container lp-feature-rows">
           {ROWS.map((r, i) => (
-            <Reveal key={r.title} className={`lp-split lp-feature-row lp-tone-${r.tone}${i % 2 ? ' is-flipped' : ''}`}>
+            <Reveal key={r.title} className={`lp-split lp-feature-row${i % 2 ? ' is-flipped' : ''}`}>
               <motion.div variants={fadeUp}>
                 <span className="lp-eyebrow">{r.eyebrow}</span>
                 <h2>{r.title}</h2>
@@ -114,31 +111,13 @@ export default function Features() {
                   ))}
                 </ul>
               </motion.div>
-              <motion.div className="lp-visual" variants={fadeUp} whileHover={{ rotate: i % 2 ? -0.6 : 0.6, scale: 1.01 }}>
-                <img src={r.img} alt={r.alt} loading="lazy" />
+              <motion.div variants={fadeUp}>
+                <ProductShot src={r.src} alt={r.alt} bar={r.bar}>
+                  {r.draw}
+                </ProductShot>
               </motion.div>
             </Reveal>
           ))}
-        </div>
-      </section>
-
-      <section className="lp-section" id="how-it-works">
-        <div className="lp-container">
-          <SectionHead eyebrow="How it works" title="Simple process, powerful results" text="Four steps that save you time and raise the quality of every piece of feedback." />
-          <Reveal className="lp-steps-grid" as="ul">
-            {STEPS.map((s, i) => (
-              <motion.li key={s.title} className="lp-step" variants={fadeUp}>
-                <span className="lp-step-num">
-                  <span className="material-icons" aria-hidden>
-                    {s.icon}
-                  </span>
-                </span>
-                <small>Step {i + 1}</small>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </motion.li>
-            ))}
-          </Reveal>
         </div>
       </section>
 
@@ -146,17 +125,17 @@ export default function Features() {
         <div className="lp-container">
           <SectionHead
             light
-            eyebrow="Our AI technology"
-            title={
-              <>
-                Powered by <span className="lp-gradient-text">GradeFlow™</span>
-              </>
-            }
-            text="Machine-learning models designed specifically for education."
+            eyebrow="The technology"
+            title={<>GradeFlow™, our grading pipeline</>}
+            text="A vision model reads the page, then language-model agents match answers to questions, check each step against the rubric and draft feedback."
           />
           <Reveal className="lp-tech-cards">
-            {MODELS.map((m) => (
-              <motion.div key={m.title} className="lp-tech-card" variants={fadeUp} whileHover={{ y: -4 }}>
+            {[
+              { icon: 'visibility', title: 'Reading', steps: ['Handwriting to text', 'Equations to math', 'Low-confidence text flagged'] },
+              { icon: 'hub', title: 'Grading', steps: ['Answers matched to questions', 'Each step checked', 'Marks against your rubric'] },
+              { icon: 'rate_review', title: 'Feedback', steps: ['What was right', 'Where it went wrong', 'How to fix it'] },
+            ].map((m) => (
+              <motion.div key={m.title} className="lp-tech-card" variants={fadeUp}>
                 <span className="material-icons" aria-hidden>
                   {m.icon}
                 </span>
@@ -169,25 +148,14 @@ export default function Features() {
               </motion.div>
             ))}
           </Reveal>
-          <Reveal className="lp-stats-grid lp-dark-stats">
-            {[
-              { to: 99.7, decimals: 1, suffix: '%', label: 'Accuracy compared to human graders' },
-              { to: 3, decimals: 0, suffix: '+', label: 'Languages supported' },
-              { to: 87, decimals: 0, suffix: '%', label: 'Average time saved on grading' },
-            ].map((s) => (
-              <motion.div key={s.label} className="lp-stat" variants={fadeUp}>
-                <b>
-                  <CountUp to={s.to} decimals={s.decimals} suffix={s.suffix} />
-                </b>
-                <span>{s.label}</span>
-              </motion.div>
-            ))}
-          </Reveal>
+          <p className="lp-dark-note">
+            Want to see how we test this? Our benchmark work is on the <Link to="/research">Research page</Link>.
+          </p>
         </div>
       </section>
 
       <div style={{ height: 104 }} />
-      <CtaBand title="Ready to transform your grading?" text="Join the educators who save time and improve student outcomes with GradeAnt." />
+      <CtaBand />
     </LandingPage>
   )
 }

@@ -6,6 +6,7 @@ import { conflict, forbidden, notFound } from '../../lib/errors.js'
 import { num, pyStr, sortBy, trunc, truthy } from '../../lib/py.js'
 import * as grading from '../../repositories/grading.repository.js'
 import * as wf from '../../repositories/workflow.repository.js'
+import { canManage } from '../ownership.js'
 import {
   enrolledStudents,
   gradingRows,
@@ -72,9 +73,7 @@ export async function acceptFlagged(body, caller) {
   const [evaluationId] = required(body, 'evaluation_id')
   const row = await grading.getRow(evaluationId)
   if (!row || row.type === 'summary') throw notFound('Answer not found.')
-  const assignment = row.assignment_id ? await wf.getAssignment(row.assignment_id) : undefined
-  const owner = assignment?.teacher_id || row.teacher_id
-  if (caller.role === 'teacher' && owner && owner !== caller.user_id) throw forbidden('This answer belongs to a different teacher.')
+  if (!(await canManage(caller, row.assignment_id, row.teacher_id))) throw forbidden('This answer belongs to a different teacher.')
   await grading.updateRow(evaluationId, {
     UpdateExpression: 'SET flag_resolved_at = :t, flag_resolved_by = :u, flag_resolution = :r',
     ExpressionAttributeValues: { ':t': now(), ':u': caller.user_id, ':r': 'accepted' },
@@ -113,8 +112,13 @@ export async function remindStudent(body, caller) {
   requireRole(caller, 'teacher', 'admin')
   const [assignmentId, studentId] = required(body, 'assignment_id', 'student_id')
   const item = await loadAssignment(assignmentId, caller)
-  const student = (await usersById()).get(studentId)
-  if (!student || student.userRole !== 'student') throw notFound('Student not found.')
+  const { subs, users } = await submissions(item)
+  const student = users.get(studentId)
+  // Only students on this assignment's roster (enrolled in its class, or with a submission/answers
+  // for it): otherwise any teacher could make GradeAnt email any student.
+  if (!student || student.userRole !== 'student' || !subs.some((s) => s.student_id === studentId)) {
+    throw notFound('Student not found.')
+  }
   const sender = config.mail.sesSenderEmail
   let emailed = false
   if (sender && truthy(student.email)) {

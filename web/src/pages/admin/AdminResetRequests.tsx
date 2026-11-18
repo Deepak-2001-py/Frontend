@@ -24,12 +24,12 @@ interface Feature {
 }
 
 const WORKFLOW = [
-  { title: 'Forgot password', sub: 'User submits request', tone: '' },
-  { title: 'Admin notified', sub: 'Verifies user', tone: ' sky' },
-  { title: 'Admin resets', sub: 'Temp password generated', tone: '' },
-  { title: 'User logs in', sub: 'With temp password', tone: ' teal' },
-  { title: 'Forced change', sub: 'System requires new pw', tone: '' },
-  { title: 'Dashboard', sub: 'Access granted', tone: ' brand' },
+  { title: 'Forgot password', sub: 'User submits request', tone: '', icon: 'help' },
+  { title: 'Admin notified', sub: 'Verifies user', tone: ' sky', icon: 'notifications' },
+  { title: 'Admin resets', sub: 'Temp password generated', tone: '', icon: 'key' },
+  { title: 'User logs in', sub: 'With temp password', tone: ' sky', icon: 'login' },
+  { title: 'Forced change', sub: 'System requires new pw', tone: '', icon: 'lock_reset' },
+  { title: 'Dashboard', sub: 'Access granted', tone: ' brand', icon: 'check' },
 ]
 const SMALL_BTN = { padding: '6px 11px', fontSize: 12 }
 
@@ -77,7 +77,11 @@ function RequestsBody() {
           <Fragment key={step.title}>
             {i > 0 && <span className="admin-workflow-arrow">→</span>}
             <div className={`admin-workflow-step${step.tone}`}>
-              <div className="admin-workflow-icon" />
+              <div className="admin-workflow-icon">
+                <span className="material-icons" aria-hidden>
+                  {step.icon}
+                </span>
+              </div>
               <div className="admin-workflow-step-title">{step.title}</div>
               <div className="admin-workflow-step-sub">{step.sub}</div>
             </div>

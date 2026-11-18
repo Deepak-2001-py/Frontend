@@ -9,8 +9,9 @@ AI-powered grading for STEM homework: teachers upload a question paper, students
 | [`web/`](web/) | **The web app** — React 19 + TypeScript + Vite. Marketing site, student / teacher / admin areas. Start here. |
 | [`backend/`](backend/) | **The API** — Node.js + Express. Runs locally with no AWS account, and on AWS Lambda Web Functions in production. Replaces the Python Lambdas below. See [`backend/README.md`](backend/README.md). |
 | [`lambda_python_files/`](lambda_python_files/), [`admin/lambda_admin.py`](admin/lambda_admin.py) | The original Python Lambdas, kept unchanged as the rollback path and as the reference for the parity check until the Node API has run in production. |
-| Root `*.html`, `student/`, `teacher/`, `css/`, `javascript/`, … | The **legacy static site** the React app replaces. Still what the root `Dockerfile` serves. |
-| `GradeAnt Website Wireframes (standalone).html`, `workflows/`, `*.dc.html` | Design wireframes and schema docs. [`web/WIREFRAMES.md`](web/WIREFRAMES.md) maps every wireframe screen to its route and file. |
+| [`config/app.yaml`](config/app.yaml) | **Main config** — URLs, API paths, roles and permissions, read by both the web app and the API. |
+| `.github/workflows/aws.yml`, `Task_definition.json` | CI: builds the React app's image (`docker build -f web/Dockerfile .`) and deploys it to ECS. |
+| `extra/` (git-ignored, local only) | Everything not needed to build or run the app: the old static HTML site the React app replaced, design wireframes and schema docs, notes and backups. See `extra/README.md`. [`web/WIREFRAMES.md`](web/WIREFRAMES.md) maps every wireframe screen to its route and file. |
 
 ## Run it locally
 
@@ -82,9 +83,9 @@ docker run -p 8080:80 gradeant-web
 | Route | File | Tables |
 |---|---|---|
 | `POST /auth/*` | `lambda_python_files/authetication.py` | `Users`, `GradeAnt_ResetRequests` |
-| `POST /getgrades` | `lambda_python_files/get_grades.py` | `assignment_grading`, `Users` |
-| `POST /correctanswer` | `lambda_python_files/correct_questions_answer.py` | `assignment_grading`, `Users` |
-| `POST /updatedb` | `lambda_python_files/update_db.py` | `assignment_grading`, `Users` |
+| `POST /getgrades` | `lambda_python_files/get_grades.py` | `assignment_grading`, `Users`, `GradeAnt_Assignments` (read: who owns each assignment) |
+| `POST /correctanswer` | `lambda_python_files/correct_questions_answer.py` | `assignment_grading`, `Users`, `GradeAnt_Assignments` (read: who owns each assignment) |
+| `POST /updatedb` | `lambda_python_files/update_db.py` | `assignment_grading`, `Users`, `GradeAnt_Assignments` (read: who owns each assignment) |
 | `POST /admin` | `admin/lambda_admin.py` | `GradeAnt_*` admin tables, `Users` |
 | `POST /workflow` | `lambda_python_files/workflow.py` | `GradeAnt_Assignments`, `GradeAnt_Submissions`, `GradeAnt_Announcements`, `assignment_grading`, `Users`; Claude on Amazon Bedrock |
 | `POST /uploadpdf` | *(not in this repo)* | S3 presigned uploads |

@@ -50,11 +50,15 @@ export function required(body, ...fields) {
 export const myAssignments = (caller) =>
   caller.role === 'admin' ? wf.scanAssignments() : wf.assignmentsByTeacher(caller.user_id)
 
-/** Published assignments a student can see (their `classes`, or all if none are recorded). */
+/**
+ * Published assignments of the student's own classes (Users.classes). A student with no
+ * classes sees none: falling back to every school's assignments leaked them across schools.
+ */
 export async function visibleAssignments(caller) {
-  const classes = caller.user.classes
+  const classes = Array.isArray(caller.user.classes) ? caller.user.classes : []
+  if (!classes.length) return []
   const published = await wf.publishedAssignments()
-  return truthy(classes) ? published.filter((a) => classes.includes(a.class_name)) : published
+  return published.filter((a) => classes.includes(a.class_name))
 }
 
 export async function loadAssignment(assignmentId, caller) {

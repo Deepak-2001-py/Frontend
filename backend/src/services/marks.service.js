@@ -1,9 +1,11 @@
 // /updatedb — port of lambda_python_files/update_db.py: teacher/admin edits
-// to marks. Every row touched is stamped with teacher_id = caller, and a row
-// already owned by another teacher is refused (admins excepted).
+// to marks. A teacher may only edit rows of assignments they own (see
+// ownership.js; admins excepted). An edit stamps teacher_id only when the row
+// had none, so it never moves ownership.
 import { isConditionalCheckFailed, badRequest, forbidden, notFound, reply, HttpError } from '../lib/errors.js'
 import { isoNaive, pyStr, truthy } from '../lib/py.js'
 import { getRow, updateRow } from '../repositories/grading.repository.js'
+import { canManage, ownerResolver } from './ownership.js'
 
 /** Decimal(str(value)): a finite number, or throws like Python's Decimal would. */
 function decimal(value) {
@@ -12,10 +14,12 @@ function decimal(value) {
   return n
 }
 
-const ownedByOther = (row, caller) => row?.teacher_id && caller.role !== 'admin' && row.teacher_id !== caller.user_id
+/** True when `row` exists and the caller may not edit it. */
+const ownedByOther = async (row, caller, resolve) => Boolean(row) && !(await canManage(caller, row.assignment_id, row.teacher_id, resolve))
 
 export async function updateMarks(body, caller) {
   if (!['teacher', 'admin'].includes(caller.role)) throw forbidden('Only a teacher or admin can update grades.')
+  const resolve = ownerResolver()
   const summaryRaw = body.summary
   const details = Array.isArray(body.details) ? body.details : []
   if (!truthy(summaryRaw) && !details.length) throw badRequest('Either summary or details data is required')
@@ -33,11 +37,11 @@ export async function updateMarks(body, caller) {
       const totalMarks = decimal(summary.total_marks)
       const existing = truthy(evaluationId) ? await getRow(evaluationId) : undefined
       if (!truthy(evaluationId)) throw new Error('Missing evaluation_id in summary record')
-      if (ownedByOther(existing, caller)) {
+      if (await ownedByOther(existing, caller, resolve)) {
         errors.push(`evaluation_id ${evaluationId} belongs to a different teacher.`)
       } else {
         await updateRow(evaluationId, {
-          UpdateExpression: 'SET total_marks = :tm, updated_at = :ua, teacher_id = :tid',
+          UpdateExpression: 'SET total_marks = :tm, updated_at = :ua, teacher_id = if_not_exists(teacher_id, :tid)',
           ConditionExpression: '#type = :summary',
           ExpressionAttributeNames: { '#type': 'type' },
           ExpressionAttributeValues: { ':tm': totalMarks, ':ua': isoNaive(), ':tid': caller.user_id, ':summary': 'summary' },
@@ -77,11 +81,11 @@ export async function updateMarks(body, caller) {
       }
       const marksValue = decimal(marks)
       const existing = await getRow(evaluationId)
-      if (ownedByOther(existing, caller)) {
+      if (await ownedByOther(existing, caller, resolve)) {
         errors.push(`evaluation_id ${evaluationId} belongs to a different teacher.`)
         continue
       }
-      let expression = 'SET marks = :m, updated_at = :ua, teacher_id = :tid'
+      let expression = 'SET marks = :m, updated_at = :ua, teacher_id = if_not_exists(teacher_id, :tid)'
       const values = { ':m': marksValue, ':ua': isoNaive(), ':tid': caller.user_id, ':qn': questionNumber }
       const hasMax = maxMarks !== undefined && maxMarks !== null
       if (hasMax) {
@@ -143,7 +147,7 @@ export async function updateStudentGrade(body, caller) {
   if (totalMarks === undefined || totalMarks === null) throw badRequest('total_marks is required')
 
   const existing = await getRow(evaluationId)
-  if (ownedByOther(existing, caller)) throw forbidden('This assignment belongs to a different teacher.')
+  if (await ownedByOther(existing, caller)) throw forbidden('This assignment belongs to a different teacher.')
   let value
   try {
     value = decimal(totalMarks)
@@ -152,7 +156,7 @@ export async function updateStudentGrade(body, caller) {
   }
   try {
     const res = await updateRow(evaluationId, {
-      UpdateExpression: 'SET total_marks = :tm, updated_at = :ua, teacher_id = :tid',
+      UpdateExpression: 'SET total_marks = :tm, updated_at = :ua, teacher_id = if_not_exists(teacher_id, :tid)',
       ConditionExpression: '#type = :summary',
       ExpressionAttributeNames: { '#type': 'type' },
       ExpressionAttributeValues: { ':tm': value, ':ua': isoNaive(), ':tid': caller.user_id, ':summary': 'summary' },

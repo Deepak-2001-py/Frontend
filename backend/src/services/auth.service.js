@@ -5,14 +5,15 @@ import { storage } from '../aws/s3.js'
 import config from '../config/index.js'
 import { HttpError, badRequest, reply, unauthorized } from '../lib/errors.js'
 import { hashLoginPassword, passwordProblem, verifyLoginPassword } from '../lib/passwords.js'
+import { canSignUp, roleLabel, selfSignupRoles } from '../lib/permissions.js'
 import { isoNaive } from '../lib/py.js'
 import { decodeLoginToken, issueLoginToken } from '../lib/tokens.js'
 import { pendingResetRequestsFor, resetRequests } from '../repositories/admin.repository.js'
 import { getUserByEmail, putUser, setLastLogin, setPassword, setPhotoKey } from '../repositories/users.repository.js'
 
-const SIGNUP_ROLES = ['student', 'teacher']
 const PHOTO_URL_TTL = 3600
 const PHOTO_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024
 
 /** body['field'] with Python's KeyError → 400 "Missing required field: 'field'". */
 function field(obj, name) {
@@ -33,17 +34,40 @@ async function authenticatedUser(token) {
   const { payload } = await decodeLoginToken(token)
   if (!payload) return null
   const item = await getUserByEmail(payload.email)
-  if (!item || item.user_id !== payload.user_id) return null
+  if (!item || item.user_id !== payload.user_id || item.status === 'suspended') return null
   return item
 }
 
+/**
+ * The Users item for a typed email. Tries it as typed (trimmed) first, so
+ * accounts stored with capitals keep working, then lowercased, so
+ * "Teacher@School.edu" or a trailing space from autofill still finds the account.
+ */
+async function findUserByTypedEmail(email) {
+  const typed = String(email ?? '').trim()
+  if (!typed) return null
+  const exact = await getUserByEmail(typed)
+  if (exact) return exact
+  const lower = typed.toLowerCase()
+  return lower === typed ? null : getUserByEmail(lower)
+}
+
 export async function signup(body) {
-  const email = field(body, 'email')
+  // New accounts are stored trimmed and lowercased; login matches either form.
+  const email = String(field(body, 'email') ?? '').trim().toLowerCase()
+  if (!email) throw badRequest('Email is required.')
   const password = field(body, 'password')
   const name = body.name ?? ''
   const userRole = body.role || 'student'
-  // Public signup may only create self-service roles; admins are created by an admin.
-  if (!SIGNUP_ROLES.includes(userRole)) throw badRequest('Role must be student or teacher.')
+  // Which roles can sign themselves up is set in config/app.yaml (roles.<role>.signup).
+  if (!canSignUp(userRole, 'self')) {
+    if (canSignUp(userRole, 'invite')) {
+      throw new HttpError(403, `${roleLabel(userRole)} accounts are invite-only. Ask your school administrator for an invite.`)
+    }
+    throw badRequest(`Role must be one of: ${selfSignupRoles().join(', ')}.`)
+  }
+  const problem = passwordProblem(String(password))
+  if (problem) throw badRequest(problem)
   if (await getUserByEmail(email)) return reply(409, { message: 'User already exists' })
 
   const userId = randomUUID()
@@ -68,16 +92,26 @@ export async function signup(body) {
 }
 
 export async function login(body) {
-  const email = field(body, 'email')
   const password = field(body, 'password')
   const userRole = field(body, 'userType')
-  const user = await getUserByEmail(email)
-  if (!user) throw unauthorized('Invalid credentials')
-  if (userRole !== field(user, 'userRole')) throw unauthorized('Invalid credentials')
-  if (!(await verifyLoginPassword(field(user, 'password'), password))) throw unauthorized('Invalid credentials')
+  const typedEmail = field(body, 'email')
+  const user = await findUserByTypedEmail(typedEmail)
+  // The reply is always "Invalid credentials" (no account probing); in
+  // development the API log also says which check failed. Never the password.
+  const reject = (reason) => {
+    if (config.mode === 'development') {
+      console.log(JSON.stringify({ level: 'warn', msg: `login rejected: ${reason}`, email: String(typedEmail), role: userRole }))
+    }
+    return unauthorized('Invalid credentials')
+  }
+  if (!user) throw reject('no account with this email (the local in-memory DB is reset whenever the API restarts)')
+  if (userRole !== field(user, 'userRole')) throw reject(`role mismatch: account is "${user.userRole}", login page sent "${userRole}"`)
+  if (!(await verifyLoginPassword(field(user, 'password'), password))) throw reject('wrong password')
+  // Checked after the password so the message can't be used to probe which accounts exist.
+  if (user.status === 'suspended') throw new HttpError(403, 'This account is suspended. Contact your administrator.')
 
   const token = await issueLoginToken(user.user_id, user.email)
-  await setLastLogin(email, isoNaive())
+  await setLastLogin(user.email, isoNaive())
   return {
     message: 'Login successful',
     user_id: user.user_id,
@@ -170,14 +204,17 @@ export async function profilePhoto(token, body) {
 
   if (body.action === 'upload-url') {
     if (!isPhotoType) throw badRequest('Use a JPG, PNG or WebP image.')
-    return { uploadUrl: await store.presignPut(bucket, key, body.contentType, 300), key }
+    const size = body.size
+    if (typeof size !== 'number' || !(size > 0) || size > PHOTO_MAX_BYTES) throw badRequest('Photo must be under 5 MB.')
+    // The size is part of the signature: S3 refuses an upload of any other length.
+    return { uploadUrl: await store.presignPut(bucket, key, body.contentType, 300, Math.floor(size)), key }
   }
 
   if (body.action === 'confirm') {
     // Only accept the key we issued for this user, and only once the object exists.
     if (!isPhotoType || body.key !== key) throw badRequest('Invalid photo key.')
     const head = await store.head(bucket, key)
-    if (head.contentLength > 5 * 1024 * 1024) {
+    if (head.contentLength > PHOTO_MAX_BYTES) {
       await store.delete(bucket, key)
       throw badRequest('Photo must be under 5 MB.')
     }

@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useAuth } from '../auth/AuthContext'
 import { useDisplayName } from '../hooks/useDisplayName'
+import SidebarToggle, { useSidebarClosed } from './SidebarToggle'
 import '../styles/sidebar.css'
 
 interface NavItem {
@@ -62,6 +63,7 @@ export default function Sidebar() {
   const name = useDisplayName('User')
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [closed, setClosed] = useSidebarClosed()
   const nav = NAV[session?.userType === 'teacher' ? 'teacher' : 'student']
 
   // Close menus on navigation and on any outside click.
@@ -82,7 +84,8 @@ export default function Sidebar() {
     pathname === item.to || pathname.startsWith(item.to + '/') || !!item.also?.some((p) => pathname.startsWith(p))
 
   return (
-    <aside className="app-sidebar">
+    <aside className={`app-sidebar${closed ? ' is-closed' : ''}`}>
+      <SidebarToggle closed={closed} onChange={setClosed} />
       <div className="sidebar-inner">
         <Link to="/" className="sidebar-logo" aria-label="GradeAnt home">
           <img src="/img/grade-antlogo-removebg-preview.png" alt="" className="logo-img" />

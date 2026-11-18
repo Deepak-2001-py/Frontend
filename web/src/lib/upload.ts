@@ -1,4 +1,4 @@
-import { UPLOAD_BASE_URL, UPLOAD_SENDS_TOKEN } from '../config'
+import { API, UPLOAD_BASE_URL, UPLOAD_SENDS_TOKEN } from '../config'
 import { getToken } from './session'
 
 export const UPLOAD_LIMITS = {
@@ -33,7 +33,7 @@ export async function requestPresignedUrls(metadata: UploadMetadata): Promise<st
   const token = UPLOAD_SENDS_TOKEN ? getToken() : null
   if (token) headers.Authorization = `Bearer ${token}`
   try {
-    response = await fetch(`${UPLOAD_BASE_URL}/uploadpdf`, {
+    response = await fetch(`${UPLOAD_BASE_URL}${API.upload}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(metadata),

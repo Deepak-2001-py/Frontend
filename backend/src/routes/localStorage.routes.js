@@ -15,7 +15,12 @@ const objectRef = (req) => {
 router.put('/*path', express.raw({ type: () => true, limit: config.storage.uploadMaxBytes }), async (req, res) => {
   const { bucket, key } = objectRef(req)
   const contentType = req.get('content-type') ?? ''
-  if (!verifyLocalSignature('put', bucket, key, req.query.exp, req.query.sig, contentType)) {
+  const length = req.query.len ?? ''
+  if (!verifyLocalSignature('put', bucket, key, req.query.exp, req.query.sig, contentType, length)) {
+    return res.status(403).type('text/plain').send('SignatureDoesNotMatch')
+  }
+  // Like S3 with a signed Content-Length: the body must be exactly the signed size.
+  if (length && (req.body?.length ?? 0) !== Number(length)) {
     return res.status(403).type('text/plain').send('SignatureDoesNotMatch')
   }
   await writeLocalObject(bucket, key, req.body ?? Buffer.alloc(0), contentType)

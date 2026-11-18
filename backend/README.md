@@ -3,7 +3,7 @@
 The GradeAnt backend as one Express app. It replaces the six Python Lambdas, and the same code runs:
 
 - **locally**: `npm run dev`. It uses an in-process DynamoDB, local file storage and logged emails, so no AWS account is needed.
-- **on AWS**: `npm run start:prod`, or as a **Lambda Web Function**. It uses DynamoDB, S3, SES, SNS, SQS, Lambda and Claude on Amazon Bedrock.
+- **on AWS**: `npm run start:prod`, or as a **Lambda Web Function**. It uses DynamoDB, S3, SES, SNS, SQS, Lambda, and Gemini (`gemini-3.5-flash-preview`) for AI.
 
 Which environment runs is decided by configuration only. The React app in [`../web`](../web) is unchanged apart from its env files.
 
@@ -21,7 +21,7 @@ backend/
 │   ├── controllers/      request parsing, auth, operation dispatch, response shape
 │   ├── services/         business logic (auth, grades, correction, marks, admin, upload, jobs, workflow/*)
 │   ├── repositories/     DynamoDB access per table (keys, indexes, expressions)
-│   ├── aws/              DynamoDB, S3, SES, SNS, SQS, Lambda, Bedrock, Secrets Manager (+ local drivers)
+│   ├── aws/              DynamoDB, S3, SES, SNS, SQS, Lambda, Secrets Manager (+ local drivers)
 │   ├── middleware/       CORS, bearer-token auth, JSON body + error handling, request logging
 │   ├── lib/              tokens, password hashing, errors, Python-compatible helpers
 │   └── dev/              table schema, in-memory DynamoDB, demo seed (development only)
@@ -58,7 +58,7 @@ How local development behaves:
 - **Data** lives in memory and resets on restart. Set `DB_DRIVER=dynamodb` and `DYNAMODB_ENDPOINT=http://localhost:8000` to use [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) instead.
 - **Uploads** go to `backend/.data/storage` through signed, expiring URLs, so the browser follows the same flow as with S3.
 - **Emails, notifications and grading-pipeline calls** are logged, not sent.
-- **The GradeFlow assistant** gives a canned reply. To call Claude on Bedrock with your own AWS credentials, put `AI_DRIVER=bedrock` in `.env.development.local`.
+- **The GradeFlow assistant** gives a canned reply. To call Gemini, put `AI_DRIVER=gemini` and `GEMINI_API_KEY=...` in `.env.development.local`.
 
 `GET /health` reports liveness. `GET /health/ready` also checks DynamoDB and the JWT secret.
 
@@ -83,7 +83,7 @@ Each integration has a *driver* setting, so local and AWS implementations swap w
 | `STORAGE_DRIVER` | `local` (files + signed URLs) | `s3` (presigned URLs) |
 | `MAIL_DRIVER` | `log` | `ses` |
 | `NOTIFY_DRIVER` | `log` | `sns` |
-| `AI_DRIVER` | `canned` | `bedrock` |
+| `AI_DRIVER` | `canned` | `gemini` |
 | `GRADING_DRIVER` | `log` | `lambda` |
 | `JOBS_DRIVER` | `inline` | `inline` or `sqs` |
 
@@ -118,7 +118,7 @@ AWS integrations, Python → Node (AWS SDK v3):
 |---|---|---|
 | DynamoDB | all data (same tables, keys and indexes) | `aws/dynamodb.js` (`@aws-sdk/lib-dynamodb`) |
 | S3 | profile photos, upload URLs (presigned) | `aws/s3.js` |
-| Bedrock | GradeFlow assistant, AI rubric drafting | `aws/bedrock.js` (`@anthropic-ai/bedrock-sdk`, `AnthropicBedrockMantle` + refusal fallback middleware) |
+| Gemini (Google, not AWS) | GradeFlow assistant, AI rubric drafting | `ai/index.js` (`@google/genai`; a declined request returns null) |
 | SES | invites, submission reminders | `aws/ses.js` |
 | SNS | "grades published" notification | `aws/sns.js` |
 | Lambda | async hand-off to the grading pipeline | `aws/lambda.js` |
@@ -129,7 +129,7 @@ AWS integrations, Python → Node (AWS SDK v3):
 
 Nothing at runtime. All six Lambdas are request/response logic over DynamoDB plus SDK calls, which Node handles fully, so no FastAPI service was needed.
 
-- **ML in this repo.** None. Claude is called through the Bedrock API.
+- **ML in this repo.** None. Gemini is called through the Google Gen AI SDK.
 - **OCR and grading pipeline.** It sits outside this repo. The API only hands it work, through an async Lambda invoke (`GRADING_FUNCTION_NAME`), exactly as before.
 - **The Python files are kept unchanged** until the Node API has run in production. They are the rollback path, and the parity check runs against them. Delete `lambda_python_files/` and `admin/lambda_admin.py` only after cutover.
 
@@ -152,7 +152,7 @@ These are listed by the parity check below. Everything else matches.
 4. **`/updatedb` `updateMarks` with only per-question marks works.** Python crashed with a 500 when `summary` was missing.
 5. **Unexpected errors don't leak exception text.** They return each endpoint's generic message; details go to the logs.
 6. **Queries and scans follow pagination,** so results over DynamoDB's 1 MB page are complete. `get_grades.py`, `correct_questions_answer.py` and `lambda_admin.py` read only the first page.
-7. **AI rubric drafting can't get stuck.** Structured outputs are listed as unsupported on Claude in Amazon Bedrock, so a rejected request is retried with the JSON schema in the prompt. If drafting fails anyway, the teacher gets the question-based rubric instead of "Drafting rubric…" forever.
+7. **AI rubric drafting can't get stuck.** If Gemini rejects the JSON schema (400), the request is retried with the schema in the prompt. If drafting fails anyway, the teacher gets the question-based rubric instead of "Drafting rubric…" forever.
 8. **CORS uses an allowlist** (`CORS_ALLOWED_ORIGINS`) instead of `*`, or echoing any origin as `/admin` did.
 
 ### Security notes on behaviour that was kept as-is
@@ -164,7 +164,7 @@ These are listed by the parity check below. Everything else matches.
 
 ```bash
 npm test                    # 42 tests: workflow (Python suite ported, with/without the assignment_id GSI),
-                            # HTTP/auth/CORS/uploads/admin, Bedrock client against a fake endpoint,
+                            # HTTP/auth/CORS/uploads/admin, Gemini client against a fake,
                             # Lambda startup contract, Python-compatible helpers
 
 # Python vs Node: the same 210 requests against both implementations, diffed
@@ -179,6 +179,11 @@ The parity check seeds the same fixture into both implementations. The Python si
 The current result: **197 identical, 6 identical apart from DynamoDB result order, 8 intentional differences (above), 0 unexplained.**
 
 ## Deploying to AWS Lambda Web Functions
+
+> **One Lambda per API path, behind the existing API Gateway: [`lambdas/LAMBDAS.md`](lambdas/LAMBDAS.md)** (layers, 10 functions, per-function IAM from the dependency graph).
+>
+> **Recommended path: [`deploy/DEPLOY.md`](deploy/DEPLOY.md).** Lambda Web Functions are not offered in eu-north-1, where the tables are, so the API is deployed as a regular Lambda with the AWS Lambda Web Adapter and a Function URL, in eu-north-1 (SAM template, pre-flight checks and a GitHub workflow included). The steps below remain valid for a Region that has Web Functions.
+
 
 Nothing in this repository deploys anything. These steps follow the [Lambda Web Functions developer guide](https://docs.aws.amazon.com/lambda/latest/dg/web-functions.html); check it for changes before running them.
 
@@ -196,7 +201,7 @@ Nothing in this repository deploys anything. These steps follow the [Lambda Web 
 ### 1. Prerequisites
 
 - AWS CLI v2 with the `lambda-web` commands (`aws lambda-web help`).
-- Claude Opus 5.5 enabled for the account in the [Bedrock model access](https://console.aws.amazon.com/bedrock/home#/modelaccess) console.
+- A paid-tier Gemini API key (Google AI Studio), as `GEMINI_API_KEY` or a Secrets Manager secret in `GEMINI_API_KEY_ARN`.
 - Secrets in Secrets Manager, in the data Region: the JWT secret (the value the Python Lambdas use) and an admin session secret.
 
 ### 2. Execution role
@@ -219,7 +224,6 @@ Trust policy: `lambda.amazonaws.com` → `sts:AssumeRole`. Permissions (replace 
       "Resource": ["arn:aws:secretsmanager:eu-north-1:ACCOUNT:secret:gradeant/jwt-*", "arn:aws:secretsmanager:eu-north-1:ACCOUNT:secret:gradeant/session-*"] },
     { "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"],
       "Resource": ["arn:aws:s3:::PROFILE_PHOTO_BUCKET/profile-photos/*", "arn:aws:s3:::UPLOAD_BUCKET/*"] },
-    { "Effect": "Allow", "Action": "bedrock-mantle:CreateInference", "Resource": "*" },
     { "Effect": "Allow", "Action": "ses:SendEmail", "Resource": "*" },
     { "Effect": "Allow", "Action": "sns:Publish", "Resource": "arn:aws:sns:eu-north-1:ACCOUNT:TOPIC" },
     { "Effect": "Allow", "Action": "lambda:InvokeFunction", "Resource": "arn:aws:lambda:eu-north-1:ACCOUNT:function:GRADING_FUNCTION" },
@@ -230,7 +234,7 @@ Trust policy: `lambda.amazonaws.com` → `sts:AssumeRole`. Permissions (replace 
 
 Notes on the policy:
 
-- **Bedrock.** Claude in Amazon Bedrock is called with `bedrock-mantle:CreateInference`. Scope `Resource` to the Claude model ARNs given in the [Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html).
+- **Gemini.** Called over HTTPS with an API key; the only AWS permission is `secretsmanager:GetSecretValue` on the key secret, if you use one.
 - **Optional statements.** Drop the SNS, Lambda, SQS and S3 statements for any feature you don't configure.
 - **Deploying identity.** The identity that deploys needs `iam:PassRole` on this role, plus the S3 and IAM permissions listed in the guide's prerequisites.
 
@@ -295,4 +299,4 @@ curl https://<endpoint>/health/ready    # checks DynamoDB access and the JWT sec
   - handler `worker.handler`
   - `APP_ENV=production`
   - the queue as its event source, with ReportBatchItemFailures enabled
-  - the same DynamoDB/Bedrock permissions, plus `sqs:ReceiveMessage`, `sqs:DeleteMessage` and `sqs:GetQueueAttributes`
+  - the same DynamoDB permissions (and the Gemini key secret), plus `sqs:ReceiveMessage`, `sqs:DeleteMessage` and `sqs:GetQueueAttributes`

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config'
+import { API, API_BASE_URL } from '../config'
 import { apiCache } from './apiCache'
 import { clearSession, getToken } from './session'
 
@@ -121,7 +121,7 @@ export async function adminApiRequest<T = unknown>(
     if (cached !== undefined) return cached
   }
 
-  const data = await apiRequest<T>('/admin', { body: { operation, ...payload } })
+  const data = await apiRequest<T>(API.admin, { body: { operation, ...payload } })
   if (isRead) apiCache.set(cacheKey, data)
   else apiCache.clearPrefix('admin:')
   return data

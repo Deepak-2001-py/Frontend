@@ -24,6 +24,7 @@ export async function authenticate(req) {
   if (!email || !userId) throw unauthorized('Malformed session token.')
   const user = await getUserByEmail(email)
   if (!user || user.user_id !== userId) throw unauthorized('Account no longer exists.')
+  if (user.status === 'suspended') throw unauthorized('This account is suspended.')
   return { user_id: userId, email, role: user.userRole ?? 'student', user }
 }
 

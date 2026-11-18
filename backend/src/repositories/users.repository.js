@@ -1,6 +1,6 @@
 // Users table (login accounts), keyed by email. Written by /auth/*, read by
 // every authenticated API to look up the caller's role.
-import { table } from '../aws/dynamodb.js'
+import { table } from '../data/index.js'
 import config from '../config/index.js'
 
 const users = table(() => config.tables.users)
@@ -8,6 +8,9 @@ const users = table(() => config.tables.users)
 export const getUserByEmail = (email) => users.get({ email })
 
 export const putUser = (item) => users.put(item)
+
+/** Like putUser, but fails (ConditionalCheckFailedException) when the email is already taken. */
+export const createUser = (item) => users.put(item, { ConditionExpression: 'attribute_not_exists(email)' })
 
 export const setLastLogin = (email, at) =>
   users.update({
@@ -39,6 +42,21 @@ export const setTempPassword = (email, userId, passwordHash) =>
     ExpressionAttributeNames: { '#uid': 'user_id' },
     ExpressionAttributeValues: { ':p': passwordHash, ':true': true, ':uid': userId },
   })
+
+/** Account status ('active' | 'suspended'); a no-op when there's no login account for that email. */
+export async function setAccountStatus(email, status) {
+  try {
+    await users.update({
+      Key: { email },
+      UpdateExpression: 'SET #s = :s',
+      ConditionExpression: 'attribute_exists(email)',
+      ExpressionAttributeNames: { '#s': 'status' },
+      ExpressionAttributeValues: { ':s': status },
+    })
+  } catch (err) {
+    if (err?.name !== 'ConditionalCheckFailedException') throw err
+  }
+}
 
 export const setGradingSettings = (email, settings) =>
   users.update({

@@ -1,5 +1,5 @@
-// GradeFlow assistant (§04) and AI rubric drafting — Claude on Amazon Bedrock.
-import { askClaude } from '../../aws/bedrock.js'
+// GradeFlow assistant (§04) and AI rubric drafting — Gemini (src/ai/index.js), prompts unchanged.
+import { askAI } from '../../ai/index.js'
 import { badRequest } from '../../lib/errors.js'
 import { num, pyStr, sortBy, trunc, truthy } from '../../lib/py.js'
 import * as wf from '../../repositories/workflow.repository.js'
@@ -73,7 +73,7 @@ export async function askAssistant(body, caller) {
   }
 
   // Chat should answer quickly, so it uses low effort.
-  const reply = await askClaude({ system: ASSISTANT_SYSTEM + context, messages: clean, effort: 'low' })
+  const reply = await askAI({ system: ASSISTANT_SYSTEM + context, messages: clean, effort: 'low' })
   return {
     reply: reply ?? "I can't help with that request. Try asking about the grades, rubric or feedback for this assignment.",
   }
@@ -102,7 +102,7 @@ const RUBRIC_SCHEMA = {
   additionalProperties: false,
 }
 
-/** The drafted items from Claude's reply (JSON, possibly wrapped in prose or a code fence), or null. */
+/** The drafted items from the model's reply (JSON, possibly wrapped in prose or a code fence), or null. */
 export function parseRubricItems(text) {
   if (!text) return null
   const start = text.indexOf('{')
@@ -133,7 +133,7 @@ export async function draftRubric(assignmentId) {
         : 'Award marks only for correct final answers.'
     let text = null
     try {
-      text = await askClaude({
+      text = await askAI({
         system:
           'You write marking rubrics for STEM homework. For each question, give a short title and concise criteria ' +
           'saying exactly what earns the marks (key steps, expected result with units/sign, common errors to penalise). ' +

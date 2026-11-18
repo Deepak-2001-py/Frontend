@@ -16,7 +16,7 @@ table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
 print(f"Using DynamoDB table: {os.environ.get('USER_TABLE_NAME', 'Users')}")
 
 # JWT Secret - in production, use AWS Secrets Manager
-JWT_SECRET = os.environ.get('JWT_SECRET', '23042db269fe61ae30aeb5a3dbf4a276616f464858094dc2eac57dd5dc5ada7e')
+JWT_SECRET = os.environ.get('JWT_SECRET', '')  # REQUIRED: same value as the auth Lambda; no fallback
 TOKEN_EXPIRY = int(os.environ.get('TOKEN_EXPIRY_SECONDS', 86400))  # 24 hours by default
 print(f"JWT token expiry set to {TOKEN_EXPIRY} seconds")
 
@@ -61,6 +61,8 @@ def authenticated_user(event):
     item = table.get_item(Key={'email': payload.get('email')}).get('Item')
     if not item or item.get('user_id') != payload.get('user_id'):
         return None
+    if item.get('status') == 'suspended':
+        return None
     return item
 
 def photo_view_url(user):
@@ -100,6 +102,8 @@ def generate_token(user_id, email):
         'exp': int(time.time()) + TOKEN_EXPIRY,
         'iat': int(time.time())
     }
+    if not JWT_SECRET:
+        raise RuntimeError('Server misconfigured: JWT_SECRET is not set.')
     token = jwt.encode(payload, JWT_SECRET, algorithm='HS256')
     print("JWT token generated successfully")
     return token
@@ -107,6 +111,9 @@ def generate_token(user_id, email):
 def verify_token(token):
     """Verify JWT token"""
     print("Verifying JWT token")
+    if not JWT_SECRET:
+        print("Token verification failed: JWT_SECRET is not set")
+        return None
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
         print(f"Token verified successfully for user: {payload.get('email')}")
@@ -118,25 +125,43 @@ def verify_token(token):
         print("Token verification failed: Invalid token")
         return None
 
-SIGNUP_ROLES = ('student', 'teacher')
+# Roles that may self-sign-up. The Node backend reads this from config/app.yaml
+# (roles.<role>.signup); this Lambda can't, so keep SIGNUP_ROLES in step with it.
+# Admin is never allowed, whatever the variable says.
+SIGNUP_ROLES = tuple(
+    r for r in (s.strip() for s in os.environ.get('SIGNUP_ROLES', 'student,teacher').split(','))
+    if r in ('student', 'teacher')
+)
 
 
 def signup(event):
     """Handle user signup"""
     print("Processing signup request")
     try:
-        print(event)
+        # (Never log the raw event: its body holds the plaintext password.)
         # Parse request body
         body = json.loads(event['body'])
         email = body['email']
         password = body['password']
         name = body.get('name', '')
         userRole=body.get('role') or 'student'
-        # Public signup may only create self-service roles; admins are created by an admin.
+        # Only SIGNUP_ROLES may self-sign-up; the others are invite-only (same messages as Node).
         if userRole not in SIGNUP_ROLES:
+            if userRole in ('teacher', 'admin'):
+                label = {'teacher': 'Teacher', 'admin': 'Admin'}[userRole]
+                return {
+                    'statusCode': 403,
+                    'body': json.dumps({'message': f'{label} accounts are invite-only. Ask your school administrator for an invite.'})
+                }
             return {
                 'statusCode': 400,
-                'body': json.dumps({'message': 'Role must be student or teacher.'})
+                'body': json.dumps({'message': f"Role must be one of: {', '.join(SIGNUP_ROLES)}."})
+            }
+        problem = password_problem(str(password))
+        if problem:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'message': problem})
             }
         print(f"Signup request for email: {email}, name: {name}")
         
@@ -261,7 +286,15 @@ def login(event):
                 'statusCode': 401,
                 'body': json.dumps({'message': 'Invalid credentials'})
             }
-        
+
+        # An admin suspended (or deleted) this account in the admin console.
+        if user.get('status') == 'suspended':
+            print(f"Login refused - account {email} is suspended")
+            return {
+                'statusCode': 403,
+                'body': json.dumps({'message': 'This account is suspended. Contact your administrator.'})
+            }
+
         # Generate token
         print("Password verified, generating token")
         token = generate_token(user['user_id'], user['email'])
@@ -565,7 +598,23 @@ def profile_photo(event):
         return respond(500, {'message': 'Could not update your photo. Please try again.'})
 
 def lambda_handler(event, context):
-    """Main Lambda handler function"""
+    """Main Lambda handler: routes the request, then adds the CORS headers to EVERY response.
+
+    Several handlers return errors (400/401/403/409/500) without CORS headers. A browser
+    then hides the response from the web app, so a wrong password shows up as a generic
+    "Failed to fetch" instead of "Invalid credentials" (the Lambda console test can't show
+    this, because it doesn't go through a browser).
+    """
+    response = _route(event)
+    headers = dict(response.get('headers') or {})
+    for key, value in CORS_HEADERS.items():
+        headers.setdefault(key, value)
+    response['headers'] = headers
+    return response
+
+
+def _route(event):
+    """Picks the handler for the request's path and method."""
     # Get path and HTTP method from the event
     path = event.get('path', '')
     http_method = event.get('httpMethod', '')

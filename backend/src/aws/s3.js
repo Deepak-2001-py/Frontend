@@ -15,8 +15,14 @@ let s3
 const s3Client = () => (s3 ??= new S3Client({ region: config.aws.region }))
 
 const s3Driver = {
-  presignPut: (bucket, key, contentType, expiresIn) =>
-    getSignedUrl(s3Client(), new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType }), { expiresIn }),
+  // With contentLength, the size is part of the signature: S3 rejects a PUT of any
+  // other length, so the size the server validated is the size that gets stored.
+  presignPut: (bucket, key, contentType, expiresIn, contentLength) =>
+    getSignedUrl(
+      s3Client(),
+      new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType, ...(contentLength ? { ContentLength: contentLength } : {}) }),
+      { expiresIn },
+    ),
   presignGet: (bucket, key, expiresIn) =>
     getSignedUrl(s3Client(), new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn }),
   head: async (bucket, key) => {
@@ -39,22 +45,24 @@ const localPath = (bucket, key) => {
   return file
 }
 
-const sign = (op, bucket, key, exp, contentType = '') =>
-  createHmac('sha256', localKey).update([op, bucket, key, exp, contentType].join('\n')).digest('hex')
+const sign = (op, bucket, key, exp, contentType = '', length = '') =>
+  createHmac('sha256', localKey).update([op, bucket, key, exp, contentType, length].join('\n')).digest('hex')
 
-function localUrl(op, bucket, key, expiresIn, contentType) {
+function localUrl(op, bucket, key, expiresIn, contentType, contentLength) {
   const exp = Math.floor(Date.now() / 1000) + expiresIn
   const base = config.server.publicUrl || `http://localhost:${config.server.port}`
   const url = new URL(`${base}${config.server.basePath}${LOCAL_STORAGE_ROUTE}/${bucket}/${key.split('/').map(encodeURIComponent).join('/')}`)
   url.searchParams.set('exp', String(exp))
-  url.searchParams.set('sig', sign(op, bucket, key, exp, contentType))
+  const length = contentLength ? String(contentLength) : ''
+  if (length) url.searchParams.set('len', length)
+  url.searchParams.set('sig', sign(op, bucket, key, exp, contentType, length))
   return url.toString()
 }
 
 /** Checks a local storage URL's signature. Returns false when invalid or expired. */
-export function verifyLocalSignature(op, bucket, key, exp, sig, contentType = '') {
+export function verifyLocalSignature(op, bucket, key, exp, sig, contentType = '', length = '') {
   if (!sig || Number(exp) < Date.now() / 1000) return false
-  const expected = Buffer.from(sign(op, bucket, key, exp, contentType))
+  const expected = Buffer.from(sign(op, bucket, key, exp, contentType, length ? String(length) : ''))
   const given = Buffer.from(String(sig))
   return expected.length === given.length && timingSafeEqual(expected, given)
 }
@@ -73,7 +81,8 @@ export async function readLocalObject(bucket, key) {
 }
 
 const localDriver = {
-  presignPut: async (bucket, key, contentType, expiresIn) => localUrl('put', bucket, key, expiresIn, contentType),
+  presignPut: async (bucket, key, contentType, expiresIn, contentLength) =>
+    localUrl('put', bucket, key, expiresIn, contentType, contentLength),
   presignGet: async (bucket, key, expiresIn) => localUrl('get', bucket, key, expiresIn),
   head: async (bucket, key) => {
     try {

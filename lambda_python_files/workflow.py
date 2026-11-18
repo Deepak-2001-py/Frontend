@@ -199,6 +199,8 @@ def authenticate(event):
     user = users_table.get_item(Key={'email': email}).get('Item')
     if not user or user.get('user_id') != user_id:
         raise ApiError(401, 'Account no longer exists.')
+    if user.get('status') == 'suspended':
+        raise ApiError(401, 'This account is suspended.')
     return {'user_id': user_id, 'email': email, 'role': user.get('userRole', 'student'), 'user': user}
 
 
@@ -701,9 +703,12 @@ def accept_flagged(body, caller):
     row = grading_table.get_item(Key={'evaluation_id': evaluation_id}).get('Item')
     if not row or row.get('type') == 'summary':
         raise ApiError(404, 'Answer not found.')
-    assignment = assignments_table.get_item(Key={'assignment_id': row.get('assignment_id', '')}).get('Item')
+    # Owned by the assignment's teacher (the row's teacher_id is a legacy
+    # fallback); an answer with no owner either way is refused to teachers.
+    assignment_id = row.get('assignment_id')
+    assignment = assignments_table.get_item(Key={'assignment_id': assignment_id}).get('Item') if assignment_id else None
     owner = (assignment or {}).get('teacher_id') or row.get('teacher_id')
-    if caller['role'] == 'teacher' and owner and owner != caller['user_id']:
+    if caller['role'] == 'teacher' and owner != caller['user_id']:
         raise ApiError(403, 'This answer belongs to a different teacher.')
     grading_table.update_item(
         Key={'evaluation_id': evaluation_id},

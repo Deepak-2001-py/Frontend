@@ -2,7 +2,7 @@
 //   GradeAnt_Assignments    PK assignment_id; GSI teacher_id-index
 //   GradeAnt_Submissions    PK assignment_id, SK student_id; GSI student_id-index
 //   GradeAnt_Announcements  PK announcement_id
-import { table } from '../aws/dynamodb.js'
+import { table } from '../data/index.js'
 import config from '../config/index.js'
 
 const assignments = table(() => config.tables.assignments)

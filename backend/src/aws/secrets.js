@@ -24,7 +24,9 @@ async function fetchSecret(arn, key) {
 
 function resolve(key, value, arn) {
   if (value) return Promise.resolve(value)
-  if (!arn) return Promise.resolve('')
+  // secrets: env (app.yaml deployment providers): hosts like Render have no Secrets Manager;
+  // the value must be in the environment, and an ARN is never fetched.
+  if (!arn || config.drivers.secrets === 'env') return Promise.resolve('')
   if (!cache.has(key)) {
     const pending = fetchSecret(arn, key).catch((err) => {
       cache.delete(key) // retry on the next request instead of caching the failure
@@ -36,6 +38,8 @@ function resolve(key, value, arn) {
 }
 
 export const getJwtSecret = () => resolve('JWT_SECRET', config.auth.jwtSecret, config.auth.jwtSecretArn)
+
+export const getGeminiApiKey = () => resolve('GEMINI_API_KEY', config.gemini.apiKey, config.gemini.apiKeyArn)
 
 export const getSessionTokenSecret = () =>
   resolve('SESSION_TOKEN_SECRET', config.auth.sessionTokenSecret, config.auth.sessionTokenSecretArn)

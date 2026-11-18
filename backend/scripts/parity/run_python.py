@@ -20,8 +20,10 @@ SESSION_SECRET = 'parity-session-secret-0123456789abcdef'
 os.environ.update({
     'JWT_SECRET': SECRET, 'SESSION_TOKEN_SECRET': SESSION_SECRET,
     'AWS_DEFAULT_REGION': 'us-east-1', 'AWS_ACCESS_KEY_ID': 'x', 'AWS_SECRET_ACCESS_KEY': 'x',
-    'USERS_TABLE': 'GradeAnt_Users', 'LOGIN_USERS_TABLE': 'Users',
 })
+if os.environ.get('PARITY_PYTHON') != 'python-backend':
+    # The original admin Lambda names its tables differently; python-backend uses the Node names (defaults).
+    os.environ.update({'USERS_TABLE': 'GradeAnt_Users', 'LOGIN_USERS_TABLE': 'Users'})
 for k in ('AWS_LAMBDA_FUNCTION_NAME', 'PROFILE_PHOTO_BUCKET', 'SES_SENDER_EMAIL', 'SNS_TOPIC_ARN', 'GRADING_FUNCTION_NAME'):
     os.environ.pop(k, None)
 
@@ -83,17 +85,20 @@ for name, items in fixture['tables'].items():
     for item in items:
         ddb.Table(name).put_item(Item=resolve_value(item))
 
-sys.path[:0] = [os.path.join(REPO, 'lambda_python_files'), os.path.join(REPO, 'admin')]
 import importlib  # noqa: E402
 
-HANDLERS = {
-    '/auth': importlib.import_module('authetication'),
-    '/getgrades': importlib.import_module('get_grades'),
-    '/correctanswer': importlib.import_module('correct_questions_answer'),
-    '/updatedb': importlib.import_module('update_db'),
-    '/admin': importlib.import_module('lambda_admin'),
-    '/workflow': importlib.import_module('workflow'),
-}
+# PARITY_PYTHON=python-backend checks the updated Python 3.13 backend
+# (python-backend/functions + its gradeant_common layer); the default is the
+# original Lambdas in lambda_python_files/ and admin/.
+if os.environ.get('PARITY_PYTHON') == 'python-backend':
+    sys.path[:0] = [os.path.join(REPO, 'python-backend', 'functions'), os.path.join(REPO, 'python-backend')]
+    MODULES = {'/auth': 'auth', '/getgrades': 'grades', '/correctanswer': 'corrections', '/updatedb': 'marks',
+               '/admin': 'admin', '/workflow': 'workflow'}
+else:
+    sys.path[:0] = [os.path.join(REPO, 'lambda_python_files'), os.path.join(REPO, 'admin')]
+    MODULES = {'/auth': 'authetication', '/getgrades': 'get_grades', '/correctanswer': 'correct_questions_answer',
+               '/updatedb': 'update_db', '/admin': 'lambda_admin', '/workflow': 'workflow'}
+HANDLERS = {prefix: importlib.import_module(name) for prefix, name in MODULES.items()}
 
 claude_calls = []
 
@@ -103,7 +108,8 @@ def fake_claude(system, messages, *, effort, max_tokens=16000, output_format=Non
     return None if output_format else 'CANNED'
 
 
-HANDLERS['/workflow']._ask_claude = fake_claude
+# python-backend calls the model through _ask_ai (Gemini); the original Lambdas through _ask_claude.
+setattr(HANDLERS['/workflow'], '_ask_ai' if hasattr(HANDLERS['/workflow'], '_ask_ai') else '_ask_claude', fake_claude)
 users = {u['email']: u for u in fixture['tables']['Users']}
 
 

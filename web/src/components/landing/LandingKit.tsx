@@ -2,34 +2,73 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig, motion, useMotionValueEvent, useScroll, useSpring } from 'motion/react'
 import { EASE, fadeUp, stagger } from './motion'
-import { CONTACT } from './site'
-export { default as CountUp } from '../motion/CountUp'
+import { CONTACT, RESEARCH, SITE_URL, SOCIAL } from './site'
+import { Magnetic, RouteFade, TextReveal, trackSpotlight } from '../motion/kit'
 import '../../styles/landing.css'
+import '../../styles/landing-brand.css'
+import '../../styles/landing-motion.css'
+
+/** Cards across the public pages that get the pointer spotlight. */
+const SPOT = '.fx-spot, .lp-feature, .lp-role, .lp-tech-card, .lp-panel, .lp-info-item, .lp-paper-card, .lp-person, .lp-cards > *'
+const onSpot = trackSpotlight(SPOT)
 
 /**
- * Shared shell and building blocks for the marketing pages (Home, Features,
- * About, Blog, Contact): header, footer, scroll progress, reveal-on-scroll,
- * count-up numbers, section heads, inner-page hero, FAQ and carousel.
+ * Shared shell and building blocks for the marketing pages (Home, Product,
+ * Research, About, Careers, Contact, Security, Request a pilot): header, footer,
+ * per-page meta tags, reveal-on-scroll, section heads, inner-page hero, FAQ,
+ * product shots and CTA band.
  */
 
 const YEAR = new Date().getFullYear()
 
 const NAV = [
-  { to: '/features', label: 'Features' },
-  { to: '/#how', label: 'How it works' },
-  { to: '/features#technology', label: 'Technology' },
-  { to: '/blog', label: 'Blog' },
+  { to: '/features', label: 'Product' },
+  { to: '/research', label: 'Research' },
   { to: '/about', label: 'About' },
+  { to: '/careers', label: 'Careers' },
   { to: '/contact', label: 'Contact' },
 ]
 
+const DEFAULT_DESCRIPTION =
+  'GradeAnt is AI that grades handwritten math and physics step by step against your rubric, and drafts feedback for the teacher to review.'
+
+/** Sets a <meta> tag's content, creating the tag if the page doesn't have it yet. */
+function setMeta(attr: 'name' | 'property', key: string, content: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`)
+  if (!el) {
+    el = document.createElement('meta')
+    el.setAttribute(attr, key)
+    document.head.appendChild(el)
+  }
+  el.content = content
+}
+
+function setCanonical(href: string) {
+  let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+  if (!el) {
+    el = document.createElement('link')
+    el.rel = 'canonical'
+    document.head.appendChild(el)
+  }
+  el.href = href
+}
+
 /** Page wrapper: reduced-motion aware, skip link, progress bar, header, footer, #hash scrolling. */
-export function LandingPage({ title, children }: { title: string; children: ReactNode }) {
+export function LandingPage({ title, description = DEFAULT_DESCRIPTION, children }: { title: string; description?: string; children: ReactNode }) {
   const { pathname, hash } = useLocation()
 
+  // Title, description and sharing tags per page (search engines and link previews read these).
   useEffect(() => {
-    document.title = `GradeAnt | ${title}`
-  }, [title])
+    const fullTitle = `GradeAnt | ${title}`
+    document.title = fullTitle
+    setMeta('name', 'description', description)
+    setMeta('property', 'og:title', fullTitle)
+    setMeta('property', 'og:description', description)
+    setMeta('property', 'og:url', SITE_URL + pathname)
+    setMeta('name', 'twitter:title', fullTitle)
+    setMeta('name', 'twitter:description', description)
+    setCanonical(SITE_URL + pathname)
+  }, [title, description, pathname])
 
   // Router navigation doesn't scroll to #anchors (e.g. /#how, /features#technology).
   useEffect(() => {
@@ -43,13 +82,15 @@ export function LandingPage({ title, children }: { title: string; children: Reac
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="lp">
+      <div className="lp" onPointerMove={onSpot}>
         <a href="#main" className="lp-skip">
           Skip to content
         </a>
         <ScrollProgress />
         <Header />
-        <main id="main">{children}</main>
+        <main id="main">
+          <RouteFade routeKey={pathname}>{children}</RouteFade>
+        </main>
         <Footer />
       </div>
     </MotionConfig>
@@ -65,7 +106,7 @@ function ScrollProgress() {
 export function Logo() {
   return (
     <Link to="/" className="lp-logo" aria-label="GradeAnt home">
-      <img src="/img/grade-antlogo-removebg-preview.png" alt="" width={36} height={36} />
+      <img src="/img/gradeant-logo.webp" alt="" width={36} height={36} />
       <span>
         Grade<b>Ant</b>
       </span>
@@ -77,31 +118,41 @@ function Header() {
   const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  // Which nav link the pointer is over: a pill slides between them.
+  const [hovered, setHovered] = useState<string | null>(null)
   useMotionValueEvent(scrollY, 'change', (y) => setScrolled(y > 12))
 
   return (
     <header className={`lp-header${scrolled || open ? ' is-scrolled' : ''}`}>
       <div className="lp-container lp-header-inner">
         <Logo />
-        <nav className={`lp-nav${open ? ' is-open' : ''}`} aria-label="Main">
-          {NAV.map((n) =>
-            n.to.includes('#') ? (
-              <Link key={n.to} to={n.to} onClick={() => setOpen(false)}>
-                {n.label}
-              </Link>
-            ) : (
-              <NavLink key={n.to} to={n.to} onClick={() => setOpen(false)} className={({ isActive }) => (isActive ? 'is-active' : '')}>
-                {n.label}
-              </NavLink>
-            ),
-          )}
+        <nav className={`lp-nav${open ? ' is-open' : ''}`} aria-label="Main" onPointerLeave={() => setHovered(null)}>
+          {NAV.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              onClick={() => setOpen(false)}
+              onPointerEnter={() => setHovered(n.to)}
+              onFocus={() => setHovered(n.to)}
+              onBlur={() => setHovered(null)}
+              className={({ isActive }) => (isActive ? 'is-active' : '')}
+            >
+              {hovered === n.to && (
+                <motion.span layoutId="lp-nav-pill" className="lp-nav-pill" transition={{ type: 'spring', stiffness: 420, damping: 34 }} aria-hidden />
+              )}
+              <span className="lp-nav-label">{n.label}</span>
+            </NavLink>
+          ))}
           <div className="lp-nav-cta">
-            <Link to="/login" className="lp-btn lp-btn-ghost">
+            {/* Log in is for pilot users; no public sign-up link until sign-up opens. */}
+            <Link to="/login" className="lp-btn lp-btn-ghost" onClick={() => setOpen(false)}>
               Log in
             </Link>
-            <Link to="/get-started" className="lp-btn lp-btn-primary">
-              Get started
-            </Link>
+            <Magnetic strength={0.2}>
+              <Link to="/request-a-pilot" className="lp-btn lp-btn-primary" onClick={() => setOpen(false)}>
+                Request a pilot
+              </Link>
+            </Magnetic>
           </div>
         </nav>
         <button
@@ -124,22 +175,34 @@ function Footer() {
       <div className="lp-container lp-footer-grid">
         <div className="lp-footer-brand">
           <Logo />
-          <p>AI-powered grading for STEM classrooms — faster feedback, fairer grades, happier teachers.</p>
+          <p>AI that grades handwritten math and physics step by step, with the teacher reviewing every grade.</p>
+          <ul className="lp-social" aria-label="GradeAnt on social media">
+            {SOCIAL.map((s) => (
+              <li key={s.label}>
+                <a href={s.href} target="_blank" rel="noreferrer" aria-label={`GradeAnt on ${s.label}`}>
+                  <img src={s.icon} alt="" width={18} height={18} />
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
         <div>
           <h3>Product</h3>
           <ul>
             <li>
-              <Link to="/features">Features</Link>
+              <Link to="/features">Product</Link>
             </li>
             <li>
-              <Link to="/features#technology">Technology</Link>
+              <Link to="/#how">How it works</Link>
             </li>
             <li>
               <Link to="/demo">Demo</Link>
             </li>
             <li>
-              <Link to="/get-started">Get started</Link>
+              <Link to="/security">Security and privacy</Link>
+            </li>
+            <li>
+              <Link to="/request-a-pilot">Request a pilot</Link>
             </li>
           </ul>
         </div>
@@ -147,10 +210,13 @@ function Footer() {
           <h3>Company</h3>
           <ul>
             <li>
-              <Link to="/about">About us</Link>
+              <Link to="/research">Research</Link>
             </li>
             <li>
-              <Link to="/blog">Blog</Link>
+              <Link to="/about">About</Link>
+            </li>
+            <li>
+              <Link to="/careers">Careers</Link>
             </li>
             <li>
               <Link to="/contact">Contact</Link>
@@ -180,6 +246,7 @@ function Footer() {
             <li>
               <a href={`tel:${CONTACT.phone}`}>{CONTACT.phone}</a>
             </li>
+            <li>{CONTACT.hours}</li>
             <li>{CONTACT.address}</li>
           </ul>
         </div>
@@ -212,7 +279,7 @@ export function SectionHead({ eyebrow, title, text, light }: { eyebrow: string; 
       <motion.span className="lp-eyebrow" variants={fadeUp}>
         {eyebrow}
       </motion.span>
-      <motion.h2 variants={fadeUp}>{title}</motion.h2>
+      {typeof title === 'string' ? <TextReveal text={title} inView /> : <motion.h2 variants={fadeUp}>{title}</motion.h2>}
       {text && (
         <motion.p className="lp-lead" variants={fadeUp}>
           {text}
@@ -235,7 +302,7 @@ export function PageHero({ eyebrow, title, lead, children }: { eyebrow: string; 
         <motion.span className="lp-eyebrow" variants={fadeUp}>
           <span className="lp-dot" /> {eyebrow}
         </motion.span>
-        <motion.h1 variants={fadeUp}>{title}</motion.h1>
+        {typeof title === 'string' ? <TextReveal as="h1" text={title} delay={0.1} /> : <motion.h1 variants={fadeUp}>{title}</motion.h1>}
         <motion.p className="lp-lead" variants={fadeUp}>
           {lead}
         </motion.p>
@@ -250,7 +317,7 @@ export function PageHero({ eyebrow, title, lead, children }: { eyebrow: string; 
 }
 
 /** Accordion FAQ with FAQPage JSON-LD. */
-export function FaqList({ items }: { items: { q: string; a: string }[] }) {
+export function FaqList({ items }: { items: { q: string; a: string; link?: { to: string; label: string } }[] }) {
   const [open, setOpen] = useState<number | null>(0)
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -279,7 +346,17 @@ export function FaqList({ items }: { items: { q: string; a: string }[] }) {
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.3, ease: EASE }}
                   >
-                    <p>{f.a}</p>
+                    <p>
+                      {f.a}
+                      {f.link && (
+                        <>
+                          {' '}
+                          <Link to={f.link.to} className="lp-inline-link">
+                            {f.link.label}
+                          </Link>
+                        </>
+                      )}
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -292,76 +369,14 @@ export function FaqList({ items }: { items: { q: string; a: string }[] }) {
   )
 }
 
-/** Auto-advancing image carousel (pauses on hover; arrows, dots and ←/→ keys). */
-export function Carousel({ slides }: { slides: { src: string; caption: string }[] }) {
-  const [i, setI] = useState(0)
-  const [paused, setPaused] = useState(false)
-  const go = (d: number) => setI((n) => (n + d + slides.length) % slides.length)
-
-  useEffect(() => {
-    if (paused) return
-    const t = window.setInterval(() => setI((n) => (n + 1) % slides.length), 5000)
-    return () => clearInterval(t)
-  }, [paused, slides.length])
-
-  return (
-    <motion.div
-      className="lp-carousel"
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.8, ease: EASE }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onKeyDown={(e) => {
-        if (e.key === 'ArrowLeft') go(-1)
-        if (e.key === 'ArrowRight') go(1)
-      }}
-      tabIndex={0}
-      role="region"
-      aria-roledescription="carousel"
-      aria-label="Product screenshots"
-    >
-      <div className="lp-carousel-frame">
-        <AnimatePresence mode="wait">
-          <motion.img
-            key={slides[i].src}
-            src={slides[i].src}
-            alt={slides[i].caption}
-            loading="lazy"
-            initial={{ opacity: 0, scale: 1.03 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.45, ease: EASE }}
-          />
-        </AnimatePresence>
-        <button type="button" className="lp-car-btn is-prev" onClick={() => go(-1)} aria-label="Previous slide">
-          <span className="material-icons">chevron_left</span>
-        </button>
-        <button type="button" className="lp-car-btn is-next" onClick={() => go(1)} aria-label="Next slide">
-          <span className="material-icons">chevron_right</span>
-        </button>
-      </div>
-      <div className="lp-carousel-foot">
-        <AnimatePresence mode="wait">
-          <motion.p key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} aria-live="polite">
-            {slides[i].caption}
-          </motion.p>
-        </AnimatePresence>
-        <div className="lp-dots">
-          {slides.map((s, n) => (
-            <button key={s.src} type="button" className={n === i ? 'is-active' : ''} onClick={() => setI(n)} aria-label={`Slide ${n + 1}`} aria-current={n === i}>
-              {n === i && !paused && <motion.span layoutId="lp-dot-fill" className="lp-dot-fill" />}
-            </button>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
 /** Gradient call-to-action band used at the bottom of every marketing page. */
-export function CtaBand({ title, text }: { title: string; text: string }) {
+export function CtaBand({
+  title = 'Try GradeAnt with your class',
+  text = 'Pilots are open for math and physics courses. Tell us about your class and we will set you up.',
+}: {
+  title?: string
+  text?: string
+}) {
   return (
     <section className="lp-cta-section">
       <motion.div
@@ -375,16 +390,65 @@ export function CtaBand({ title, text }: { title: string; text: string }) {
         <h2>{title}</h2>
         <p>{text}</p>
         <div className="lp-hero-ctas">
-          <motion.span whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-            <Link to="/get-started" className="lp-btn lp-btn-light lp-btn-lg">
-              Get started free →
+          <Magnetic>
+            <Link to="/request-a-pilot" className="lp-btn lp-btn-light lp-btn-lg">
+              Request a pilot →
             </Link>
-          </motion.span>
-          <Link to="/contact" className="lp-btn lp-btn-outline-light lp-btn-lg">
-            Talk to us
+          </Magnetic>
+          <Link to="/#how" className="lp-btn lp-btn-outline-light lp-btn-lg">
+            See how it works
           </Link>
         </div>
       </motion.div>
     </section>
+  )
+}
+
+/** "Built on research" strip: links the product to the published benchmark work. */
+export function ResearchStrip() {
+  const { linalgBench } = RESEARCH
+  return (
+    <section className="lp-research-strip" aria-label="Built on research">
+      <Reveal className="lp-container lp-research-strip-inner">
+        <motion.span className="lp-eyebrow" variants={fadeUp}>
+          Built on research
+        </motion.span>
+        <motion.p variants={fadeUp}>
+          <b>{linalgBench.name}</b>, our benchmark of 10 frontier AI models on step-by-step linear algebra, maps where their reasoning
+          breaks down as problems grow. That research shapes how GradeAnt checks each step.
+        </motion.p>
+        <motion.div variants={fadeUp}>
+          <Link to="/research" className="lp-btn lp-btn-secondary">
+            Read the research →
+          </Link>
+        </motion.div>
+      </Reveal>
+    </section>
+  )
+}
+
+/**
+ * A product screen in a light browser frame. Shows the real screenshot when `src`
+ * is set (see MEDIA in site.ts); until then, the drawn illustration in `children`.
+ */
+export function ProductShot({ src, alt, bar, children }: { src: string | null; alt: string; bar: string; children: ReactNode }) {
+  return (
+    <figure className="lp-shot">
+      <div className="lp-mock-window">
+        <div className="lp-mock-bar" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <em>{bar}</em>
+        </div>
+        {src ? (
+          <img src={src} alt={alt} loading="lazy" width={1600} height={1000} />
+        ) : (
+          <div className="lp-shot-draw" role="img" aria-label={`Illustration: ${alt}`}>
+            {children}
+          </div>
+        )}
+      </div>
+    </figure>
   )
 }

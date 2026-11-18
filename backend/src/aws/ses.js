@@ -5,10 +5,10 @@ import config from '../config/index.js'
 let ses
 export const sentMail = [] // development/test inspection only
 
-/** sendEmail({ from, to, subject, html?, text? }) */
-export async function sendEmail({ from, to, subject, html, text }) {
+/** sendEmail({ from, to, subject, html?, text?, replyTo? }) */
+export async function sendEmail({ from, to, subject, html, text, replyTo }) {
   if (config.drivers.mail === 'log') {
-    sentMail.push({ from, to, subject, html, text })
+    sentMail.push({ from, to, subject, html, text, replyTo })
     console.log(JSON.stringify({ level: 'info', msg: 'email (not sent: MAIL_DRIVER=log)', to, subject }))
     return
   }
@@ -18,6 +18,7 @@ export async function sendEmail({ from, to, subject, html, text }) {
     new SendEmailCommand({
       Source: from,
       Destination: { ToAddresses: [to] },
+      ...(replyTo ? { ReplyToAddresses: [replyTo] } : {}),
       Message: { Subject: { Data: subject }, Body },
     }),
   )

@@ -2,11 +2,12 @@
 //   getSingleStudentGrade   a student may only read their own grades
 //   getAllStudentGrades     class roster, teacher/admin only
 //   updateStudentGrade      total marks, teacher/admin only
-// Teacher-to-teacher isolation is best-effort, as before: rows that already
-// name a different owning teacher_id are hidden or refused; ownerless rows are not.
+// A teacher only reaches rows of assignments they own (see ownership.js);
+// rows with no owner are refused to teachers.
 import { badRequest, forbidden, notFound } from '../lib/errors.js'
 import { truthy } from '../lib/py.js'
 import { studentRows, summaryRows, updateRow } from '../repositories/grading.repository.js'
+import { canManage, firstOwner, ownerResolver } from './ownership.js'
 
 export async function getSingleStudentGrade(body, caller) {
   const { student_id: studentId, assignment_id: assignmentId } = body
@@ -17,11 +18,8 @@ export async function getSingleStudentGrade(body, caller) {
   const details = await studentRows(studentId, { assignmentId, type: 'notSummary' })
   const summary = await studentRows(studentId, { assignmentId, type: 'summary' })
 
-  if (caller.role === 'teacher') {
-    const owners = new Set(summary.map((i) => i.teacher_id).filter(Boolean))
-    if (owners.size && !owners.has(caller.user_id)) {
-      throw forbidden("This student's results belong to a different teacher's class.")
-    }
+  if (caller.role === 'teacher' && !(await canManage(caller, assignmentId, firstOwner([...summary, ...details])))) {
+    throw forbidden("This student's results belong to a different teacher's class.")
   }
   return { student_id: studentId, assignment_id: assignmentId, details, summary }
 }
@@ -32,7 +30,11 @@ export async function getAllStudentGrades(body, caller) {
   if (!truthy(qpId) || !truthy(assignmentId)) throw badRequest('Missing required parameters: qp_id and assignment_id')
 
   let grades = await summaryRows(assignmentId, qpId)
-  if (caller.role === 'teacher') grades = grades.filter((g) => !g.teacher_id || g.teacher_id === caller.user_id)
+  if (caller.role === 'teacher') {
+    const resolve = ownerResolver()
+    const allowed = await Promise.all(grades.map((g) => canManage(caller, g.assignment_id ?? assignmentId, g.teacher_id, resolve)))
+    grades = grades.filter((_, i) => allowed[i])
+  }
   return { qp_id: qpId, assignment_id: assignmentId, student_count: grades.length, grades }
 }
 
@@ -47,11 +49,12 @@ export async function updateStudentGrade(body, caller) {
   // (get_grades.py returned nothing here, which API Gateway turned into a 502.)
   if (!item) throw notFound('No summary record found for that student and question paper.')
 
-  if (item.teacher_id && caller.role !== 'admin' && item.teacher_id !== caller.user_id) {
+  if (!(await canManage(caller, item.assignment_id, item.teacher_id))) {
     throw forbidden('This assignment belongs to a different teacher.')
   }
+  // An edit never moves ownership: teacher_id is only filled in when it was empty.
   await updateRow(item.evaluation_id, {
-    UpdateExpression: 'SET total_marks = :tm, teacher_id = :tid',
+    UpdateExpression: 'SET total_marks = :tm, teacher_id = if_not_exists(teacher_id, :tid)',
     ExpressionAttributeValues: { ':tm': totalMarks, ':tid': caller.user_id },
   })
   // Same (pre-update) rows the Python handler echoed back.

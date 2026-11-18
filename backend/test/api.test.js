@@ -2,7 +2,7 @@
 // uploads through presigned URLs (local storage driver), and the admin console.
 import assert from 'node:assert/strict'
 import { after, before, describe, test } from 'node:test'
-import { baseUrl, config, get, post, putUsers, startServer, stopServer, tokenFor } from './helpers.js'
+import { baseUrl, config, get, post, putUsers, startServer, stopServer, table, tokenFor } from './helpers.js'
 
 const { hashLoginPassword } = await import('../src/lib/passwords.js')
 const { sentMail } = await import('../src/aws/ses.js')
@@ -16,9 +16,10 @@ before(async () => {
   USERS = [
     { email: 'admin@x.edu', user_id: 'A1', name: 'Alex', userRole: 'admin', password },
     { email: 't@x.edu', user_id: 'T1', name: 'Priya', userRole: 'teacher', password },
-    { email: 'a@x.edu', user_id: 'S1', name: 'Okafor', userRole: 'student', password },
+    { email: 'a@x.edu', user_id: 'S1', name: 'Okafor', userRole: 'student', password, classes: ['PHY'] },
   ]
   await putUsers(USERS)
+  await table(config.tables.assignments).put({ assignment_id: 'A-1', qp_id: 'QP-1', teacher_id: 'T1', class_name: 'PHY', title: 'HW', content_status: 'published' })
 })
 after(stopServer)
 
@@ -34,7 +35,9 @@ describe('platform', () => {
     assert.equal(body.status, 'ok')
     const [readyStatus, ready] = await get('/health/ready')
     assert.equal(readyStatus, 200)
-    assert.equal(ready.checks.dynamodb.ok, true)
+    // "dynamodb" on the DynamoDB drivers (unchanged for AWS monitors), "database" on Postgres.
+    const dbCheck = ['postgres', 'pglite'].includes(config.drivers.db) ? 'database' : 'dynamodb'
+    assert.equal(ready.checks[dbCheck].ok, true)
     assert.equal(ready.checks.jwtSecret.ok, true)
   })
 
@@ -131,8 +134,11 @@ describe('auth and password resets', () => {
 describe('files', () => {
   test('profile photo: presigned upload, confirm, then view', async () => {
     const token = (await login('t@x.edu'))[1].token
-    assert.equal((await post('/auth/profile-photo', { action: 'upload-url', contentType: 'image/gif' }, { token }))[0], 400)
-    const [, { uploadUrl, key }] = await post('/auth/profile-photo', { action: 'upload-url', contentType: 'image/png' }, { token })
+    assert.equal((await post('/auth/profile-photo', { action: 'upload-url', contentType: 'image/gif', size: 8 }, { token }))[0], 400)
+    // The size is required and signed into the URL (max 5 MB).
+    assert.equal((await post('/auth/profile-photo', { action: 'upload-url', contentType: 'image/png' }, { token }))[0], 400)
+    assert.equal((await post('/auth/profile-photo', { action: 'upload-url', contentType: 'image/png', size: 5 * 1024 * 1024 + 1 }, { token }))[0], 400)
+    const [, { uploadUrl, key }] = await post('/auth/profile-photo', { action: 'upload-url', contentType: 'image/png', size: 8 }, { token })
     assert.equal(key, 'profile-photos/T1.png')
 
     const png = Buffer.from('89504e470d0a1a0a', 'hex')
@@ -151,7 +157,8 @@ describe('files', () => {
   })
 
   test('uploadpdf: authenticated, validated, one presigned URL per file', async () => {
-    const meta = { uploadType: 'student', assignmentId: 'A-1', files: [{ name: 'page 1.pdf', type: 'application/pdf', size: 1000 }] }
+    // size must be the real byte count: it's signed into the URL.
+    const meta = { uploadType: 'student', assignmentId: 'A-1', files: [{ name: 'page 1.pdf', type: 'application/pdf', size: '%PDF-1.4'.length }] }
     assert.equal((await post('/uploadpdf', meta))[0], 401)
     const student = tokenFor(USERS[2])
     assert.equal((await post('/uploadpdf', { ...meta, studentId: 'S9' }, { token: student }))[0], 403)
@@ -166,5 +173,33 @@ describe('files', () => {
     assert.equal(urls.length, 1)
     assert.match(urls[0], /\/_local-storage\/test-uploads\/uploads\/student\/A-1\/page_1\.pdf\?/)
     assert.equal((await fetch(urls[0], { method: 'PUT', headers: { 'Content-Type': 'application/pdf' }, body: '%PDF-1.4' })).status, 200)
+  })
+})
+
+describe('website contact form', () => {
+  test('a message and a pilot request are emailed to the team inbox', async () => {
+    const before = sentMail.length
+    const [status, body] = await post('/contact', { name: 'Ada', email: 'ada@school.edu', subject: 'Support', message: 'Hello\nthere' })
+    assert.equal(status, 200)
+    assert.match(body.message, /sent/)
+    const mail = sentMail.at(-1)
+    assert.equal(sentMail.length, before + 1)
+    assert.equal(mail.to, config.mail.contactInbox)
+    assert.equal(mail.replyTo, 'ada@school.edu')
+    assert.match(mail.subject, /\[Website message\] Support — Ada/)
+    assert.match(mail.text, /Hello\nthere/)
+
+    const [pilotStatus] = await post('/contact', { kind: 'pilot', name: 'Ada', email: 'ada@school.edu', school: 'Rolla High', subject: 'Physics', students: '120' })
+    assert.equal(pilotStatus, 200)
+    assert.match(sentMail.at(-1).text, /School: Rolla High[\s\S]*Students: 120/)
+  })
+
+  test('invalid input is rejected and the honeypot sends nothing', async () => {
+    assert.equal((await post('/contact', { name: '', email: 'a@b.co', message: 'x' }))[0], 400)
+    assert.equal((await post('/contact', { name: 'A', email: 'nope', message: 'x' }))[0], 400)
+    assert.equal((await post('/contact', { kind: 'pilot', name: 'A', email: 'a@b.co', school: 'S', subject: 'Maths', students: 'lots' }))[0], 400)
+    const before = sentMail.length
+    assert.equal((await post('/contact', { name: 'Bot', email: 'b@b.co', message: 'spam', website: 'http://spam' }))[0], 200)
+    assert.equal(sentMail.length, before)
   })
 })

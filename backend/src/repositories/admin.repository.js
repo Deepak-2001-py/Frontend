@@ -3,7 +3,7 @@
 //   GradeAnt_Content (post_id) · GradeAnt_Tickets (ticket_id) ·
 //   GradeAnt_AuditLogs (log_id) · GradeAnt_Settings (setting_key) ·
 //   GradeAnt_Invites (token) · GradeAnt_Analytics (metric_key)
-import { table } from '../aws/dynamodb.js'
+import { table } from '../data/index.js'
 import config from '../config/index.js'
 
 export const adminUsers = table(() => config.tables.adminUsers)

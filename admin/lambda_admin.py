@@ -71,10 +71,12 @@ import os
 import secrets
 import time
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Attr
+from botocore.exceptions import ClientError
 
 # ----------------------------------------------------------------------
 # Config
@@ -150,6 +152,11 @@ class ValidationError(ApiError):
         super().__init__(400, message)
 
 
+class ConflictError(ApiError):
+    def __init__(self, message="Conflict."):
+        super().__init__(409, message)
+
+
 # ----------------------------------------------------------------------
 # Minimal signed session tokens (no external JWT dependency)
 #
@@ -215,6 +222,32 @@ def _hash_password_for_login(password: str) -> str:
     """authetication.py's storage format: base64(32-byte salt + PBKDF2-SHA256/100k)."""
     salt = secrets.token_bytes(32)
     return base64.b64encode(salt + hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100_000)).decode("utf-8")
+
+
+def _password_problem(password: str):
+    """authetication.py's password_problem: 8+ chars, an uppercase letter, a number."""
+    if len(password) < 8:
+        return "Password must be at least 8 characters."
+    if not any(c.isupper() for c in password):
+        return "Password must include an uppercase letter."
+    if not any(c.isdigit() for c in password):
+        return "Password must include a number."
+    return None
+
+
+LOGIN_TOKEN_EXPIRY = int(os.environ.get("TOKEN_EXPIRY_SECONDS", 86400))
+
+
+def _issue_login_jwt(user_id: str, email: str) -> str:
+    """The HS256 JWT /auth/login issues (payload: user_id, email, exp, iat)."""
+    if not JWT_SECRET:
+        raise ApiError(500, "Server misconfigured: JWT_SECRET is not set.")
+    iat = int(time.time())
+    header_b64 = _b64url_encode(json.dumps({"alg": "HS256", "typ": "JWT"}, separators=(",", ":")).encode("utf-8"))
+    payload = {"user_id": user_id, "email": email, "exp": iat + LOGIN_TOKEN_EXPIRY, "iat": iat}
+    payload_b64 = _b64url_encode(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
+    signature = hmac.new(JWT_SECRET.encode("utf-8"), f"{header_b64}.{payload_b64}".encode("ascii"), hashlib.sha256).digest()
+    return f"{header_b64}.{payload_b64}.{_b64url_encode(signature)}"
 
 
 def _generate_temp_password() -> str:
@@ -289,6 +322,8 @@ def _verify_login_jwt(token: str) -> dict:
     user = _table(LOGIN_USERS_TABLE).get_item(Key={"email": email}).get("Item")
     if not user or user.get("user_id") != user_id:
         raise AuthError("Account no longer exists.")
+    if user.get("status") == "suspended":
+        raise AuthError("This account is suspended.")
     return {"sub": user_id, "role": user.get("userRole", "student"), "name": user.get("name", "Admin"), "email": email}
 
 
@@ -302,7 +337,14 @@ def _get_bearer_claims(event) -> dict:
     # own session token (issued by completeFirstLogin).
     if token.count(".") == 2:
         return _verify_login_jwt(token)
-    return _verify_token(token)
+    # Session tokens carry a role claim, but it's re-read from the account on every
+    # request so a deleted, suspended or demoted admin loses access at once.
+    claims = _verify_token(token)
+    sub = claims.get("sub")
+    account = _table(USERS_TABLE).get_item(Key={"user_id": str(sub)}).get("Item") if sub else None
+    if not account or account.get("status") == "suspended":
+        raise AuthError("Account no longer active.")
+    return dict(claims, role=account.get("role", "student"), name=account.get("name", claims.get("name")))
 
 
 def _require_admin(event) -> dict:
@@ -365,18 +407,39 @@ def list_users(payload, claims):
     return {"users": users, "total": len(users)}
 
 
+def _set_login_status(email: str, status: str):
+    """Set the app login account's status ('active' | 'suspended'). A no-op when
+    there's no login account for that email (e.g. an invite never completed)."""
+    try:
+        _table(LOGIN_USERS_TABLE).update_item(
+            Key={"email": email},
+            UpdateExpression="SET #s = :s",
+            ConditionExpression="attribute_exists(email)",
+            ExpressionAttributeNames={"#s": "status"},
+            ExpressionAttributeValues={":s": status},
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] != "ConditionalCheckFailedException":
+            raise
+
+
 def update_user_status(payload, claims):
     user_id = payload.get("userId")
     status = payload.get("status")
     if not user_id or status not in ("active", "suspended", "invited"):
         raise ValidationError("userId and a valid status are required.")
 
+    account = _table(USERS_TABLE).get_item(Key={"user_id": user_id}).get("Item") or {}
     _table(USERS_TABLE).update_item(
         Key={"user_id": user_id},
         UpdateExpression="SET #s = :status",
         ExpressionAttributeNames={"#s": "status"},
         ExpressionAttributeValues={":status": status},
     )
+    # The login account lives in the Users table (keyed by email): mirror a suspension
+    # there too, or the user could keep signing in to the app.
+    if account.get("email") and status != "invited":
+        _set_login_status(account["email"], status)
     _write_audit_log(claims["sub"], f"Set user status to {status}", user_id)
     return {"success": True}
 
@@ -385,6 +448,10 @@ def delete_user(payload, claims):
     user_id = payload.get("userId")
     if not user_id:
         raise ValidationError("userId is required.")
+    account = _table(USERS_TABLE).get_item(Key={"user_id": user_id}).get("Item") or {}
+    # Block the login account rather than deleting it, so grades stay attributable.
+    if account.get("email"):
+        _set_login_status(account["email"], "suspended")
     _table(USERS_TABLE).delete_item(Key={"user_id": user_id})
     _write_audit_log(claims["sub"], "Deleted user", user_id)
     return {"success": True}
@@ -447,7 +514,8 @@ def invite_users(payload, claims):
             "consumed": False,
         })
 
-        invite_link = f"{APP_BASE_URL}/admin/first_login_setup.html?token={token}"
+        # The React app's first-login page (web/src/App.tsx route "/first-login").
+        invite_link = f"{APP_BASE_URL}/first-login?token={token}"
         _send_invite_email(email, name, invite_link)
         invited_count += 1
 
@@ -490,22 +558,57 @@ def complete_first_login(payload, claims):
     if float(invite.get("expires_at", 0)) < time.time():
         raise ValidationError("This invite link has expired — ask your admin to resend it.")
 
+    problem = _password_problem(str(password))
+    if problem:
+        raise ValidationError(problem)
+
     user_id = invite["user_id"]
+    account = _table(USERS_TABLE).get_item(Key={"user_id": user_id}).get("Item") or {}
+    email = str(account.get("email") or "").strip()
+    if not email:
+        raise ValidationError("This invite has no email address — ask your admin to resend it.")
+
+    # Invites are the only way to get a teacher or admin account, so this creates
+    # the app login account (Users, keyed by email) that /auth/login and every app
+    # API read. It never overwrites an existing account (and so never changes its role).
+    now = datetime.utcnow().isoformat()
+    try:
+        _table(LOGIN_USERS_TABLE).put_item(
+            Item={
+                "user_id": user_id,
+                "email": email,
+                "name": invite.get("full_name", ""),
+                "password": _hash_password_for_login(str(password)),
+                "userRole": invite["role"],
+                "status": "active",
+                "created_at": now,
+                "updated_at": now,
+            },
+            ConditionExpression="attribute_not_exists(email)",
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            raise ConflictError("An account with this email already exists. Log in with it, or ask your admin for help.")
+        raise
+
     _table(USERS_TABLE).update_item(
         Key={"user_id": user_id},
         UpdateExpression="SET #s = :active, password_hash = :ph",
         ExpressionAttributeNames={"#s": "status"},
         ExpressionAttributeValues={":active": "active", ":ph": _hash_password(password)},
     )
+    # "consumed" is a DynamoDB reserved word: it must go through an alias, or this
+    # update fails (500) after the account was created and the invite never closes.
     invites_table.update_item(
         Key={"token": token},
-        UpdateExpression="SET consumed = :true",
+        UpdateExpression="SET #c = :true",
+        ExpressionAttributeNames={"#c": "consumed"},
         ExpressionAttributeValues={":true": True},
     )
 
-    session_token = _make_token({"sub": user_id, "role": invite["role"]}, SESSION_TOKEN_TTL_SECONDS)
     return {
-        "token": session_token,
+        # A normal login token, accepted by the app APIs and the admin console alike.
+        "token": _issue_login_jwt(user_id, email),
         "userId": user_id,
         "role": invite["role"],
         "fullName": invite["full_name"],

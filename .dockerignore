@@ -1,28 +1,11 @@
-# The root Dockerfile serves the legacy static site straight from this
-# folder, so anything not listed here becomes a public URL. Keep backend
-# code, deployment config, tooling and design docs out of the image.
-.git
-.github
-.claude
-skills-lock.json
-Dockerfile
-.dockerignore
-Task_definition.json
-app.bat
-README.md
-
-# Backend sources and their config (never serve these)
-backend
-lambda_python_files
-admin/*.py
-**/__pycache__
-
-# The React app is built and deployed separately (web/Dockerfile)
-web
-
-# Design / planning documents
-workflows
-images
-*.dc.html
-GradeAnt Website Wireframes (standalone).html
-mermaid-diagram*.png
+# The only image built from the repo root is the React web app:
+#   docker build -f web/Dockerfile .      (also what CI runs, .github/workflows/aws.yml)
+# It needs web/ and config/app.yaml; everything else stays out of the build context
+# (and so out of the public image). Same list as web/Dockerfile.dockerignore, which
+# BuildKit prefers; this copy covers builders that only read the root file.
+*
+!web
+!config
+web/node_modules
+web/dist
+web/.env.*.local

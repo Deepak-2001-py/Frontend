@@ -6,6 +6,21 @@
 import { isConditionalCheckFailed, badRequest, forbidden, reply } from '../lib/errors.js'
 import { isoNaive, pyStr, sortBy, truthy } from '../lib/py.js'
 import { getRow, studentRows, summaryRows, updateRow } from '../repositories/grading.repository.js'
+import * as wf from '../repositories/workflow.repository.js'
+import { canManage, firstOwner, ownerResolver } from './ownership.js'
+import { RANK, rank } from './workflow/context.js'
+
+/**
+ * Once a paper is graded (a summary row exists) or its submission has reached
+ * grading_triggered, the answer text is what was marked: the student can no
+ * longer rewrite it (e.g. to change an answer before asking for a re-check).
+ */
+async function answersLocked(studentId, assignmentId) {
+  if (!truthy(assignmentId)) return false
+  const sub = await wf.getSubmission(assignmentId, studentId)
+  if (sub && rank(sub.status) >= RANK.grading_triggered) return true
+  return (await studentRows(studentId, { assignmentId, type: 'summary' })).length > 0
+}
 
 const keyStr = (v) => pyStr(truthy(v) ? v : '')
 const isMissing = (v) => v === undefined || v === null
@@ -21,12 +36,9 @@ export async function getAnswersForCorrection(body, caller) {
     ...(truthy(qpId) ? { qpId } : {}),
   })
 
-  // A teacher (not admin) may only browse a submission that's unowned or already theirs.
-  if (caller.role === 'teacher') {
-    const owners = new Set(items.map((i) => i.teacher_id).filter(Boolean))
-    if (owners.size && !owners.has(caller.user_id)) {
-      throw forbidden("This student's answers belong to a different teacher's class.")
-    }
+  // A teacher (not admin) may only browse submissions for assignments they own.
+  if (caller.role === 'teacher' && !(await canManage(caller, assignmentId, firstOwner(items)))) {
+    throw forbidden("This student's answers belong to a different teacher's class.")
   }
 
   const answers = items.map((item) => ({
@@ -58,6 +70,7 @@ export async function submitAnswerCorrections(body, caller) {
   const updated = []
   const errors = []
   const now = isoNaive()
+  const locked = new Map() // assignment_id → answersLocked
   for (const correction of corrections) {
     const c = correction && typeof correction === 'object' ? correction : {}
     const evaluationId = c.evaluation_id
@@ -88,20 +101,35 @@ export async function submitAnswerCorrections(body, caller) {
         errors.push(`evaluation_id ${evaluationId} belongs to a different student.`)
         continue
       }
+      const aId = existing.assignment_id
+      if (!locked.has(aId)) locked.set(aId, await answersLocked(caller.user_id, aId))
+      if (locked.get(aId)) {
+        errors.push(`evaluation_id ${evaluationId} has already been graded and can no longer be changed.`)
+        continue
+      }
+      let expression =
+        'SET student_answer = :sa, is_latex = :il, #st = :status, corrected_by = :cb, corrected_at = :ca, updated_at = :ua'
+      const values = {
+        ':sa': answer,
+        ':il': isLatex,
+        ':status': 'corrected',
+        ':cb': caller.user_id,
+        ':ca': now,
+        ':ua': now,
+        ':qn': questionNumber,
+      }
+      if (typeof existing.student_answer === 'string') {
+        // Keep the text as read from the paper (once, never overwritten), so grading can tell a small
+        // OCR fix from a rewritten answer (the grader flags big changes for teacher review).
+        // Same as python-backend/functions/corrections.py.
+        expression += ', ocr_answer = if_not_exists(ocr_answer, :ocr)'
+        values[':ocr'] = existing.student_answer
+      }
       await updateRow(evaluationId, {
-        UpdateExpression:
-          'SET student_answer = :sa, is_latex = :il, #st = :status, corrected_by = :cb, corrected_at = :ca, updated_at = :ua',
+        UpdateExpression: expression,
         ConditionExpression: '#qn = :qn',
         ExpressionAttributeNames: { '#st': 'status', '#qn': 'question_number' },
-        ExpressionAttributeValues: {
-          ':sa': answer,
-          ':il': isLatex,
-          ':status': 'corrected',
-          ':cb': caller.user_id,
-          ':ca': now,
-          ':ua': now,
-          ':qn': questionNumber,
-        },
+        ExpressionAttributeValues: values,
       })
       updated.push({ evaluation_id: evaluationId, question_number: questionNumber, updated: true, is_latex: isLatex })
     } catch (err) {
@@ -134,7 +162,11 @@ export async function getQuestionsForCorrection(body, caller) {
   if (!truthy(qpId) || !truthy(assignmentId)) throw badRequest('qp_id and assignment_id are required')
 
   let roster = await classRoster(qpId, assignmentId)
-  if (caller.role === 'teacher') roster = roster.filter((g) => !g.teacher_id || g.teacher_id === caller.user_id)
+  if (caller.role === 'teacher') {
+    const resolve = ownerResolver()
+    const allowed = await Promise.all(roster.map((g) => canManage(caller, assignmentId, g.teacher_id, resolve)))
+    roster = roster.filter((_, i) => allowed[i])
+  }
   if (!roster.length) return { qp_id: qpId, assignment_id: assignmentId, questions: [] }
 
   const byKey = new Map()
@@ -171,6 +203,7 @@ export async function submitQuestionCorrections(body, caller) {
   if (!Array.isArray(corrections) || !corrections.length) throw badRequest('corrections (non-empty array) is required')
 
   const roster = await classRoster(qpId, assignmentId)
+  const resolve = ownerResolver()
   const now = isoNaive()
   const updatedQuestions = []
   const errors = []
@@ -194,9 +227,8 @@ export async function submitQuestionCorrections(body, caller) {
     for (const student of roster) {
       const studentId = student.student_id
       if (!truthy(studentId)) continue
-      // Rows already owned by a different teacher are skipped, not overwritten.
-      const owner = student.teacher_id
-      if (owner && caller.role !== 'admin' && owner !== caller.user_id) continue
+      // Rows of an assignment the caller doesn't own are skipped, not overwritten.
+      if (!(await canManage(caller, assignmentId, student.teacher_id, resolve))) continue
       try {
         const details = await studentRows(studentId, { assignmentId, qpId, questionNumber, type: 'notSummary' })
         for (const item of details) {

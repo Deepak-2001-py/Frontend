@@ -1,291 +1,224 @@
-import { useRef } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'motion/react'
-import { Carousel, CountUp, CtaBand, FaqList, LandingPage, Reveal, SectionHead } from '../../components/landing/LandingKit'
+import { motion, useMotionValueEvent, useScroll, useSpring } from 'motion/react'
+import { Magnetic, Marquee, TextReveal, Tilt } from '../../components/motion/kit'
+import { CtaBand, FaqList, LandingPage, ProductShot, ResearchStrip, Reveal, SectionHead } from '../../components/landing/LandingKit'
 import { EASE, fadeUp, stagger } from '../../components/landing/motion'
+import { BeforeAfterScreen, GradingScreen, HeroSplit, ReviewScreen, RubricScreen, UploadScreen } from '../../components/landing/Screens'
+import { MEDIA } from '../../components/landing/site'
 
 /**
- * Marketing homepage (wireframes §01 + §18), rebuilt as a React landing page
- * on the brand tokens with Motion for entrance, scroll and hover animation.
- * Respects prefers-reduced-motion via <MotionConfig reducedMotion="user">.
+ * Marketing homepage. Every claim here must be true today and checkable
+ * (GradeAnt Website Plan, priority 0): no usage numbers, accuracy figures or
+ * subjects we haven't tested. Send changed copy to Shradha before it goes live.
  */
 
 const FEATURES = [
-  { icon: 'bolt', title: 'Instant feedback', text: 'Grades a full batch in seconds, not hours — with a comment on every answer.', tone: 'brand', span: 2 },
-  { icon: 'draw', title: 'Reads handwriting', text: 'Messy working, diagrams and equations — GradeFlow™ reads them like a teacher would.', tone: 'accent', span: 1 },
-  { icon: 'tune', title: 'Your rubric, your voice', text: 'Upload a solution key or let AI draft the rubric, then grade strict, balanced or lenient.', tone: 'sky', span: 1 },
-  { icon: 'functions', title: 'Built for STEM', text: 'Physics, chemistry, maths and more — units, signs and partial-credit method marks included.', tone: 'brand', span: 2 },
-  { icon: 'insights', title: 'Class insights', text: 'Score spread, hardest questions and at-risk students the moment grading finishes.', tone: 'accent', span: 2 },
-  { icon: 'verified_user', title: 'Teacher stays in control', text: 'Low-confidence answers are flagged for you. Nothing reaches students until you publish.', tone: 'sky', span: 1 },
+  { icon: 'draw', title: 'Reads handwritten work', text: 'Scanned working, equations and units are read and matched to the right question.', tone: 'brand', span: 2 },
+  { icon: 'checklist', title: 'Checks every step', text: 'Each step is marked against your rubric, with partial credit for correct method.', tone: 'accent', span: 1 },
+  { icon: 'tune', title: 'Your rubric', text: 'Upload a solution key, or start from an AI-drafted rubric that you edit and approve.', tone: 'accent', span: 1 },
+  { icon: 'functions', title: 'Math and physics', text: 'Built and tested on math and physics today, including units, signs and method marks.', tone: 'brand', span: 2 },
+  { icon: 'insights', title: 'Class view', text: 'See the score spread and the hardest questions once a batch is graded.', tone: 'brand', span: 2 },
+  { icon: 'verified_user', title: 'You approve every grade', text: 'Uncertain answers are flagged for you. Nothing reaches students until you publish.', tone: 'accent', span: 1 },
 ] as const
 
-const STEPS = [
-  { icon: 'upload_file', title: 'Upload', text: 'Drop in the question paper. Students upload photos or scans of their answers.' },
-  { icon: 'fact_check', title: 'Verify', text: 'Check what the OCR read and choose AI grading or your own solution key.' },
-  { icon: 'auto_awesome', title: 'Auto-grade', text: 'GradeFlow™ scores every answer against the rubric and writes feedback.' },
-  { icon: 'send', title: 'Review & publish', text: 'Spot-check flagged answers, adjust anything, then release grades in one click.' },
+const STEPS: { title: string; text: string; bar: string; src: string | null; alt: string; draw: ReactNode }[] = [
+  {
+    title: 'Upload',
+    text: 'Upload the question paper and the scanned student answers.',
+    bar: 'Upload answer sheets',
+    src: MEDIA.upload,
+    alt: 'Upload screen with scanned answer sheets',
+    draw: <UploadScreen />,
+  },
+  {
+    title: 'Set the rubric',
+    text: 'Use your solution key, or edit the drafted rubric and approve it.',
+    bar: 'Rubric settings',
+    src: MEDIA.rubric,
+    alt: 'Rubric settings with marks for each step',
+    draw: <RubricScreen />,
+  },
+  {
+    title: 'Grading',
+    text: 'GradeAnt checks every step against the rubric and drafts feedback.',
+    bar: 'Grading in progress',
+    src: MEDIA.grading,
+    alt: 'Grading progress for a batch of answers',
+    draw: <GradingScreen />,
+  },
+  {
+    title: 'Teacher review',
+    text: 'Check what was flagged, adjust any mark, then publish.',
+    bar: 'Teacher review',
+    src: MEDIA.review,
+    alt: 'Teacher review screen with flagged answers',
+    draw: <ReviewScreen />,
+  },
 ]
 
 const PIPELINE = [
-  { label: 'Image analysis', detail: 'Vision model reads each page' },
-  { label: 'Text extraction', detail: 'Handwriting → text & LaTeX' },
-  { label: 'Question matching', detail: 'Answers mapped to questions' },
-  { label: 'Grading', detail: 'Scored against your rubric' },
-  { label: 'Feedback', detail: 'Personal, actionable notes' },
-]
-
-const SLIDES = [
-  { src: '/img/grading.png', caption: 'GradeFlow™: from answer sheet to scored, explained feedback' },
-  { src: '/img/pdf_upload.png', caption: 'A real handwritten answer sheet beside its question paper' },
-  { src: '/img/teacher_workflow.png', caption: 'For teachers: create, notify, finalise grades' },
-  { src: '/img/student_workflow.png', caption: 'For students: submit, get graded, read feedback' },
+  { label: 'Read', detail: 'Handwriting to text and math' },
+  { label: 'Match', detail: 'Answers mapped to questions' },
+  { label: 'Check', detail: 'Each step against your rubric' },
+  { label: 'Explain', detail: 'Draft feedback per answer' },
+  { label: 'Review', detail: 'You approve before students see it' },
 ]
 
 const FAQ = [
   {
     q: 'Can GradeAnt really read handwritten answers?',
-    a: 'Yes. Students photograph or scan their pages and GradeFlow™ extracts the handwriting, equations and working. Before grading, students confirm what was read, and any low-confidence text is flagged.',
+    a: 'Yes. Teachers upload scanned pages and GradeAnt reads the handwriting, equations and working. Anything it reads with low confidence is flagged for a person to check.',
   },
   {
     q: 'Do I need to provide an answer key?',
-    a: 'No. Choose AI grading and GradeFlow™ drafts a rubric from your question paper for you to review — or upload your own standard solution for the most control.',
+    a: 'No. GradeAnt can draft a rubric from your question paper for you to edit and approve, or you can upload your own solution key.',
   },
   {
     q: 'Who has the final say on grades?',
-    a: 'You do. Answers the AI is unsure about are queued for your review, you can override any score, and nothing is visible to students until you publish.',
+    a: 'You do. Uncertain answers are queued for your review, you can change any mark, and nothing is visible to students until you publish.',
   },
   {
     q: 'Which subjects does it support?',
-    a: 'GradeAnt is built for STEM — physics, chemistry, mathematics and related subjects — including units, sign conventions and partial credit for method.',
+    a: 'Math and physics. Those are the subjects GradeAnt has been built and tested on so far.',
   },
   {
-    q: 'How do students see their results?',
-    a: 'When you publish, every student is notified and sees their score, per-question feedback and can request a re-check that comes straight back to you.',
+    q: 'How is student data handled?',
+    a: 'Student work is only visible to the teachers of that course, and you can ask us to delete it.',
+    link: { to: '/security', label: 'Read how we store and protect data.' },
   },
 ]
 
 export default function Home() {
   return (
-    <LandingPage title="AI-Powered STEM Homework Grading">
+    <LandingPage
+      title="AI that grades handwritten math and physics"
+      description="Teachers upload scanned work. GradeAnt checks every step of handwritten math and physics against your rubric and drafts feedback for you to review."
+    >
       <Hero />
-      <Stats />
+      <ResearchStrip />
       <Features />
       <HowItWorks />
+      <InAction />
       <Technology />
       <Roles />
-      <section className="lp-section lp-section-soft" id="demo">
-        <div className="lp-container">
-          <SectionHead eyebrow="See it in action" title="A closer look at GradeAnt" />
-          <Carousel slides={SLIDES} />
-        </div>
-      </section>
       <section className="lp-section" id="faq">
         <div className="lp-container lp-faq-wrap">
           <SectionHead eyebrow="FAQ" title="Questions teachers ask us" />
           <FaqList items={FAQ} />
         </div>
       </section>
-      <CtaBand title="Reclaim your time. Start grading today." text="Set up your first assignment in minutes — your students get better feedback, faster." />
+      <CtaBand />
     </LandingPage>
   )
 }
 
 // ---- Hero ----
 
+const HERO_POINTS = ['Your rubric', 'Partial credit for method', 'You approve every grade']
+
+/** What GradeAnt marks, shown as a slow ticker under the hero (all shown in the examples on this page). */
+const CHECKS = [
+  ['functions', 'Handwritten equations'],
+  ['straighten', 'Units'],
+  ['swap_vert', 'Sign conventions'],
+  ['account_tree', 'Method marks'],
+  ['percent', 'Partial credit'],
+  ['input', 'Substituted values'],
+  ['timeline', 'Multi-step derivations'],
+  ['task_alt', 'Final answers'],
+  ['flag', 'Low-confidence reads, flagged'],
+]
+
 function Hero() {
   return (
-    <section className="lp-hero">
-      <div className="lp-hero-bg" aria-hidden>
-        <motion.span className="lp-blob lp-blob-a" animate={{ x: [0, 40, 0], y: [0, -30, 0] }} transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }} />
-        <motion.span className="lp-blob lp-blob-b" animate={{ x: [0, -30, 0], y: [0, 40, 0] }} transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }} />
-        <span className="lp-grid-bg" />
-      </div>
+    <section className="lp-hero lp-hero-v2">
       <div className="lp-container lp-hero-inner">
         <motion.div className="lp-hero-copy" variants={stagger} initial="hidden" animate="show">
           <motion.span className="lp-eyebrow" variants={fadeUp}>
-            <span className="lp-dot" /> AI-powered STEM grading
+            <span className="lp-dot" /> For math and physics teachers
           </motion.span>
-          <motion.h1 variants={fadeUp}>
-            Grade STEM homework in <span className="lp-gradient-text">seconds</span>, not hours.
-          </motion.h1>
+          <TextReveal as="h1" text="AI that grades handwritten math and physics, step by step." highlight="step by step." delay={0.15} />
           <motion.p className="lp-lead" variants={fadeUp}>
-            GradeFlow™ reads handwritten working, applies your rubric and writes rich feedback for every student — so you can
-            get back to teaching.
+            Teachers upload scanned work. GradeAnt checks every step against your rubric and drafts feedback for you to review.
           </motion.p>
           <motion.div className="lp-hero-ctas" variants={fadeUp}>
-            <motion.span whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/get-started" className="lp-btn lp-btn-primary lp-btn-lg">
-                Start grading free <span aria-hidden>→</span>
-              </Link>
-            </motion.span>
-            <motion.span whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/demo" className="lp-btn lp-btn-secondary lp-btn-lg">
-                <span className="material-icons" aria-hidden>
-                  play_circle
+            <Magnetic>
+              <Link to="/request-a-pilot" className="lp-btn lp-btn-primary lp-btn-lg">
+                Request a pilot
+                <span className="material-icons lp-btn-arrow" aria-hidden>
+                  arrow_forward
                 </span>
-                Watch demo
               </Link>
-            </motion.span>
+            </Magnetic>
+            <Link to="/#how" className="lp-btn lp-btn-secondary lp-btn-lg">
+              See how it works
+            </Link>
           </motion.div>
           <motion.ul className="lp-hero-points" variants={fadeUp}>
-            <li>
-              <span className="material-icons">check_circle</span> No answer key needed
-            </li>
-            <li>
-              <span className="material-icons">check_circle</span> You approve every grade
-            </li>
-            <li>
-              <span className="material-icons">check_circle</span> Handwriting & diagrams
-            </li>
+            {HERO_POINTS.map((p) => (
+              <li key={p}>
+                <span className="material-icons" aria-hidden>
+                  check_circle
+                </span>
+                {p}
+              </li>
+            ))}
           </motion.ul>
         </motion.div>
-        <HeroMock />
-      </div>
-    </section>
-  )
-}
 
-/** Animated product preview: a handwritten paper being scanned and scored. */
-function HeroMock() {
-  return (
-    <motion.div
-      className="lp-mock"
-      initial={{ opacity: 0, y: 40, rotate: 2 }}
-      animate={{ opacity: 1, y: 0, rotate: 0 }}
-      transition={{ duration: 0.9, ease: EASE, delay: 0.25 }}
-      aria-label="GradeAnt grading a handwritten physics paper"
-      role="img"
-    >
-      <div className="lp-mock-window">
-        <div className="lp-mock-bar">
-          <span />
-          <span />
-          <span />
-          <em>Thermodynamics HW · Paper 12 of 31</em>
-        </div>
-        <div className="lp-mock-body">
-          <div className="lp-paper">
-            <motion.div
-              className="lp-scan"
-              animate={{ top: ['4%', '92%', '4%'] }}
-              transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-            />
-            {['Q3', 'Q5', 'Q7'].map((q, i) => (
-              <div key={q} className="lp-paper-q">
-                <b>{q}</b>
-                <motion.i
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.8, delay: 0.6 + i * 0.35, ease: EASE }}
-                  style={{ width: `${88 - i * 14}%` }}
-                />
-                <motion.i
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.8, delay: 0.8 + i * 0.35, ease: EASE }}
-                  style={{ width: `${62 + i * 10}%` }}
-                />
-              </div>
-            ))}
-            <div className="lp-formula">ΔU = Q − W</div>
-          </div>
-          <div className="lp-mock-side">
-            <ScoreRing />
-            {[
-              { q: 'Q3', t: 'First law stated correctly', s: '10/10', tone: 'ok' },
-              { q: 'Q5', t: 'Entropy sign reversed', s: '6/10', tone: 'warn' },
-              { q: 'Q7', t: 'Clear diagram & working', s: '8/8', tone: 'ok' },
-            ].map((f, i) => (
-              <motion.div
-                key={f.q}
-                className={`lp-chip lp-chip-${f.tone}`}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.4 + i * 0.25, duration: 0.5, ease: EASE }}
-              >
-                <b>{f.q}</b>
-                <span>{f.t}</span>
-                <strong>{f.s}</strong>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <motion.div
-        className="lp-float lp-float-a"
-        animate={{ y: [0, -10, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <span className="material-icons">auto_awesome</span>
-        <div>
-          <b>Feedback drafted</b>
-          <small>31 papers · 2 min</small>
-        </div>
-      </motion.div>
-      <motion.div
-        className="lp-float lp-float-b"
-        animate={{ y: [0, 10, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <span className="material-icons">flag</span>
-        <div>
-          <b>3 answers flagged</b>
-          <small>for your review</small>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
-}
-
-function ScoreRing() {
-  const R = 34
-  const C = 2 * Math.PI * R
-  return (
-    <div className="lp-ring">
-      <svg viewBox="0 0 80 80" width="88" height="88" aria-hidden>
-        <circle cx="40" cy="40" r={R} className="lp-ring-track" />
-        <motion.circle
-          cx="40"
-          cy="40"
-          r={R}
-          className="lp-ring-fill"
-          strokeDasharray={C}
-          initial={{ strokeDashoffset: C }}
-          animate={{ strokeDashoffset: C * (1 - 0.88) }}
-          transition={{ duration: 1.6, delay: 0.9, ease: EASE }}
-        />
-      </svg>
-      <div className="lp-ring-label">
-        <b>
-          <CountUp to={88} />
-        </b>
-        <small>/ 100 · A</small>
-      </div>
-    </div>
-  )
-}
-
-// ---- Stats ----
-
-function Stats() {
-  // Figures from the website wireframes (§01 B) — confirm before launch.
-  const stats = [
-    { to: 42, suffix: 'hrs', label: 'saved per teacher, per month' },
-    { to: 547, suffix: '', label: 'papers graded in a single batch' },
-    { to: 98, suffix: '%', label: 'agreement with teacher rubrics' },
-  ]
-  return (
-    <section className="lp-stats" aria-label="GradeAnt in numbers">
-      <Reveal className="lp-container lp-stats-grid">
-        {stats.map((s) => (
-          <motion.div key={s.label} className="lp-stat" variants={fadeUp}>
-            <b>
-              <CountUp to={s.to} suffix={s.suffix} />
-            </b>
-            <span>{s.label}</span>
+        <motion.div className="lp-hero-visual" initial={{ opacity: 0, y: 32, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.9, ease: EASE, delay: 0.25 }}>
+          <span className="lp-hero-glow" aria-hidden />
+          <Tilt max={5}>
+            <div className="lp-hero-frame fx-border">
+              <ProductShot src={MEDIA.hero} alt="A scanned handwritten physics answer next to GradeAnt's step-by-step marks and feedback" bar="Q2 · step-by-step grading">
+                <HeroSplit animated={!MEDIA.hero} delay={0.9} />
+              </ProductShot>
+            </div>
+          </Tilt>
+          <motion.div
+            className="lp-float lp-float-b"
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: EASE, delay: 2.6 }}
+            aria-hidden
+          >
+            <span className="material-icons">flag</span>
+            <span>
+              <b>Step 3 flagged</b>
+              <small>Waiting for your review</small>
+            </span>
           </motion.div>
-        ))}
-      </Reveal>
+          <motion.div
+            className="lp-float lp-float-a"
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.6, ease: EASE, delay: 2.1 }}
+            aria-hidden
+          >
+            <span className="material-icons">verified</span>
+            <span>
+              <b>Method mark kept</b>
+              <small>Right equation, wrong arithmetic</small>
+            </span>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      <div className="lp-container lp-checks-strip">
+        <span className="lp-checks-label">What GradeAnt checks</span>
+        <Marquee
+          label="What GradeAnt checks"
+          items={CHECKS.map(([icon, text]) => (
+            <span key={text} className="lp-check-chip">
+              <span className="material-icons" aria-hidden>
+                {icon}
+              </span>
+              {text}
+            </span>
+          ))}
+        />
+      </div>
     </section>
   )
 }
@@ -297,23 +230,13 @@ function Features() {
     <section className="lp-section" id="features">
       <div className="lp-container">
         <SectionHead
-          eyebrow="Why teachers choose GradeAnt"
-          title={
-            <>
-              Everything you need to grade <span className="lp-gradient-text">your way</span>
-            </>
-          }
-          text="From the first upload to the last piece of feedback, GradeAnt handles the busywork and leaves the judgement to you."
+          eyebrow="What it does"
+          title="Grading support that shows its working"
+          text="GradeAnt handles the reading and first-pass marking. The judgement stays with you."
         />
         <Reveal className="lp-bento">
           {FEATURES.map((f) => (
-            <motion.article
-              key={f.title}
-              className={`lp-feature lp-tone-${f.tone}${f.span === 2 ? ' is-wide' : ''}`}
-              variants={fadeUp}
-              whileHover={{ y: -6 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-            >
+            <motion.article key={f.title} className={`lp-feature lp-tone-${f.tone}${f.span === 2 ? ' is-wide' : ''}`} variants={fadeUp}>
               <span className="lp-feature-icon material-icons" aria-hidden>
                 {f.icon}
               </span>
@@ -329,34 +252,103 @@ function Features() {
 
 // ---- How it works ----
 
+/**
+ * Sticky scroll story (desktop): the step list stays pinned on the left while
+ * each step's screen scrolls past on the right; the step whose screen is in
+ * view lights up and the progress rail fills. On narrow screens it is a plain
+ * stacked list (CSS hides the rail and un-sticks the list).
+ */
 function HowItWorks() {
-  const ref = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 80%', 'end 60%'] })
-  const scaleX = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const [active, setActive] = useState(0)
+  const story = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: story, offset: ['start 60%', 'end 60%'] })
+  const fill = useSpring(scrollYProgress, { stiffness: 120, damping: 28 })
+
+  function jump(i: number) {
+    document.getElementById(`how-step-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 
   return (
     <section className="lp-section lp-section-soft" id="how">
       <div className="lp-container">
-        <SectionHead eyebrow="How it works" title="From stack of paper to published grades in four steps" />
-        <div className="lp-steps" ref={ref}>
-          <div className="lp-steps-track" aria-hidden>
-            <motion.span style={{ scaleX }} />
+        <SectionHead eyebrow="How it works" title="From scanned answers to reviewed grades in four steps" />
+        <div className="lp-story" ref={story}>
+          <div className="lp-story-rail">
+            <span className="lp-story-track" aria-hidden>
+              <motion.span style={{ scaleY: fill }} />
+            </span>
+            <ol className="lp-story-list">
+              {STEPS.map((s, i) => (
+                <li key={s.title} className={i === active ? 'is-active' : i < active ? 'is-done' : undefined}>
+                  <button type="button" onClick={() => jump(i)} aria-current={i === active ? 'step' : undefined}>
+                    <span className="lp-story-num">{i + 1}</span>
+                    <span>
+                      <b>{s.title}</b>
+                      <small>{s.text}</small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
           </div>
-          <Reveal className="lp-steps-grid" as="ul">
+          <div className="lp-story-shots">
             {STEPS.map((s, i) => (
-              <motion.li key={s.title} className="lp-step" variants={fadeUp}>
-                <span className="lp-step-num">
-                  <span className="material-icons" aria-hidden>
-                    {s.icon}
-                  </span>
-                </span>
-                <small>Step {i + 1}</small>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
-              </motion.li>
+              <motion.figure
+                key={s.title}
+                id={`how-step-${i}`}
+                className="lp-story-shot"
+                initial={{ opacity: 0.35, scale: 0.96 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ amount: 0.6 }}
+                onViewportEnter={() => setActive(i)}
+                transition={{ duration: 0.5, ease: EASE }}
+              >
+                <figcaption className="lp-story-caption">
+                  <small>Step {i + 1}</small>
+                  <h3>{s.title}</h3>
+                  <p>{s.text}</p>
+                </figcaption>
+                <ProductShot src={s.src} alt={s.alt} bar={s.bar}>
+                  {s.draw}
+                </ProductShot>
+              </motion.figure>
             ))}
-          </Reveal>
+          </div>
         </div>
+      </div>
+    </section>
+  )
+}
+
+// ---- See it in action: demo video (when recorded) + before and after ----
+
+function InAction() {
+  return (
+    <section className="lp-section" id="demo">
+      <div className="lp-container">
+        <SectionHead
+          eyebrow="See GradeAnt in action"
+          title="One answer, before and after"
+          text="A handwritten derivation as the student wrote it, next to the step marks and feedback GradeAnt drafted for the teacher."
+        />
+        {MEDIA.demoVideo && (
+          <div className="lp-video">
+            <video controls muted playsInline preload="metadata" poster={MEDIA.demoPoster ?? undefined} aria-label="GradeAnt grading one handwritten answer">
+              <source src={MEDIA.demoVideo} type="video/mp4" />
+              {MEDIA.demoCaptions && <track kind="captions" src={MEDIA.demoCaptions} srcLang="en" label="English" default />}
+            </video>
+          </div>
+        )}
+        <Reveal>
+          <motion.div variants={fadeUp}>
+            <ProductShot src={MEDIA.beforeAfter} alt="A handwritten integration-by-parts answer next to GradeAnt's feedback" bar="Q3 · before and after">
+              <BeforeAfterScreen />
+            </ProductShot>
+          </motion.div>
+        </Reveal>
+        <p className="lp-center-link">
+          <Link to="/demo">Take the full product tour →</Link>
+        </p>
       </div>
     </section>
   )
@@ -364,50 +356,37 @@ function HowItWorks() {
 
 // ---- Technology (dark) ----
 
+/** The pipeline draws itself as the section scrolls through: the line fills and each stage lights up when reached. */
 function Technology() {
+  const ref = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 85%', 'end 45%'] })
+  const line = useSpring(scrollYProgress, { stiffness: 110, damping: 26 })
+  const [lit, setLit] = useState(0)
+  useMotionValueEvent(scrollYProgress, 'change', (v) => setLit(Math.min(PIPELINE.length, Math.floor(v * PIPELINE.length + 0.35))))
+
   return (
-    <section className="lp-section lp-dark" id="technology">
+    <section className="lp-section lp-dark lp-tech" id="technology">
       <div className="lp-container">
         <SectionHead
           light
           eyebrow="The technology"
-          title={
-            <>
-              Meet <span className="lp-gradient-text">GradeFlow™</span>
-            </>
-          }
-          text="Vision and language models built for education, working as a pipeline of agents — each step checkable by you."
+          title={<>How GradeFlow™ works</>}
+          text="GradeFlow™ is our grading pipeline. Each stage leaves a result you can check."
         />
-        <Reveal className="lp-pipeline" as="ul">
-          {PIPELINE.map((p, i) => (
-            <motion.li key={p.label} variants={fadeUp}>
-              <motion.span
-                className="lp-pipe-node"
-                animate={{ boxShadow: ['0 0 0 0 rgba(255,122,0,0)', '0 0 0 10px rgba(255,122,0,0.18)', '0 0 0 0 rgba(255,122,0,0)'] }}
-                transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.5 }}
-              >
-                {i + 1}
-              </motion.span>
-              <b>{p.label}</b>
-              <small>{p.detail}</small>
-            </motion.li>
-          ))}
-        </Reveal>
-        <Reveal className="lp-tech-cards">
-          {[
-            { icon: 'document_scanner', title: 'Visual language model', text: 'Reads handwriting, diagrams and equations straight from a photo or scan.' },
-            { icon: 'hub', title: 'LLM grading agents', text: 'Parse the paper, identify each question and grade against your rubric.' },
-            { icon: 'psychology', title: 'Personalised feedback', text: 'Tailored notes that tell each student what to fix and how to improve.' },
-          ].map((c) => (
-            <motion.div key={c.title} className="lp-tech-card" variants={fadeUp} whileHover={{ y: -4 }}>
-              <span className="material-icons" aria-hidden>
-                {c.icon}
-              </span>
-              <h3>{c.title}</h3>
-              <p>{c.text}</p>
-            </motion.div>
-          ))}
-        </Reveal>
+        <div className="lp-pipeline-wrap" ref={ref}>
+          <span className="lp-pipe-line" aria-hidden>
+            <motion.span style={{ scaleX: line }} />
+          </span>
+          <ol className="lp-pipeline lp-pipeline-v2">
+            {PIPELINE.map((p, i) => (
+              <li key={p.label} className={i < lit ? 'is-lit' : undefined}>
+                <span className="lp-pipe-node">{i + 1}</span>
+                <b>{p.label}</b>
+                <small>{p.detail}</small>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   )
@@ -419,30 +398,30 @@ function Roles() {
   const roles = [
     {
       who: 'For teachers',
-      title: 'Your weekends back',
+      title: 'Less time on first-pass marking',
       icon: 'school',
-      points: ['Create an assignment in minutes', 'AI or solution-key grading', 'Spot-check only what the AI flags', 'Class analytics after every batch'],
-      to: '/get-started',
-      cta: 'Start grading',
+      points: ['Upload scans for a whole class', 'Use your rubric or approve a drafted one', 'Review only what is flagged', 'Publish when you are ready'],
+      to: '/request-a-pilot',
+      cta: 'Request a pilot',
       tone: 'brand',
     },
     {
-      who: 'For students',
-      title: 'Feedback that teaches',
+      who: 'For students in a pilot course',
+      title: 'Feedback on every step',
       icon: 'backpack',
-      points: ['Snap and upload your answer pages', 'Track grading as it happens', 'Per-question feedback you can act on', 'Request a re-check in one tap'],
+      points: ['See marks for each step', 'Read what to fix and why', 'Ask your teacher for a re-check'],
       to: '/login',
-      cta: 'Student log in',
+      cta: 'Log in',
       tone: 'accent',
     },
   ] as const
   return (
-    <section className="lp-section">
+    <section className="lp-section lp-section-soft">
       <div className="lp-container">
-        <SectionHead eyebrow="Built for the whole class" title="One platform, two great experiences" />
+        <SectionHead eyebrow="Who it is for" title="Teachers grade, students learn from the feedback" />
         <Reveal className="lp-roles">
           {roles.map((r) => (
-            <motion.article key={r.who} className={`lp-role lp-tone-${r.tone}`} variants={fadeUp} whileHover={{ y: -6 }}>
+            <motion.article key={r.who} className={`lp-role lp-tone-${r.tone}`} variants={fadeUp}>
               <span className="lp-role-icon material-icons" aria-hidden>
                 {r.icon}
               </span>
@@ -468,5 +447,3 @@ function Roles() {
     </section>
   )
 }
-
-// ---- Product showcase carousel ----

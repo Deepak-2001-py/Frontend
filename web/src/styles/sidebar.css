@@ -12,7 +12,6 @@
   font-family: var(--font-sans);
   background:
     radial-gradient(ellipse at 0% 0%, rgba(255, 122, 0, 0.16), transparent 55%),
-    radial-gradient(ellipse at 100% 100%, rgba(18, 168, 142, 0.14), transparent 55%),
     var(--ink-900);
   z-index: 40;
 }

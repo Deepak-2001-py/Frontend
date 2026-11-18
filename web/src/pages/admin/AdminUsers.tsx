@@ -334,13 +334,13 @@ function UsersBody({
           onChange={(e) => setSearch(e.target.value)}
         />
         <select className="form-control" value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="">Role ▾</option>
+          <option value="">Role</option>
           <option value="teacher">Teacher</option>
           <option value="student">Student</option>
           <option value="admin">Admin</option>
         </select>
         <select className="form-control" value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="">Status ▾</option>
+          <option value="">Status</option>
           <option value="active">Active</option>
           <option value="invited">Invited</option>
           <option value="suspended">Suspended</option>

@@ -10,7 +10,6 @@
 /* Icon fonts: some page stylesheets set `* { font-family }`, which turned
    Material Icons / Font Awesome glyphs into their ligature names. */
 .page-scope .material-icons {
-  font-family: 'Material Icons' !important;
   font-weight: normal;
   font-style: normal;
   letter-spacing: normal;
@@ -59,8 +58,8 @@
   border-bottom: none;
   background:
     radial-gradient(circle at 92% -20%, rgba(255, 122, 0, 0.55), transparent 45%),
-    radial-gradient(circle at 40% 160%, rgba(32, 192, 163, 0.45), transparent 50%),
-    linear-gradient(125deg, var(--ink-900) 0%, #2b2219 60%, #1d3b34 100%);
+    radial-gradient(circle at 40% 160%, rgba(154, 167, 194, 0.3), transparent 50%),
+    var(--gradient-navy);
   color: var(--ink-300);
 }
 
@@ -242,8 +241,8 @@
   border-bottom: none;
   background:
     radial-gradient(circle at 92% -20%, rgba(255, 122, 0, 0.55), transparent 45%),
-    radial-gradient(circle at 40% 160%, rgba(32, 192, 163, 0.45), transparent 50%),
-    linear-gradient(125deg, var(--ink-900) 0%, #2b2219 60%, #1d3b34 100%);
+    radial-gradient(circle at 40% 160%, rgba(154, 167, 194, 0.3), transparent 50%),
+    var(--gradient-navy);
 }
 
 .page-scope.page-scope.page-profile .profile-card-header h1 {

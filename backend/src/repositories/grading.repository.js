@@ -1,7 +1,7 @@
 // assignment_grading: one row per question per student plus one
 // type="summary" row per student, keyed by evaluation_id. GSIs:
 // student_id-index, type-index and (optional, recommended) assignment_id-index.
-import { isMissingIndexError, table } from '../aws/dynamodb.js'
+import { isMissingIndexError, table } from '../data/index.js'
 import config from '../config/index.js'
 
 const grading = table(() => config.tables.grading)

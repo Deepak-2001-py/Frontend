@@ -1,3 +1,4 @@
+import { API } from '../config'
 import { apiRequest, unwrapLambda } from './api'
 import { apiCache } from './apiCache'
 
@@ -43,7 +44,7 @@ export async function gradesRequest<T = GradeResult>(
   opts: { force?: boolean } = {},
 ): Promise<T> {
   const key = `grades:${JSON.stringify(payload)}`
-  const data = await apiCache.withCache(key, !!opts.force, () => apiRequest<T>('/getgrades', { body: payload }))
+  const data = await apiCache.withCache(key, !!opts.force, () => apiRequest<T>(API.grades,{ body: payload }))
   // Entries cached by the old static pages still hold the raw Lambda envelope.
   return unwrapLambda<T>(data)
 }

@@ -21,14 +21,14 @@
   padding: 34px 36px;
   margin-bottom: 26px;
   border-radius: var(--radius-2xl);
-  background: linear-gradient(125deg, var(--ink-900) 0%, #2b2219 55%, #1d3b34 100%);
+  background: var(--gradient-navy);
   color: var(--ink-200);
   box-shadow: var(--shadow-lg);
 }
 
 .app-hero-orb { position: absolute; z-index: -1; border-radius: 50%; filter: blur(50px); opacity: 0.55; }
 .app-hero-orb.a { width: 340px; height: 340px; right: -60px; top: -140px; background: radial-gradient(circle, var(--orange-500), transparent 70%); }
-.app-hero-orb.b { width: 300px; height: 300px; left: 30%; bottom: -200px; background: radial-gradient(circle, var(--teal-400), transparent 70%); }
+.app-hero-orb.b { width: 300px; height: 300px; left: 30%; bottom: -200px; background: radial-gradient(circle, var(--navy-300), transparent 70%); }
 
 .app-hero-copy { max-width: 640px; }
 
@@ -55,7 +55,7 @@
 }
 
 .app-hero h1 .grad {
-  background: linear-gradient(120deg, var(--orange-300), var(--teal-300));
+  background: linear-gradient(120deg, var(--orange-300), var(--orange-200));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -78,8 +78,8 @@
 
 /* ---- Tones ---- */
 .app-tone-brand { --tone: var(--brand); --tone-soft: var(--brand-soft); --tone-ink: var(--orange-700); }
-.app-tone-accent { --tone: var(--accent); --tone-soft: var(--accent-soft); --tone-ink: var(--teal-700); }
-.app-tone-sky { --tone: var(--sky-600); --tone-soft: var(--sky-50); --tone-ink: var(--sky-700); }
+.app-tone-accent { --tone: var(--accent); --tone-soft: var(--accent-soft); --tone-ink: var(--navy-800); }
+.app-tone-sky { --tone: var(--navy-700); --tone-soft: var(--navy-50); --tone-ink: var(--navy-800); }
 .app-tone-ink { --tone: var(--ink-800); --tone-soft: var(--ink-100); --tone-ink: var(--ink-800); }
 .app-tone-warn { --tone: #c98a00; --tone-soft: var(--color-warning-soft); --tone-ink: #8a5a00; }
 .app-tone-danger { --tone: var(--color-danger); --tone-soft: var(--color-danger-soft); --tone-ink: #b42318; }
@@ -276,7 +276,7 @@ a.app-row:hover { background: var(--surface-card); border-color: var(--orange-20
 .app-ring { position: relative; flex-shrink: 0; }
 .app-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .app-ring-track { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 9; }
-.app-ring-fill { fill: none; stroke: var(--teal-300); stroke-width: 9; stroke-linecap: round; }
+.app-ring-fill { fill: none; stroke: var(--orange-300); stroke-width: 9; stroke-linecap: round; }
 .app-ring-label { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
 .app-ring-label b { font: 800 1.6rem / 1 var(--font-display); color: var(--white); }
 .app-ring-label small { display: block; margin-top: 4px; color: var(--ink-300); font-size: var(--text-xs); font-weight: 600; }

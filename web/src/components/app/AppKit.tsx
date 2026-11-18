@@ -70,6 +70,7 @@ export function AppStat({
   label,
   value,
   suffix,
+  decimals,
   note,
   tone = 'brand',
 }: {
@@ -77,6 +78,7 @@ export function AppStat({
   label: string
   value: number | null | undefined
   suffix?: string
+  decimals?: number
   note?: ReactNode
   tone?: 'brand' | 'accent' | 'sky' | 'warn' | 'danger'
 }) {
@@ -87,7 +89,7 @@ export function AppStat({
       </span>
       <div>
         <div className="app-stat-label">{label}</div>
-        <div className="app-stat-value">{value == null ? '—' : <CountUp to={value} suffix={suffix} />}</div>
+        <div className="app-stat-value">{value == null ? '—' : <CountUp to={value} suffix={suffix} decimals={decimals} />}</div>
         {note && <div className="app-stat-note">{note}</div>}
       </div>
     </motion.div>

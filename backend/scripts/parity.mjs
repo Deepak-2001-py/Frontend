@@ -58,7 +58,7 @@ const pyResults = JSON.parse(
 console.log('Running the same cases against the Node API…')
 const { post, startServer, stopServer, table } = await import('../test/helpers.js')
 const { default: jwt } = await import('jsonwebtoken')
-const { setClaudeOverride } = await import('../src/aws/bedrock.js')
+const { setAIOverride: setClaudeOverride } = await import('../src/ai/index.js')
 const { hashAdminPassword, hashLoginPassword } = await import('../src/lib/passwords.js')
 
 await startServer({ assignmentIndex: true, seed: false })

@@ -2,7 +2,7 @@
 // an admin, a teacher, three students in PHY-204 and one graded assignment.
 // Password for every demo account: Password123!
 import { randomUUID } from 'node:crypto'
-import { table } from '../aws/dynamodb.js'
+import { table } from '../data/index.js'
 import config from '../config/index.js'
 import { hashLoginPassword } from '../lib/passwords.js'
 import { isoNaive } from '../lib/py.js'
