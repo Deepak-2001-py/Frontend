@@ -1,6 +1,10 @@
 # GradeAnt — React app
 
+<<<<<<< HEAD
 React 19 + TypeScript + Vite + React Router. It replaces the static HTML pages in the repo root. The API is the Node backend in [`../backend`](../backend); the original Python Lambdas in `lambda_python_files/` serve production until it's deployed.
+=======
+React 19 + TypeScript + Vite + React Router. It replaces the static HTML pages in the repo root; the backend (API Gateway + the Lambdas in `lambda_python_files/`) is unchanged.
+>>>>>>> origin/main
 
 ```bash
 npm install
@@ -9,6 +13,7 @@ npm run build      # type-check + production bundle in dist/
 npm run lint
 ```
 
+<<<<<<< HEAD
 API host: `src/config.ts`, set per mode by Vite env files (documented in `.env.example`):
 
 - `.env.development` (`npm run dev`) points at the local Node backend, `http://localhost:8787`. Start it with `cd ../backend && npm run dev`; the demo logins are in the [root README](../README.md).
@@ -18,12 +23,19 @@ API host: `src/config.ts`, set per mode by Vite env files (documented in `.env.e
 Override any of these in `.env.<mode>.local`. `VITE_*` values are compiled into the bundle, so only public URLs belong there.
 
 See [`WIREFRAMES.md`](WIREFRAMES.md) for the site map and how each wireframe screen maps to a route and file.
+=======
+API host: `src/config.ts`, overridable with `VITE_API_BASE_URL` (see `.env.example`).
+>>>>>>> origin/main
 
 ## Layout
 
 | Path | What |
 |---|---|
+<<<<<<< HEAD
 | `src/App.tsx` | All routes. Role areas are wrapped in `RequireRole` (no session → `/login?returnTo=…`, wrong role → `/unauthorized`). An API 401 ends the session and goes to `/session-expired`. |
+=======
+| `src/App.tsx` | All routes. Role areas are wrapped in `RequireRole` (no session → `/session-expired`, wrong role → `/unauthorized`). |
+>>>>>>> origin/main
 | `src/auth/` | `AuthContext` (session in local/sessionStorage, same keys as the old pages) and `RequireRole`. |
 | `src/lib/` | `api.ts` (fetch wrapper, Lambda-envelope unwrapping, admin operations), `apiCache.ts`, `session.ts`, `grading.ts`, `upload.ts`, `correction.ts`. |
 | `src/components/` | `AppShell` + `Sidebar` (student/teacher), `UploadPage`, `grades/` (score hero, question viewer), `correction/` (OCR correction editor), `PageScope`. |

@@ -1,0 +1,2036 @@
+/* @ds-bundle: {"format":3,"namespace":"GradeAntDesignSystem_c1fb07","components":[{"name":"Avatar","sourcePath":"components/core/Avatar.jsx"},{"name":"Badge","sourcePath":"components/core/Badge.jsx"},{"name":"Button","sourcePath":"components/core/Button.jsx"},{"name":"Card","sourcePath":"components/core/Card.jsx"},{"name":"GradePill","sourcePath":"components/data/GradePill.jsx"},{"name":"ProgressBar","sourcePath":"components/data/ProgressBar.jsx"},{"name":"StatCard","sourcePath":"components/data/StatCard.jsx"},{"name":"Input","sourcePath":"components/forms/Input.jsx"}],"sourceHashes":{"components/core/Avatar.jsx":"954ffca56f11","components/core/Badge.jsx":"40c4eb55f2a9","components/core/Button.jsx":"4ed2df0eccee","components/core/Card.jsx":"deab0b3eb838","components/data/GradePill.jsx":"85ff2ac3dfc4","components/data/ProgressBar.jsx":"a0f2a9ca8c2a","components/data/StatCard.jsx":"573f31c0c3f3","components/forms/Input.jsx":"e0352e2631d9","ui_kits/app/screens-core.jsx":"b05509d28bde","ui_kits/app/screens-views.jsx":"e27e01eb7d9a"},"inlinedExternals":[],"unexposedExports":[]} */
+
+(() => {
+
+const __ds_ns = (window.GradeAntDesignSystem_c1fb07 = window.GradeAntDesignSystem_c1fb07 || {});
+
+const __ds_scope = {};
+
+(__ds_ns.__errors = __ds_ns.__errors || []);
+
+// components/core/Avatar.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+/** User avatar — image or initials, with optional ring. */
+function Avatar({
+  src = null,
+  name = '',
+  size = 36,
+  ring = false,
+  style = {},
+  ...rest
+}) {
+  const initials = name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
+  return /*#__PURE__*/React.createElement("span", _extends({
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      flex: 'none',
+      background: src ? 'transparent' : 'var(--orange-100)',
+      color: 'var(--orange-700)',
+      fontFamily: 'var(--font-display)',
+      fontWeight: 700,
+      fontSize: size * 0.4,
+      overflow: 'hidden',
+      border: ring ? '2px solid var(--surface-card)' : 'none',
+      boxShadow: ring ? '0 0 0 2px var(--border-default)' : 'none',
+      ...style
+    }
+  }, rest), src ? /*#__PURE__*/React.createElement("img", {
+    src: src,
+    alt: name,
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    }
+  }) : initials);
+}
+Object.assign(__ds_scope, { Avatar });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Avatar.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/Badge.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+/**
+ * Status / category badge — soft pill used across dashboards and tables.
+ * tone: success | warning | info | danger | neutral | brand | accent
+ */
+function Badge({
+  children,
+  tone = 'neutral',
+  size = 'md',
+  dot = false,
+  style = {},
+  ...rest
+}) {
+  const tones = {
+    success: {
+      bg: 'var(--color-success-soft)',
+      fg: 'var(--teal-700)',
+      dot: 'var(--color-success)'
+    },
+    warning: {
+      bg: 'var(--color-warning-soft)',
+      fg: '#9A6B00',
+      dot: 'var(--color-warning)'
+    },
+    info: {
+      bg: 'var(--color-info-soft)',
+      fg: 'var(--sky-700)',
+      dot: 'var(--color-info)'
+    },
+    danger: {
+      bg: 'var(--color-danger-soft)',
+      fg: 'var(--color-danger)',
+      dot: 'var(--color-danger)'
+    },
+    neutral: {
+      bg: 'var(--ink-100)',
+      fg: 'var(--ink-600)',
+      dot: 'var(--ink-400)'
+    },
+    brand: {
+      bg: 'var(--orange-50)',
+      fg: 'var(--orange-700)',
+      dot: 'var(--brand)'
+    },
+    accent: {
+      bg: 'var(--accent-soft)',
+      fg: 'var(--teal-700)',
+      dot: 'var(--accent)'
+    }
+  };
+  const t = tones[tone] || tones.neutral;
+  const sz = size === 'sm' ? {
+    padding: '3px 9px',
+    fontSize: '11px'
+  } : {
+    padding: '5px 12px',
+    fontSize: '12px'
+  };
+  return /*#__PURE__*/React.createElement("span", _extends({
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: sz.fontSize,
+      padding: sz.padding,
+      borderRadius: 'var(--radius-full)',
+      background: t.bg,
+      color: t.fg,
+      lineHeight: 1.2,
+      whiteSpace: 'nowrap',
+      ...style
+    }
+  }, rest), dot && /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: '50%',
+      background: t.dot
+    }
+  }), children);
+}
+Object.assign(__ds_scope, { Badge });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Badge.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/Button.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+/**
+ * GradeAnt primary button.
+ * Variants: primary (orange), accent (teal), secondary (outline), ghost, danger.
+ * Sizes: sm, md, lg. Optional leading/trailing icon (pass a Lucide <i data-lucide> or SVG node).
+ */
+function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  iconLeft = null,
+  iconRight = null,
+  block = false,
+  disabled = false,
+  type = 'button',
+  onClick,
+  style = {},
+  ...rest
+}) {
+  const sizes = {
+    sm: {
+      padding: '8px 14px',
+      fontSize: '13px',
+      radius: 'var(--radius-sm)',
+      gap: '6px'
+    },
+    md: {
+      padding: '11px 20px',
+      fontSize: '15px',
+      radius: 'var(--radius-md)',
+      gap: '8px'
+    },
+    lg: {
+      padding: '15px 28px',
+      fontSize: '16px',
+      radius: 'var(--radius-md)',
+      gap: '10px'
+    }
+  };
+  const s = sizes[size] || sizes.md;
+  const variants = {
+    primary: {
+      background: 'var(--brand)',
+      color: 'var(--brand-on)',
+      border: '1px solid transparent',
+      shadow: 'var(--shadow-xs)'
+    },
+    accent: {
+      background: 'var(--accent)',
+      color: '#fff',
+      border: '1px solid transparent',
+      shadow: 'var(--shadow-xs)'
+    },
+    secondary: {
+      background: 'var(--surface-card)',
+      color: 'var(--text-strong)',
+      border: '1px solid var(--border-default)',
+      shadow: 'none'
+    },
+    ghost: {
+      background: 'transparent',
+      color: 'var(--text-body)',
+      border: '1px solid transparent',
+      shadow: 'none'
+    },
+    danger: {
+      background: 'var(--color-danger)',
+      color: '#fff',
+      border: '1px solid transparent',
+      shadow: 'none'
+    }
+  };
+  const v = variants[variant] || variants.primary;
+  const [hover, setHover] = React.useState(false);
+  const [press, setPress] = React.useState(false);
+  const hoverBg = {
+    primary: 'var(--brand-hover)',
+    accent: 'var(--accent-hover)',
+    secondary: 'var(--surface-sunken)',
+    ghost: 'var(--surface-sunken)',
+    danger: '#cf3b40'
+  }[variant];
+  return /*#__PURE__*/React.createElement("button", _extends({
+    type: type,
+    disabled: disabled,
+    onClick: onClick,
+    onMouseEnter: () => setHover(true),
+    onMouseLeave: () => {
+      setHover(false);
+      setPress(false);
+    },
+    onMouseDown: () => setPress(true),
+    onMouseUp: () => setPress(false),
+    style: {
+      display: block ? 'flex' : 'inline-flex',
+      width: block ? '100%' : 'auto',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: s.gap,
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: s.fontSize,
+      lineHeight: 1,
+      padding: s.padding,
+      borderRadius: s.radius,
+      border: v.border,
+      background: hover && !disabled ? hoverBg : v.background,
+      color: v.color,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.5 : 1,
+      boxShadow: hover && !disabled && variant === 'primary' ? 'var(--shadow-brand)' : hover && !disabled && variant === 'accent' ? 'var(--shadow-accent)' : v.shadow,
+      transform: press && !disabled ? 'scale(0.98)' : hover && !disabled ? 'translateY(-1px)' : 'none',
+      transition: 'background var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), transform var(--dur-fast) var(--ease-out)',
+      ...style
+    }
+  }, rest), iconLeft, children, iconRight);
+}
+Object.assign(__ds_scope, { Button });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Button.jsx", error: String((e && e.message) || e) }); }
+
+// components/core/Card.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+/**
+ * Generic surface container. Optional colored top-accent bar (keyed to meaning),
+ * hover lift, padding presets.
+ */
+function Card({
+  children,
+  accent = null,
+  // 'brand' | 'accent' | 'info' | 'warning' | 'success' | css color | null
+  hover = false,
+  padding = 'md',
+  style = {},
+  ...rest
+}) {
+  const [h, setH] = React.useState(false);
+  const accentColors = {
+    brand: 'var(--brand)',
+    accent: 'var(--accent)',
+    info: 'var(--color-info)',
+    warning: 'var(--color-warning)',
+    success: 'var(--color-success)'
+  };
+  const bar = accent ? accentColors[accent] || accent : null;
+  const pad = {
+    sm: '16px',
+    md: '24px',
+    lg: '32px'
+  }[padding] || padding;
+  return /*#__PURE__*/React.createElement("div", _extends({
+    onMouseEnter: () => hover && setH(true),
+    onMouseLeave: () => hover && setH(false),
+    style: {
+      background: 'var(--surface-card)',
+      borderRadius: 'var(--radius-lg)',
+      border: '1px solid var(--border-subtle)',
+      borderTop: bar ? `4px solid ${bar}` : '1px solid var(--border-subtle)',
+      boxShadow: h ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
+      transform: h ? 'translateY(-4px)' : 'none',
+      transition: 'box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out)',
+      padding: pad,
+      ...style
+    }
+  }, rest), children);
+}
+Object.assign(__ds_scope, { Card });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/core/Card.jsx", error: String((e && e.message) || e) }); }
+
+// components/data/GradePill.jsx
+try { (() => {
+/** Letter-grade pill/chip, colored by the grade scale (A→F). */
+function GradePill({
+  grade = 'A',
+  size = 'md',
+  style = {}
+}) {
+  const letter = String(grade).trim().charAt(0).toUpperCase();
+  const colors = {
+    A: 'var(--grade-a)',
+    B: 'var(--grade-b)',
+    C: 'var(--grade-c)',
+    D: 'var(--grade-d)',
+    F: 'var(--grade-f)'
+  };
+  const c = colors[letter] || 'var(--ink-500)';
+  const sz = {
+    sm: 30,
+    md: 40,
+    lg: 52
+  }[size] || size;
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: sz,
+      height: sz,
+      padding: '0 10px',
+      borderRadius: 'var(--radius-sm)',
+      background: c,
+      color: '#fff',
+      fontFamily: 'var(--font-display)',
+      fontWeight: 700,
+      fontSize: sz * 0.4,
+      lineHeight: 1,
+      ...style
+    }
+  }, grade);
+}
+Object.assign(__ds_scope, { GradePill });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/data/GradePill.jsx", error: String((e && e.message) || e) }); }
+
+// components/data/ProgressBar.jsx
+try { (() => {
+/** Horizontal progress bar with optional gradient fill + caption row. */
+function ProgressBar({
+  value = 0,
+  tone = 'brand',
+  height = 10,
+  showLabel = false,
+  leftLabel = null,
+  rightLabel = null,
+  style = {}
+}) {
+  const pct = Math.max(0, Math.min(100, value));
+  const fills = {
+    brand: 'var(--gradient-warm)',
+    accent: 'var(--gradient-grow)',
+    info: 'var(--color-info)',
+    neutral: 'var(--ink-400)'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height,
+      background: 'var(--ink-150)',
+      borderRadius: 'var(--radius-full)',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${pct}%`,
+      height: '100%',
+      borderRadius: 'var(--radius-full)',
+      background: fills[tone] || tone,
+      transition: 'width var(--dur-slow) var(--ease-out)'
+    }
+  })), (showLabel || leftLabel || rightLabel) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginTop: '8px',
+      fontFamily: 'var(--font-sans)',
+      fontSize: '13px',
+      fontWeight: 500,
+      color: 'var(--text-muted)'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, leftLabel || `${pct}% Complete`), rightLabel && /*#__PURE__*/React.createElement("span", null, rightLabel)));
+}
+Object.assign(__ds_scope, { ProgressBar });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/data/ProgressBar.jsx", error: String((e && e.message) || e) }); }
+
+// components/data/StatCard.jsx
+try { (() => {
+/**
+ * Dashboard stat card — uppercase label, big value, trend delta, colored top bar.
+ */
+function StatCard({
+  label,
+  value,
+  delta = null,
+  trend = 'positive',
+  accent = 'brand',
+  icon = null,
+  style = {}
+}) {
+  const accentColors = {
+    brand: 'var(--brand)',
+    accent: 'var(--accent)',
+    info: 'var(--color-info)',
+    warning: 'var(--color-warning)'
+  };
+  const trendColor = {
+    positive: 'var(--color-success)',
+    negative: 'var(--color-danger)',
+    neutral: 'var(--text-muted)'
+  }[trend];
+  const arrow = {
+    positive: '↑',
+    negative: '↓',
+    neutral: '→'
+  }[trend];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--surface-card)',
+      borderRadius: 'var(--radius-lg)',
+      borderTop: `4px solid ${accentColors[accent] || accent}`,
+      boxShadow: 'var(--shadow-sm)',
+      padding: '22px 24px',
+      ...style
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 700,
+      fontSize: '12px',
+      letterSpacing: '0.06em',
+      textTransform: 'uppercase',
+      color: 'var(--text-muted)'
+    }
+  }, label), icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: accentColors[accent] || accent,
+      opacity: 0.9
+    }
+  }, icon)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontWeight: 800,
+      fontSize: '34px',
+      color: 'var(--text-strong)',
+      lineHeight: 1.1,
+      margin: '12px 0 8px'
+    }
+  }, value), delta && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '5px',
+      fontSize: '13px',
+      fontWeight: 600,
+      color: trendColor
+    }
+  }, /*#__PURE__*/React.createElement("span", null, arrow), /*#__PURE__*/React.createElement("span", null, delta)));
+}
+Object.assign(__ds_scope, { StatCard });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/data/StatCard.jsx", error: String((e && e.message) || e) }); }
+
+// components/forms/Input.jsx
+try { (() => {
+function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+/** Labelled text input with focus ring, optional hint/error and leading icon. */
+function Input({
+  label = null,
+  hint = null,
+  error = null,
+  icon = null,
+  type = 'text',
+  placeholder = '',
+  value,
+  defaultValue,
+  onChange,
+  id,
+  style = {},
+  ...rest
+}) {
+  const [focus, setFocus] = React.useState(false);
+  const inputId = id || (label ? `in-${label.replace(/\s+/g, '-').toLowerCase()}` : undefined);
+  const borderColor = error ? 'var(--color-danger)' : focus ? 'var(--border-focus)' : 'var(--border-default)';
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '7px',
+      ...style
+    }
+  }, label && /*#__PURE__*/React.createElement("label", {
+    htmlFor: inputId,
+    style: {
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: '13.5px',
+      color: 'var(--text-strong)'
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      background: 'var(--surface-card)',
+      border: `1.5px solid ${borderColor}`,
+      borderRadius: 'var(--radius-md)',
+      padding: '0 14px',
+      boxShadow: focus ? 'var(--ring)' : 'none',
+      transition: 'border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out)'
+    }
+  }, icon && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text-subtle)',
+      display: 'flex'
+    }
+  }, icon), /*#__PURE__*/React.createElement("input", _extends({
+    id: inputId,
+    type: type,
+    placeholder: placeholder,
+    value: value,
+    defaultValue: defaultValue,
+    onChange: onChange,
+    onFocus: () => setFocus(true),
+    onBlur: () => setFocus(false),
+    style: {
+      flex: 1,
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: 'var(--font-sans)',
+      fontSize: '15px',
+      color: 'var(--text-strong)',
+      padding: '12px 0'
+    }
+  }, rest))), (hint || error) && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: '12.5px',
+      color: error ? 'var(--color-danger)' : 'var(--text-muted)'
+    }
+  }, error || hint));
+}
+Object.assign(__ds_scope, { Input });
+})(); } catch (e) { __ds_ns.__errors.push({ path: "components/forms/Input.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/app/screens-core.jsx
+try { (() => {
+/* GradeAnt App UI Kit — interactive screens.
+   Exposes window.GradeAntApp.{App}. Uses design-system primitives from the bundle. */
+const DS = window.GradeAntDesignSystem_c1fb07;
+const {
+  Button,
+  Badge,
+  StatCard,
+  GradePill,
+  ProgressBar,
+  Avatar,
+  Input,
+  Card
+} = DS;
+const {
+  useState,
+  useEffect,
+  useRef
+} = React;
+
+/* ---------- Lucide helper ---------- */
+function refreshIcons() {
+  if (window.lucide) window.lucide.createIcons();
+}
+function Icon({
+  name,
+  size = 20,
+  color,
+  style
+}) {
+  return /*#__PURE__*/React.createElement("i", {
+    "data-lucide": name,
+    style: {
+      width: size,
+      height: size,
+      color,
+      ...style
+    }
+  });
+}
+
+/* ---------- Sidebar ---------- */
+const NAV = {
+  teacher: [{
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: 'layout-dashboard'
+  }, {
+    id: 'upload',
+    label: 'Upload',
+    icon: 'upload-cloud'
+  }, {
+    id: 'grades',
+    label: 'Grades',
+    icon: 'bar-chart-3'
+  }, {
+    id: 'review',
+    label: 'Review',
+    icon: 'file-check-2'
+  }, {
+    id: 'students',
+    label: 'Students',
+    icon: 'users'
+  }],
+  student: [{
+    id: 'dashboard',
+    label: 'Dashboard',
+    icon: 'layout-dashboard'
+  }, {
+    id: 'upload',
+    label: 'Submit Work',
+    icon: 'upload-cloud'
+  }, {
+    id: 'grades',
+    label: 'My Grades',
+    icon: 'bar-chart-3'
+  }, {
+    id: 'review',
+    label: 'Feedback',
+    icon: 'message-square-text'
+  }]
+};
+function Sidebar({
+  role,
+  screen,
+  setScreen,
+  onLogout
+}) {
+  return /*#__PURE__*/React.createElement("aside", {
+    style: {
+      width: 248,
+      flex: 'none',
+      background: 'var(--surface-card)',
+      borderRight: '1px solid var(--border-subtle)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '22px 16px',
+      height: '100%',
+      boxSizing: 'border-box'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 9,
+      padding: '4px 8px 24px'
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "../../assets/gradeant-logo.png",
+    alt: "GradeAnt",
+    style: {
+      height: 34
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontWeight: 800,
+      fontSize: 21,
+      letterSpacing: '-0.02em',
+      color: 'var(--ink-900)'
+    }
+  }, "Grade", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--brand)'
+    }
+  }, "Ant"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 700,
+      fontSize: 11,
+      letterSpacing: '0.07em',
+      textTransform: 'uppercase',
+      color: 'var(--text-subtle)',
+      padding: '0 8px 10px'
+    }
+  }, role === 'teacher' ? 'Educator' : 'Student'), /*#__PURE__*/React.createElement("nav", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      flex: 1
+    }
+  }, NAV[role].map(item => {
+    const active = screen === item.id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: item.id,
+      onClick: () => setScreen(item.id),
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '11px 12px',
+        borderRadius: 'var(--radius-md)',
+        border: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+        fontFamily: 'var(--font-sans)',
+        fontWeight: 600,
+        fontSize: 14.5,
+        background: active ? 'var(--orange-50)' : 'transparent',
+        color: active ? 'var(--brand-press)' : 'var(--text-muted)',
+        transition: 'background var(--dur-fast), color var(--dur-fast)'
+      },
+      onMouseEnter: e => {
+        if (!active) e.currentTarget.style.background = 'var(--surface-sunken)';
+      },
+      onMouseLeave: e => {
+        if (!active) e.currentTarget.style.background = 'transparent';
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: item.icon,
+      size: 19
+    }), item.label);
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: onLogout,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      padding: '11px 12px',
+      marginTop: 8,
+      borderRadius: 'var(--radius-md)',
+      border: 'none',
+      cursor: 'pointer',
+      background: 'transparent',
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: 14.5,
+      color: 'var(--text-muted)'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "log-out",
+    size: 19
+  }), " Log out"));
+}
+
+/* ---------- Topbar ---------- */
+function Topbar({
+  title,
+  subtitle,
+  role,
+  setRole,
+  user
+}) {
+  return /*#__PURE__*/React.createElement("header", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '20px 32px',
+      borderBottom: '1px solid var(--border-subtle)',
+      background: 'var(--surface-page)'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 24,
+      color: 'var(--ink-900)'
+    }
+  }, title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-muted)',
+      marginTop: 3
+    }
+  }, subtitle)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      background: 'var(--ink-100)',
+      borderRadius: 'var(--radius-full)',
+      padding: 3
+    }
+  }, ['teacher', 'student'].map(r => /*#__PURE__*/React.createElement("button", {
+    key: r,
+    onClick: () => setRole(r),
+    style: {
+      padding: '7px 16px',
+      borderRadius: 'var(--radius-full)',
+      border: 'none',
+      cursor: 'pointer',
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: 13,
+      textTransform: 'capitalize',
+      background: role === r ? 'var(--surface-card)' : 'transparent',
+      color: role === r ? 'var(--brand-press)' : 'var(--text-muted)',
+      boxShadow: role === r ? 'var(--shadow-xs)' : 'none'
+    }
+  }, r))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    name: user.name,
+    size: 38
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      lineHeight: 1.25
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontWeight: 700,
+      fontSize: 14,
+      color: 'var(--ink-900)'
+    }
+  }, user.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: 'var(--text-muted)'
+    }
+  }, user.email)))));
+}
+
+/* ---------- Login ---------- */
+function Login({
+  onLogin
+}) {
+  const [role, setRole] = useState('teacher');
+  useEffect(refreshIcons);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+      background: 'var(--surface-page)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      maxWidth: 940,
+      width: '100%',
+      background: 'var(--surface-card)',
+      borderRadius: 'var(--radius-2xl)',
+      overflow: 'hidden',
+      boxShadow: 'var(--shadow-xl)',
+      border: '1px solid var(--border-subtle)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '48px 44px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 9,
+      marginBottom: 30
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "../../assets/gradeant-logo.png",
+    alt: "GradeAnt",
+    style: {
+      height: 36
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontWeight: 800,
+      fontSize: 22,
+      letterSpacing: '-0.02em',
+      color: 'var(--ink-900)'
+    }
+  }, "Grade", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--brand)'
+    }
+  }, "Ant"))), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 28,
+      color: 'var(--ink-900)'
+    }
+  }, "Welcome back"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      marginTop: 8,
+      marginBottom: 26
+    }
+  }, "Sign in to grade smarter today."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      background: 'var(--ink-100)',
+      borderRadius: 'var(--radius-md)',
+      padding: 4,
+      marginBottom: 24
+    }
+  }, ['teacher', 'student'].map(r => /*#__PURE__*/React.createElement("button", {
+    key: r,
+    onClick: () => setRole(r),
+    style: {
+      flex: 1,
+      padding: '10px',
+      borderRadius: 'var(--radius-sm)',
+      border: 'none',
+      cursor: 'pointer',
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: 14,
+      textTransform: 'capitalize',
+      background: role === r ? 'var(--surface-card)' : 'transparent',
+      color: role === r ? 'var(--brand-press)' : 'var(--text-muted)',
+      boxShadow: role === r ? 'var(--shadow-xs)' : 'none'
+    }
+  }, r))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(Input, {
+    label: "Email",
+    type: "email",
+    placeholder: "you@school.edu",
+    defaultValue: "don.wunsch@rolla.edu",
+    icon: /*#__PURE__*/React.createElement(Icon, {
+      name: "mail",
+      size: 18
+    })
+  }), /*#__PURE__*/React.createElement(Input, {
+    label: "Password",
+    type: "password",
+    placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+    defaultValue: "gradeant",
+    icon: /*#__PURE__*/React.createElement(Icon, {
+      name: "lock",
+      size: 18
+    })
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      margin: '14px 0 22px'
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      fontSize: 13.5,
+      color: 'var(--text-muted)',
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    defaultChecked: true,
+    style: {
+      accentColor: 'var(--brand)',
+      width: 16,
+      height: 16
+    }
+  }), " Remember me"), /*#__PURE__*/React.createElement("a", {
+    href: "#",
+    style: {
+      fontSize: 13.5,
+      fontWeight: 600
+    }
+  }, "Forgot password?")), /*#__PURE__*/React.createElement(Button, {
+    variant: "primary",
+    block: true,
+    onClick: () => onLogin(role),
+    iconRight: /*#__PURE__*/React.createElement(Icon, {
+      name: "arrow-right",
+      size: 18
+    })
+  }, "Sign in as ", role), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      margin: '22px 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: 'var(--border-default)'
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--text-subtle)'
+    }
+  }, "or continue with"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: 1,
+      background: 'var(--border-default)'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "social",
+    onClick: () => onLogin(role),
+    style: socialBtn
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "../../assets/google.png",
+    style: {
+      height: 18
+    }
+  }), " Google"), /*#__PURE__*/React.createElement("button", {
+    className: "social",
+    onClick: () => onLogin(role),
+    style: socialBtn
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "../../assets/microsoft.png",
+    style: {
+      height: 16
+    }
+  }), " Microsoft"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      background: 'var(--ink-900)',
+      padding: 44,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: '-30%',
+      right: '-20%',
+      width: 360,
+      height: 360,
+      background: 'var(--gradient-brand)',
+      filter: 'blur(80px)',
+      opacity: 0.35,
+      borderRadius: '50%'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      zIndex: 1
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 8,
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 700,
+      fontSize: 12,
+      letterSpacing: '0.07em',
+      textTransform: 'uppercase',
+      color: 'var(--orange-400)'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "sparkles",
+    size: 15
+  }), " Powered by GradeFlow\u2122"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 30,
+      color: '#fff',
+      margin: '16px 0 14px',
+      lineHeight: 1.15
+    }
+  }, "Grade a full class in minutes, not weekends."), /*#__PURE__*/React.createElement("ul", {
+    style: {
+      listStyle: 'none',
+      padding: 0,
+      margin: '22px 0 0',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, ['Reads handwritten answer sheets', 'Applies your exact rubric', 'Detailed per-question feedback'].map(t => /*#__PURE__*/React.createElement("li", {
+    key: t,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 11,
+      color: 'var(--ink-200)',
+      fontSize: 14.5
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 26,
+      height: 26,
+      borderRadius: 8,
+      background: 'rgba(18,168,142,0.22)',
+      color: 'var(--teal-300)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 'none'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "check",
+    size: 16
+  })), t)))))));
+}
+const socialBtn = {
+  flex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 9,
+  padding: '11px',
+  borderRadius: 'var(--radius-md)',
+  border: '1px solid var(--border-default)',
+  background: 'var(--surface-card)',
+  cursor: 'pointer',
+  fontFamily: 'var(--font-sans)',
+  fontWeight: 600,
+  fontSize: 14,
+  color: 'var(--text-strong)'
+};
+window.GradeAntApp = {
+  Login,
+  Sidebar,
+  Topbar,
+  Icon,
+  refreshIcons
+};
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/app/screens-core.jsx", error: String((e && e.message) || e) }); }
+
+// ui_kits/app/screens-views.jsx
+try { (() => {
+/* GradeAnt App UI Kit — dashboard / grades / review screens.
+   Exposes window.GradeAntApp.views. Depends on screens-core.jsx + bundle. */
+const DSv = window.GradeAntDesignSystem_c1fb07;
+const {
+  Button: BtnV,
+  Badge: BadgeV,
+  StatCard: StatV,
+  GradePill: GradeV,
+  ProgressBar: ProgV,
+  Avatar: AvaV,
+  Card: CardV
+} = DSv;
+const {
+  Icon: IconV
+} = window.GradeAntApp;
+const {
+  useState: useStateV,
+  useEffect: useEffectV
+} = React;
+function Section({
+  title,
+  action,
+  children,
+  style
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 30,
+      ...style
+    }
+  }, title && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 18,
+      color: 'var(--ink-900)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 5,
+      height: 18,
+      borderRadius: 3,
+      background: 'var(--gradient-warm)'
+    }
+  }), title), action), children);
+}
+const ASSIGNMENTS = [{
+  name: 'Lab Report 04 — Projectile Motion',
+  subj: 'Physics',
+  due: 'Apr 18',
+  status: 'graded',
+  grade: 'A-'
+}, {
+  name: 'Chapter 8 Problem Set',
+  subj: 'Mathematics',
+  due: 'Apr 24',
+  status: 'pending'
+}, {
+  name: 'Midterm Exam',
+  subj: 'Chemistry',
+  due: 'Apr 15',
+  status: 'graded',
+  grade: 'B+'
+}, {
+  name: 'Final Project Report',
+  subj: 'Computer Science',
+  due: 'Apr 25',
+  status: 'submitted'
+}, {
+  name: 'Titration Worksheet',
+  subj: 'Chemistry',
+  due: 'Apr 12',
+  status: 'overdue'
+}];
+const statusTone = {
+  graded: 'success',
+  pending: 'warning',
+  submitted: 'info',
+  overdue: 'danger'
+};
+const statusLabel = {
+  graded: 'Graded',
+  pending: 'Pending',
+  submitted: 'Submitted',
+  overdue: 'Overdue'
+};
+
+/* ---------- Welcome banner ---------- */
+function Banner({
+  name,
+  role,
+  onPrimary
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      overflow: 'hidden',
+      borderRadius: 'var(--radius-xl)',
+      background: 'var(--ink-900)',
+      padding: '28px 32px',
+      marginBottom: 28,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: '-60%',
+      right: '-5%',
+      width: 380,
+      height: 380,
+      background: 'var(--gradient-brand)',
+      filter: 'blur(80px)',
+      opacity: 0.30,
+      borderRadius: '50%'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      zIndex: 1
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 26,
+      color: '#fff'
+    }
+  }, "Welcome back, ", name.split(' ')[0], " \uD83D\uDC4B"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: 'var(--ink-300)',
+      marginTop: 6
+    }
+  }, role === 'teacher' ? 'You have 12 submissions waiting to be graded.' : "Here's your progress this semester. Keep climbing.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      zIndex: 1
+    }
+  }, /*#__PURE__*/React.createElement(BtnV, {
+    variant: "primary",
+    onClick: onPrimary,
+    iconLeft: /*#__PURE__*/React.createElement(IconV, {
+      name: role === 'teacher' ? 'plus' : 'upload-cloud',
+      size: 18
+    })
+  }, role === 'teacher' ? 'New Assignment' : 'Submit Work')));
+}
+
+/* ---------- Assignments table ---------- */
+function AssignmentTable({
+  role,
+  onReview
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--surface-card)',
+      borderRadius: 'var(--radius-lg)',
+      border: '1px solid var(--border-subtle)',
+      boxShadow: 'var(--shadow-sm)',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("table", {
+    style: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      fontFamily: 'var(--font-sans)'
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    style: {
+      background: 'var(--surface-soft)'
+    }
+  }, ['Assignment', 'Subject', 'Due', 'Status', ''].map((h, i) => /*#__PURE__*/React.createElement("th", {
+    key: i,
+    style: {
+      textAlign: i === 4 ? 'right' : 'left',
+      padding: '14px 20px',
+      fontSize: 11.5,
+      fontWeight: 700,
+      letterSpacing: '0.05em',
+      textTransform: 'uppercase',
+      color: 'var(--text-muted)',
+      borderBottom: '1px solid var(--border-subtle)'
+    }
+  }, h)))), /*#__PURE__*/React.createElement("tbody", null, ASSIGNMENTS.map((a, i) => /*#__PURE__*/React.createElement("tr", {
+    key: i,
+    style: {
+      borderBottom: i < ASSIGNMENTS.length - 1 ? '1px solid var(--border-subtle)' : 'none'
+    },
+    onMouseEnter: e => e.currentTarget.style.background = 'var(--surface-soft)',
+    onMouseLeave: e => e.currentTarget.style.background = 'transparent'
+  }, /*#__PURE__*/React.createElement("td", {
+    style: {
+      padding: '15px 20px',
+      fontSize: 14.5,
+      fontWeight: 600,
+      color: 'var(--ink-800)'
+    }
+  }, a.name), /*#__PURE__*/React.createElement("td", {
+    style: {
+      padding: '15px 20px',
+      fontSize: 14,
+      color: 'var(--text-muted)'
+    }
+  }, a.subj), /*#__PURE__*/React.createElement("td", {
+    style: {
+      padding: '15px 20px',
+      fontSize: 14,
+      color: 'var(--text-muted)',
+      fontFamily: 'var(--font-mono)'
+    }
+  }, a.due), /*#__PURE__*/React.createElement("td", {
+    style: {
+      padding: '15px 20px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(BadgeV, {
+    tone: statusTone[a.status],
+    dot: true
+  }, statusLabel[a.status]), a.grade && /*#__PURE__*/React.createElement(GradeV, {
+    grade: a.grade,
+    size: "sm"
+  }))), /*#__PURE__*/React.createElement("td", {
+    style: {
+      padding: '15px 20px',
+      textAlign: 'right'
+    }
+  }, /*#__PURE__*/React.createElement(BtnV, {
+    variant: "ghost",
+    size: "sm",
+    onClick: onReview,
+    iconRight: /*#__PURE__*/React.createElement(IconV, {
+      name: "chevron-right",
+      size: 16
+    })
+  }, a.status === 'graded' ? role === 'teacher' ? 'Review' : 'Feedback' : role === 'teacher' ? 'Grade' : 'Open')))))));
+}
+
+/* ---------- Teacher Dashboard ---------- */
+function TeacherDashboard({
+  user,
+  onReview,
+  onUpload
+}) {
+  useEffectV(window.GradeAntApp.refreshIcons);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 32
+    }
+  }, /*#__PURE__*/React.createElement(Banner, {
+    name: user.name,
+    role: "teacher",
+    onPrimary: onUpload
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 18,
+      marginBottom: 30
+    }
+  }, /*#__PURE__*/React.createElement(StatV, {
+    label: "Assignments Graded",
+    value: "24",
+    delta: "8% from last month",
+    trend: "positive",
+    accent: "brand",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "file-check-2",
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(StatV, {
+    label: "Papers Processed",
+    value: "547",
+    delta: "12% from last month",
+    trend: "positive",
+    accent: "info",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "files",
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(StatV, {
+    label: "Average Score",
+    value: "78%",
+    delta: "3% from last month",
+    trend: "positive",
+    accent: "accent",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "trending-up",
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(StatV, {
+    label: "Time Saved",
+    value: "42hrs",
+    delta: "15% from last month",
+    trend: "positive",
+    accent: "warning",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "clock",
+      size: 20
+    })
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1.6fr 1fr',
+      gap: 24,
+      alignItems: 'start'
+    }
+  }, /*#__PURE__*/React.createElement(Section, {
+    title: "Recent Assignments",
+    action: /*#__PURE__*/React.createElement(BtnV, {
+      variant: "ghost",
+      size: "sm",
+      iconRight: /*#__PURE__*/React.createElement(IconV, {
+        name: "arrow-right",
+        size: 15
+      })
+    }, "View all")
+  }, /*#__PURE__*/React.createElement(AssignmentTable, {
+    role: "teacher",
+    onReview: onReview
+  })), /*#__PURE__*/React.createElement(Section, {
+    title: "Grading Queue"
+  }, /*#__PURE__*/React.createElement(CardV, {
+    padding: "lg"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'baseline',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontWeight: 800,
+      fontSize: 40,
+      color: 'var(--ink-900)'
+    }
+  }, "12"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-muted)'
+    }
+  }, "submissions left")), /*#__PURE__*/React.createElement(ProgV, {
+    value: 68,
+    tone: "brand",
+    showLabel: true,
+    leftLabel: "68% of class graded",
+    style: {
+      margin: '18px 0 22px'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, [['Physics · 11-A', 18, 26], ['Chemistry · 12-B', 22, 24]].map(([cls, done, total]) => /*#__PURE__*/React.createElement("div", {
+    key: cls,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      fontSize: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text-body)',
+      fontWeight: 600
+    }
+  }, cls), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-mono)',
+      color: 'var(--text-muted)',
+      fontSize: 13
+    }
+  }, done, "/", total)))), /*#__PURE__*/React.createElement(BtnV, {
+    variant: "accent",
+    block: true,
+    style: {
+      marginTop: 22
+    },
+    onClick: onReview,
+    iconRight: /*#__PURE__*/React.createElement(IconV, {
+      name: "arrow-right",
+      size: 17
+    })
+  }, "Continue grading")))));
+}
+
+/* ---------- Student Dashboard ---------- */
+function StudentDashboard({
+  user,
+  onReview,
+  onUpload
+}) {
+  useEffectV(window.GradeAntApp.refreshIcons);
+  const subjects = [['Mathematics', 'B+'], ['English Literature', 'A-'], ['Computer Science', 'A'], ['Physics', 'B'], ['Chemistry', 'C+']];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 32
+    }
+  }, /*#__PURE__*/React.createElement(Banner, {
+    name: user.name,
+    role: "student",
+    onPrimary: onUpload
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 18,
+      marginBottom: 30
+    }
+  }, /*#__PURE__*/React.createElement(StatV, {
+    label: "Overall Grade",
+    value: "B+",
+    delta: "Improved from B",
+    trend: "positive",
+    accent: "accent",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "award",
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(StatV, {
+    label: "Completed",
+    value: "18/24",
+    delta: "75% completion",
+    trend: "neutral",
+    accent: "brand",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "check-circle-2",
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(StatV, {
+    label: "Average Score",
+    value: "83%",
+    delta: "5% from last month",
+    trend: "positive",
+    accent: "info",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "trending-up",
+      size: 20
+    })
+  }), /*#__PURE__*/React.createElement(StatV, {
+    label: "Due Soon",
+    value: "3",
+    delta: "Next due in 2 days",
+    trend: "negative",
+    accent: "warning",
+    icon: /*#__PURE__*/React.createElement(IconV, {
+      name: "calendar-clock",
+      size: 20
+    })
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1.6fr 1fr',
+      gap: 24,
+      alignItems: 'start'
+    }
+  }, /*#__PURE__*/React.createElement(Section, {
+    title: "Upcoming & Recent"
+  }, /*#__PURE__*/React.createElement(AssignmentTable, {
+    role: "student",
+    onReview: onReview
+  })), /*#__PURE__*/React.createElement(Section, {
+    title: "Semester Progress"
+  }, /*#__PURE__*/React.createElement(CardV, {
+    padding: "lg"
+  }, /*#__PURE__*/React.createElement(ProgV, {
+    value: 65,
+    tone: "accent",
+    showLabel: true,
+    leftLabel: "65% complete",
+    rightLabel: "5 weeks left",
+    style: {
+      marginBottom: 22
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, subjects.map(([s, g], i) => /*#__PURE__*/React.createElement("div", {
+    key: s,
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '11px 0',
+      borderBottom: i < subjects.length - 1 ? '1px solid var(--border-subtle)' : 'none'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-body)',
+      fontWeight: 500
+    }
+  }, s), /*#__PURE__*/React.createElement(GradeV, {
+    grade: g,
+    size: "sm"
+  }))))))));
+}
+
+/* ---------- Grading Review (core surface) ---------- */
+const QUESTIONS = [{
+  n: 'Q1',
+  t: 'Free-body diagram',
+  note: 'All forces identified with correct directions and clean notation.',
+  score: 10,
+  max: 10,
+  state: 'ok'
+}, {
+  n: 'Q2',
+  t: 'Kinematics equations',
+  note: 'Correct method and setup. Final velocity off by a units conversion (m/s vs km/h).',
+  score: 8,
+  max: 10,
+  state: 'ok'
+}, {
+  n: 'Q3',
+  t: 'Error & uncertainty analysis',
+  note: 'Results stated without an uncertainty range. Add ± error bounds and a brief source-of-error note.',
+  score: 6,
+  max: 10,
+  state: 'warn'
+}];
+function GradingReview({
+  onBack
+}) {
+  useEffectV(window.GradeAntApp.refreshIcons);
+  const total = QUESTIONS.reduce((a, q) => a + q.score, 0);
+  const max = QUESTIONS.reduce((a, q) => a + q.max, 0);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 32
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 7,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: 'var(--text-muted)',
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 600,
+      fontSize: 14,
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement(IconV, {
+    name: "arrow-left",
+    size: 17
+  }), " Back to dashboard"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 320px',
+      gap: 24,
+      alignItems: 'start'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 13
+    }
+  }, /*#__PURE__*/React.createElement(AvaV, {
+    name: "Aanya Kumar",
+    size: 46
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 21,
+      color: 'var(--ink-900)'
+    }
+  }, "Aanya Kumar"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: 'var(--text-muted)',
+      fontFamily: 'var(--font-mono)'
+    }
+  }, "STU-20413 \xB7 Lab Report 04 \xB7 Physics"))), /*#__PURE__*/React.createElement(BadgeV, {
+    tone: "brand"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(IconV, {
+    name: "sparkles",
+    size: 13
+  }), " Graded by GradeFlow\u2122"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 14
+    }
+  }, QUESTIONS.map(q => /*#__PURE__*/React.createElement("div", {
+    key: q.n,
+    style: {
+      background: 'var(--surface-card)',
+      borderRadius: 'var(--radius-lg)',
+      border: '1px solid var(--border-subtle)',
+      boxShadow: 'var(--shadow-xs)',
+      padding: '20px 22px',
+      display: 'flex',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: 9,
+      flex: 'none',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: q.state === 'ok' ? 'var(--color-success-soft)' : 'var(--color-warning-soft)',
+      color: q.state === 'ok' ? 'var(--color-success)' : '#9A6B00'
+    }
+  }, /*#__PURE__*/React.createElement(IconV, {
+    name: q.state === 'ok' ? 'check' : 'pencil',
+    size: 18
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("b", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontSize: 15.5,
+      color: 'var(--ink-900)'
+    }
+  }, q.n, " \xB7 ", q.t), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'var(--font-mono)',
+      fontWeight: 700,
+      fontSize: 15,
+      color: q.score === q.max ? 'var(--grade-a)' : q.score / q.max >= 0.7 ? 'var(--grade-b)' : 'var(--grade-c)'
+    }
+  }, q.score, "/", q.max)), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: 'var(--text-muted)',
+      lineHeight: 1.55
+    }
+  }, q.note))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 18,
+      background: 'var(--accent-soft)',
+      border: '1px solid var(--teal-200)',
+      borderRadius: 'var(--radius-lg)',
+      padding: '18px 22px',
+      display: 'flex',
+      gap: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--teal-600)',
+      flex: 'none'
+    }
+  }, /*#__PURE__*/React.createElement(IconV, {
+    name: "lightbulb",
+    size: 20
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", {
+    style: {
+      fontFamily: 'var(--font-display)',
+      fontSize: 14.5,
+      color: 'var(--teal-800)'
+    }
+  }, "Suggested feedback"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 14,
+      color: 'var(--teal-800)',
+      marginTop: 5,
+      lineHeight: 1.55,
+      opacity: 0.92
+    }
+  }, "Strong experimental procedure and clean diagrams. To reach an A, add error analysis and watch unit conversions in your final answers.")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'sticky',
+      top: 24,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement(CardV, {
+    padding: "lg",
+    style: {
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-sans)',
+      fontWeight: 700,
+      fontSize: 11.5,
+      letterSpacing: '0.06em',
+      textTransform: 'uppercase',
+      color: 'var(--text-muted)'
+    }
+  }, "Final Grade"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      margin: '14px 0'
+    }
+  }, /*#__PURE__*/React.createElement(GradeV, {
+    grade: "A-",
+    size: "lg"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'var(--font-mono)',
+      fontSize: 28,
+      fontWeight: 700,
+      color: 'var(--ink-900)'
+    }
+  }, total, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'var(--text-subtle)',
+      fontSize: 20
+    }
+  }, "/", max)), /*#__PURE__*/React.createElement(ProgV, {
+    value: Math.round(total / max * 100),
+    tone: "accent",
+    style: {
+      marginTop: 16
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: 'var(--text-muted)',
+      marginTop: 8
+    }
+  }, Math.round(total / max * 100), "% overall")), /*#__PURE__*/React.createElement(CardV, {
+    padding: "md"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(BtnV, {
+    variant: "primary",
+    block: true,
+    iconLeft: /*#__PURE__*/React.createElement(IconV, {
+      name: "check",
+      size: 17
+    })
+  }, "Approve & publish"), /*#__PURE__*/React.createElement(BtnV, {
+    variant: "secondary",
+    block: true,
+    iconLeft: /*#__PURE__*/React.createElement(IconV, {
+      name: "pencil",
+      size: 16
+    })
+  }, "Edit grades"), /*#__PURE__*/React.createElement(BtnV, {
+    variant: "ghost",
+    block: true,
+    iconLeft: /*#__PURE__*/React.createElement(IconV, {
+      name: "download",
+      size: 16
+    })
+  }, "Export report"))))));
+}
+
+/* ---------- Simple placeholder (upload / grades / students) ---------- */
+function Placeholder({
+  icon,
+  title,
+  body
+}) {
+  useEffectV(window.GradeAntApp.refreshIcons);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 32
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--surface-card)',
+      borderRadius: 'var(--radius-xl)',
+      border: '2px dashed var(--border-strong)',
+      padding: '64px 32px',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 64,
+      height: 64,
+      borderRadius: 'var(--radius-lg)',
+      background: 'var(--orange-50)',
+      color: 'var(--brand)',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement(IconV, {
+    name: icon,
+    size: 30
+  })), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      fontSize: 22,
+      color: 'var(--ink-900)'
+    }
+  }, title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 15,
+      color: 'var(--text-muted)',
+      maxWidth: 420,
+      margin: '10px auto 0',
+      lineHeight: 1.55
+    }
+  }, body)));
+}
+window.GradeAntApp.views = {
+  TeacherDashboard,
+  StudentDashboard,
+  GradingReview,
+  Placeholder
+};
+})(); } catch (e) { __ds_ns.__errors.push({ path: "ui_kits/app/screens-views.jsx", error: String((e && e.message) || e) }); }
+
+__ds_ns.Avatar = __ds_scope.Avatar;
+
+__ds_ns.Badge = __ds_scope.Badge;
+
+__ds_ns.Button = __ds_scope.Button;
+
+__ds_ns.Card = __ds_scope.Card;
+
+__ds_ns.GradePill = __ds_scope.GradePill;
+
+__ds_ns.ProgressBar = __ds_scope.ProgressBar;
+
+__ds_ns.StatCard = __ds_scope.StatCard;
+
+__ds_ns.Input = __ds_scope.Input;
+
+})();

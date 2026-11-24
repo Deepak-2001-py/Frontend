@@ -3,5 +3,8 @@ dist
 .env
 .env.*
 !.env.example
+<<<<<<< HEAD
 # Public, per-mode build settings (no secrets) are needed by `npm run build`.
 !.env.production
+=======
+>>>>>>> origin/main

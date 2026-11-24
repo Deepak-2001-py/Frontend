@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | Access Denied</title>
+  <link rel="stylesheet" href="session.css">
+</head>
+<body class="state-page">
+  <header class="state-topbar">
+    <a href="../index.html" class="state-brand">
+      <span class="state-logo-mark"></span>
+      <span class="state-logo-word">GradeAnt</span>
+    </a>
+  </header>
+
+  <main class="state-main">
+    <div class="state-card">
+      <div class="state-icon state-icon--danger">✕</div>
+      <div class="state-eyebrow">ERROR 403</div>
+      <div class="state-title" style="margin-top: 4px;">Access denied</div>
+      <p class="state-text">Your role doesn't have permission to view this page. Contact your administrator if you think this is a mistake.</p>
+      <button type="button" class="state-btn state-btn--secondary" id="backToDashboardBtn">Back to Dashboard</button>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('backToDashboardBtn').addEventListener('click', function () {
+      var userType = localStorage.getItem('userType') || sessionStorage.getItem('userType');
+      if (userType === 'teacher') {
+        window.location.href = '../dashboards/teacher_dashboard.html';
+      } else if (userType === 'student') {
+        window.location.href = '../dashboards/student_dashboard_.html';
+      } else {
+        window.location.href = '../index.html';
+      }
+    });
+  </script>
+</body>
+</html>

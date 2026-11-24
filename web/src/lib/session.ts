@@ -81,6 +81,7 @@ export function dashboardPath(role: UserRole | null | undefined): string {
   if (role === 'student') return '/student/dashboard'
   return '/'
 }
+<<<<<<< HEAD
 
 /** Where a temp password gets replaced: admins change it on their profile page. */
 export function changePasswordPath(role: UserRole): string {
@@ -100,3 +101,5 @@ export function safeReturnTo(returnTo: string | null | undefined, role: UserRole
   if (area && area !== `/${role}`) return dashboardPath(role)
   return returnTo
 }
+=======
+>>>>>>> origin/main

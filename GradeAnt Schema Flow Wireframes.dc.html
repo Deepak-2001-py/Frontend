@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f2efe8;font-family:'Patrick Hand',cursive;color:#1a1a1a}
+a{color:#2A5A8C}a:hover{color:#0F6E56}
+.dv-turn{padding:40px 44px 32px;scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 15px/1.2 'Patrick Hand',cursive;color:#1a1a1a}
+.dv-opt{display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 13px/1.3 'Patrick Hand',cursive;color:rgba(0,0,0,.6)}
+.dv-next{margin:22px 0 0;font:14px/1.5 'Patrick Hand',cursive;color:rgba(0,0,0,.55)}
+</style>
+</helmet>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Authentication &amp; user system — student / teacher / admin, wired to the grading pipeline (<a class="dv-oid" href="#2a">2a</a>). Model from the website wireframes: admin-provisioned accounts, admin-approved password resets, no self-signup.</span></div>
+
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Auth board — Cognito architecture &#8594; USERS / CLASSES / RESET_REQUESTS / AUDIT_LOG schemas &#8594; account lifecycle statuses &#8594; reset-request statuses &#8594; role-connection map</div>
+
+<div style="width:1560px;background:#fbf9f4;border:2px solid #1a1a1a;border-radius:12px;box-shadow:5px 5px 0 rgba(0,0,0,.12);padding:36px 40px;display:flex;flex-direction:column;gap:36px">
+
+<!-- header -->
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:2px dashed #b9b2a4;padding-bottom:18px">
+  <div>
+    <div style="font-size:34px;line-height:1.1">Auth &amp; identity — admin owns every account</div>
+    <div style="font-size:16px;color:#666;margin-top:4px">From the site wireframes: no self-signup &#183; admin creates teachers &amp; students (single or bulk CSV) &#183; forgot-password = request &#8594; admin approves &#8594; temp password &#8594; forced change on first login.</div>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px">
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#FDF1EA;border:2px solid #993C1D;border-radius:50%"></span>Teacher</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#EAF5F1;border:2px solid #0F6E56;border-radius:50%"></span>Student</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#E8F0F7;border:2px solid #2A5A8C;border-radius:50%"></span>Admin</span>
+  </div>
+</div>
+
+<!-- A · auth architecture -->
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">A · Auth architecture — Cognito is the identity store, DynamoDB is the profile + workflow store</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">1 · PROVISION<br>(admin only)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Admin console &#183; Users / bulk CSV import</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">API Gateway /admin/users</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; user-admin</span>
+        <span style="font-size:16px;color:#888">&#8594; AdminCreateUser (temp pw) &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">Cognito User Pool + group</span>
+        <span style="font-size:16px;color:#888">&amp; profile item &#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">DynamoDB USERS</span>
+        <span style="font-size:16px;color:#888">&amp; welcome email &#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SES</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">2 · LOGIN<br>(all roles)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Login screen (username/email + password)</span>
+        <span style="font-size:16px;color:#888">&#8594; InitiateAuth &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">Cognito</span>
+        <span style="font-size:16px;color:#888">&#8594; first login? NEW_PASSWORD_REQUIRED challenge &#183; else &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; pre-token-gen adds role + classIds claims</span>
+        <span style="font-size:16px;color:#888">&#8594; JWT &#8594;</span>
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">role-based routing: /teacher /student /admin</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">3 · EVERY API CALL</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Client (JWT in Authorization header)</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">API Gateway Cognito authorizer</span>
+        <span style="font-size:16px;color:#888">&#8594; role claim checked per route &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; handlers (see <a href="#2a">2a</a>)</span>
+        <span style="font-size:16px;color:#888">&#183; every admin mutation also &#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">DynamoDB AUDIT_LOG</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">4 · PW RESET<br>(admin-approved)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Forgot-password screen (request only)</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; reset-request</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">DDB RESET_REQUESTS</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SNS &#8594; admin alert</span>
+        <span style="font-size:16px;color:#888">&#8594; admin approves &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; user-admin &#183; AdminSetUserPassword (temp)</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SES temp pw email</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- B · schemas -->
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">B · New tables — identity lives in Cognito; these hold profile, membership &amp; workflow</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;align-items:start">
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 4 — USERS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">USER#&lt;userId&gt; / PROFILE</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">GSI1PK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">EMAIL#&lt;email&gt; — login lookup</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">cognitoSub, username, email, phone, photoS3Key</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">profile (user edits phone/email/photo only)</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">role</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">student | teacher | admin (admin-managed)</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">accountStatus</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">5 states — see flow C</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">createdBy, createdAt, lastLoginAt</td><td style="padding:6px 12px;color:#555">audit</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 5 — CLASSES + memberships</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">CLASS#&lt;classId&gt; / METADATA</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">name, subject, teacherId</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">one owning teacher</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">member rows: SK = MEMBER#&lt;studentId&gt;</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">enrollment, added by admin/teacher</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">GSI1PK / GSI1SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">USER#&lt;studentId&gt; / CLASS#&lt;classId&gt; — "my classes"</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">memberStatus</td><td style="padding:6px 12px;color:#555">enrolled | removed</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:8px 12px;font-size:14px;color:#666;font-family:'Patrick Hand',cursive;border-top:1px dashed #ddd">ASSIGNMENTS (Table 1, <a href="#1a">1a</a>) carries classId — this is the join to the grading pipeline.</div>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 6 — RESET_REQUESTS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">RESET#&lt;requestId&gt; / METADATA</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">GSI1PK / GSI1SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">STATUS#pending / &lt;createdAt&gt; — admin queue view</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">userId, role, reason</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">who + why</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">status</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">5 states — see flow D</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">decidedBy, decidedAt, tempPwExpiresAt</td><td style="padding:6px 12px;color:#555">audit + expiry</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 7 — AUDIT_LOG (append-only)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">AUDIT#&lt;yyyy-mm&gt; / &lt;ts&gt;#&lt;eventId&gt;</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">actorId, actorRole</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">who did it</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">action</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">user_created | role_changed | pw_reset_approved | user_suspended | grade_overridden &#8230;</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">targetId, detail</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">affected user / item + JSON diff</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">ttl</td><td style="padding:6px 12px;color:#555">optional retention window</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:8px 12px;font-size:14px;color:#666;font-family:'Patrick Hand',cursive;border-top:1px dashed #ddd">Written by every admin &#955; — feeds the Audit Logs screen.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- C + D twin flows -->
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">C + D · Lifecycle flows — record written at each status</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">
+
+    <!-- C: account lifecycle -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div style="text-align:center;font-size:20px;background:#1a1a1a;color:#fff;border-radius:8px;padding:8px;margin-bottom:14px">C · USERS.accountStatus (any role)</div>
+
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9312; invited</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; user-admin</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Cognito AdminCreateUser</span><span style="background:#F0EBF9;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:5px;padding:2px 8px;font-size:13px">SES</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB &#183; USERS — Cognito state: FORCE_CHANGE_PASSWORD</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "USER#S42", "SK": "PROFILE",
+  "GSI1PK": "EMAIL#<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81f3e8f8e0c1f2e2e9eeeeedafe4e5f4">[email&#160;protected]</a>",
+  "cognitoSub": "c0a8-...-91f2",
+  "username": "riya.s42", "role": "student",
+  "accountStatus": "invited",
+  "createdBy": "ADMIN#AD1",
+  "createdAt": "2026-07-01T10:00:00Z"
+}</pre>
+          </div>
+          <div style="border:1.5px dashed #6B4FA0;background:#F8F5FC;border-radius:6px;padding:8px 10px;font-size:14px;color:#6B4FA0">Bulk CSV import: same write per row via &#955; user-admin batch; failures land in a per-import error report. Audit: <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">action:"user_created"</span></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; first login &#8594; Cognito NEW_PASSWORD_REQUIRED &#8594; user sets real password</div>
+
+      <div style="border:2px solid #0F6E56;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(15,110,86,.2);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9313; active &#9733;</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; post-auth trigger</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — Cognito post-authentication Lambda stamps it</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "USER#S42", "SK": "PROFILE",
+  "accountStatus": "active",
+  "firstLoginAt": "2026-07-02T08:15:00Z",
+  "lastLoginAt": "2026-07-11T08:00:00Z"
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; admin action (or reset flow D re-enters here)</div>
+
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9314; temp_password</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Cognito AdminSetUserPassword</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — set when admin approves a reset (flow D &#9315;)</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "USER#S42", "SK": "PROFILE",
+  "accountStatus": "temp_password",
+  "activeResetId": "RESET#R881"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">Next login repeats the NEW_PASSWORD_REQUIRED challenge &#8594; back to <b>active</b>.</div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; admin suspends / re-enables</div>
+
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9315; suspended &#8644; active &#183; &#9316; deactivated</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Cognito AdminDisableUser</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "USER#S42", "SK": "PROFILE",
+  "accountStatus": "suspended",
+  "suspendedBy": "ADMIN#AD1",
+  "suspendReason": "left the school"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">Data (submissions, grades) is never deleted — role/status only gates access. <b>deactivated</b> is terminal; class member rows flip to <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">memberStatus:"removed"</span>.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- D: reset request lifecycle -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div style="text-align:center;font-size:20px;background:#1a1a1a;color:#fff;border-radius:8px;padding:8px;margin-bottom:14px">D · RESET_REQUESTS.status (teacher / student; admin resets self directly)</div>
+
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9312; pending</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; reset-request (unauthenticated route, rate-limited)</span><span style="background:#F0EBF9;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:5px;padding:2px 8px;font-size:13px">SNS admin alert</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB &#183; RESET_REQUESTS — GSI1 makes the admin "Pending 4" queue a single query</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "RESET#R881", "SK": "METADATA",
+  "GSI1PK": "STATUS#pending",
+  "GSI1SK": "2026-07-11T07:40:00Z",
+  "userId": "USER#S42", "role": "student",
+  "reason": "forgot password",
+  "status": "pending"
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; admin opens Password Reset Requests screen &#8594; approve / reject</div>
+
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9313; approved &#8594; &#9314; temp_issued</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; user-admin</span><span style="background:#F0EBF9;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:5px;padding:2px 8px;font-size:13px">SES temp pw email</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — one transaction also flips USERS &#8594; temp_password (flow C &#9314;)</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "RESET#R881", "SK": "METADATA",
+  "GSI1PK": "STATUS#temp_issued",
+  "status": "temp_issued",
+  "decidedBy": "ADMIN#AD1",
+  "decidedAt": "2026-07-11T09:05:00Z",
+  "tempPwExpiresAt": "2026-07-14T09:05:00Z"
+}</pre>
+          </div>
+          <div style="border:1.5px dashed #6B4FA0;background:#F8F5FC;border-radius:6px;padding:8px 10px;font-size:14px;color:#6B4FA0">Temp password never touches DynamoDB — it exists only in Cognito + the SES email. Audit: <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">action:"pw_reset_approved"</span></div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; user logs in with temp pw &#8594; forced change &#8594; post-auth &#955; closes the loop</div>
+
+      <div style="border:2px solid #0F6E56;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(15,110,86,.2);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9315; completed &#9733;</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; post-auth trigger</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "RESET#R881", "SK": "METADATA",
+  "GSI1PK": "STATUS#completed",
+  "status": "completed",
+  "completedAt": "2026-07-11T09:30:00Z"
+}</pre>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; branches</div>
+
+      <div style="border:2px dashed #6B4FA0;border-radius:10px;background:#FBF9FE;box-shadow:3px 3px 0 rgba(107,79,160,.15);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #d5cbe8;flex-wrap:wrap">
+          <span style="font-size:20px;color:#6B4FA0">&#9316; rejected &#183; &#9317; expired (branches)</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#F0EBF9;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:5px;padding:2px 8px;font-size:13px">EventBridge cron (expiry, reuses &#955; sweeper of <a href="#2a">2a</a>)</span></span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #6B4FA0;background:#F8F5FC;border-radius:6px;padding:8px 10px">
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "status": "rejected",
+  "decidedBy": "ADMIN#AD1",
+  "rejectReason": "could not verify identity"
+}
+// expired: temp pw unused past tempPwExpiresAt
+{ "status": "expired" }  // user must file a new request</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- permission matrix -->
+      <div style="border:1.5px dashed #888;border-radius:10px;background:#fdfcf9;padding:12px 14px;margin-top:22px">
+        <div style="font-size:17px;margin-bottom:8px">Permission matrix (from wireframe &#167;07) — enforced at API Gateway route level via role claim</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px;font-family:'IBM Plex Mono',monospace">
+          <tbody>
+          <tr style="color:#555"><td style="padding:4px 8px;border-bottom:1px solid #ddd"></td><td style="padding:4px 8px;border-bottom:1px solid #ddd;text-align:center;color:#2A5A8C">Admin</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;text-align:center;color:#993C1D">Teacher</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;text-align:center;color:#0F6E56">Student</td></tr>
+          <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Change own password</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td></tr>
+          <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Reset own pw without current</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">request</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">request</td></tr>
+          <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Reset another user's pw</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10007;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10007;</td></tr>
+          <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Create teacher / student</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10007;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10007;</td></tr>
+          <tr><td style="padding:4px 8px;border-bottom:1px dashed #eee">Edit username / role / status</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10003;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10007;</td><td style="padding:4px 8px;border-bottom:1px dashed #eee;text-align:center">&#10007;</td></tr>
+          <tr><td style="padding:4px 8px">Edit own phone / email / photo</td><td style="padding:4px 8px;text-align:center">&#10003;</td><td style="padding:4px 8px;text-align:center">&#10003;</td><td style="padding:4px 8px;text-align:center">&#10003;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- E · role connection map -->
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">E · How the three roles connect to the grading pipeline</div>
+  <div style="display:flex;align-items:stretch;gap:0">
+    <div style="flex:1;border:1.5px solid #2A5A8C;border-radius:10px;background:#F4F8FC;padding:14px 16px;box-shadow:3px 3px 0 rgba(42,90,140,.15)">
+      <div style="font-size:20px;color:#2A5A8C">Admin</div>
+      <div style="font-size:14.5px;color:#555;line-height:1.55;margin-top:6px">creates every account (USERS + Cognito group) &#183; assigns teachers to CLASSES &#183; enrolls students (MEMBER rows) &#183; approves resets &#183; reads AUDIT_LOG &#183; never touches grades</div>
+    </div>
+    <div style="align-self:center;font-size:22px;color:#888;padding:0 10px">&#8594;</div>
+    <div style="flex:1;border:1.5px solid #993C1D;border-radius:10px;background:#FDF8F4;padding:14px 16px;box-shadow:3px 3px 0 rgba(153,60,29,.15)">
+      <div style="font-size:20px;color:#993C1D">Teacher</div>
+      <div style="font-size:14.5px;color:#555;line-height:1.55;margin-top:6px">owns CLASS#&#8230; &#183; creates ASSIGNMENTS (classId FK &#8594; Table 1, <a href="#1a">1a</a>) &#183; uploads QPs + rubrics &#183; reviews rubric &#183; works SQS review queue &#183; overrides + publishes grades</div>
+    </div>
+    <div style="align-self:center;font-size:22px;color:#888;padding:0 10px">&#8594;</div>
+    <div style="flex:1;border:1.5px solid #0F6E56;border-radius:10px;background:#F5FAF8;padding:14px 16px;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="font-size:20px;color:#0F6E56">Student</div>
+      <div style="font-size:14.5px;color:#555;line-height:1.55;margin-top:6px">member of classes (GSI1 "my classes") &#183; sees ASSIGNMENTS of enrolled classes only &#183; uploads answers &#8594; SUBMISSIONS keyed by their userId &#183; fixes OCR &#183; gets SNS notify on publish</div>
+    </div>
+  </div>
+  <div style="font-size:15px;color:#666">Authorization chain on every pipeline call: JWT role claim (route access) &#8594; classIds claim / CLASSES membership check (row access) &#8594; PK ownership check (SUBMISSION#&lt;own userId&gt; only). All three checks live in the &#955; handlers of <a href="#2a">2a</a>.</div>
+</div>
+
+</div>
+</div>
+
+<p class="dv-next">Try next: "draw the login + first-login challenge as a sequence diagram" &#183; "add SSO (Google Workspace for Edu) as an alternative" &#183; "merge auth services into the <a href="#2a">2a</a> system diagram"</p>
+</section>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">End-to-end AWS architecture — every service interconnected, numbered flow 1&#8594;19 (companion to <a class="dv-oid" href="#1a">1a</a>; &#955; for OCR, parsing &amp; AI grading)</span></div>
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Full system diagram — client &#8594; API Gateway &#8594; Lambdas &#8594; Textract/Bedrock &#8594; S3 + DynamoDB + Streams &#8594; SQS/SNS, with EventBridge hygiene + CloudWatch</div>
+
+<div style="width:1452px;background:#fbf9f4;border:2px solid #1a1a1a;border-radius:12px;box-shadow:5px 5px 0 rgba(0,0,0,.12);padding:28px 36px">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:10px">
+    <div style="font-size:30px">GradeAnt on AWS — one connected system</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px;align-items:center">
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:0;border-top:2.5px solid #2A5A8C"></span>request / trigger</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:0;border-top:2.5px solid #0F6E56"></span>DynamoDB write</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:0;border-top:2.5px solid #993C1D"></span>S3 object write</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:0;border-top:2.5px solid #6B4FA0"></span>queue / notify</span>
+      <span style="display:flex;align-items:center;gap:6px"><span style="width:22px;height:0;border-top:2.5px dashed #777"></span>async return / scheduled</span>
+    </div>
+  </div>
+
+  <div style="position:relative;width:1380px;height:1315px">
+
+    <svg style="position:absolute;left:0;top:0;width:1380px;height:1315px" viewBox="0 0 1380 1315">
+      <defs>
+        <marker id="arwB" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#2A5A8C"></path></marker>
+        <marker id="arwG" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#0F6E56"></path></marker>
+        <marker id="arwO" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#993C1D"></path></marker>
+        <marker id="arwP" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#6B4FA0"></path></marker>
+        <marker id="arwN" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="#777"></path></marker>
+      </defs>
+      <polyline points="120,210 120,280" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="220,150 300,150" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="220,320 300,320" fill="none" stroke="#777" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arwN)"></polyline>
+      <polyline points="450,128 530,128" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,116 830,116 830,290 1070,290" fill="none" stroke="#0F6E56" stroke-width="2" marker-end="url(#arwG)"></polyline>
+      <polyline points="655,90 655,56 120,56 120,90" fill="none" stroke="#777" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arwN)"></polyline>
+      <polyline points="170,90 170,26 1195,26 1195,90" fill="none" stroke="#993C1D" stroke-width="2.5" marker-end="url(#arwO)"></polyline>
+      <polyline points="1070,140 1040,140 1040,222 780,222" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,254 1070,254" fill="none" stroke="#0F6E56" stroke-width="2" marker-end="url(#arwG)"></polyline>
+      <polyline points="1195,430 1195,480" fill="none" stroke="#0F6E56" stroke-width="2" marker-end="url(#arwG)"></polyline>
+      <polyline points="1070,488 1045,488 1045,348 780,348" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="1070,502 1032,502 1032,462 780,462" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="1070,516 1008,516 1008,580 780,580" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="1070,530 1020,530 1020,788 780,788" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,372 812,372 812,395 840,395" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,430 812,430 812,415 840,415" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,326 800,326 800,615 1070,615" fill="none" stroke="#993C1D" stroke-width="2" marker-end="url(#arwO)"></polyline>
+      <polyline points="780,482 818,482 818,635 1070,635" fill="none" stroke="#993C1D" stroke-width="2" marker-end="url(#arwO)"></polyline>
+      <polyline points="780,556 832,556 832,655 1070,655" fill="none" stroke="#993C1D" stroke-width="2" marker-end="url(#arwO)"></polyline>
+      <polyline points="780,598 812,598 812,720 840,720" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,884 812,884 812,755 840,755" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="450,678 530,678" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,678 1070,678" fill="none" stroke="#993C1D" stroke-width="2" marker-end="url(#arwO)"></polyline>
+      <polyline points="655,826 655,860" fill="none" stroke="#2A5A8C" stroke-width="2.5" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,898 1030,898 1030,740 1070,740" fill="none" stroke="#993C1D" stroke-width="2" marker-end="url(#arwO)"></polyline>
+      <polyline points="780,922 1000,922 1000,835 1070,835" fill="none" stroke="#6B4FA0" stroke-width="2" marker-end="url(#arwP)"></polyline>
+      <polyline points="1070,852 805,852 805,990 780,990" fill="none" stroke="#777" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arwN)"></polyline>
+      <polyline points="450,1008 530,1008" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="780,1030 1040,1030 1040,945 1070,945" fill="none" stroke="#6B4FA0" stroke-width="2" marker-end="url(#arwP)"></polyline>
+      <polyline points="1195,980 1195,1170 220,1170" fill="none" stroke="#6B4FA0" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arwP)"></polyline>
+      <polyline points="840,1118 780,1118" fill="none" stroke="#2A5A8C" stroke-width="2" marker-end="url(#arwB)"></polyline>
+      <polyline points="700,1080 700,1062 1345,1062 1345,335 1320,335" fill="none" stroke="#0F6E56" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arwG)"></polyline>
+    </svg>
+
+    <!-- labels -->
+    <div style="position:absolute;left:128px;top:226px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">1 &#183; sign-in &#8594; JWT</div>
+    <div style="position:absolute;left:230px;top:124px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">2 &#183; REST</div>
+    <div style="position:absolute;left:224px;top:296px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">authorizer</div>
+    <div style="position:absolute;left:452px;top:102px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">3 &#183; request upload</div>
+    <div style="position:absolute;left:858px;top:268px;background:#fff;border:1px solid #0F6E56;color:#0F6E56;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">4 &#183; status: upload_requested</div>
+    <div style="position:absolute;left:280px;top:36px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">5 &#183; presigned URL (returned)</div>
+    <div style="position:absolute;left:560px;top:4px;background:#fff;border:1px solid #993C1D;color:#993C1D;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">6 &#183; direct PUT raw.pdf (no server hop)</div>
+    <div style="position:absolute;left:846px;top:198px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">7 &#183; S3 event notification</div>
+    <div style="position:absolute;left:812px;top:232px;background:#fff;border:1px solid #0F6E56;color:#0F6E56;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">8 &#183; status: *_uploaded</div>
+    <div style="position:absolute;left:1205px;top:444px;background:#fff;border:1px solid #0F6E56;color:#0F6E56;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">9 &#183; change stream</div>
+    <div style="position:absolute;left:788px;top:330px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">9a</div>
+    <div style="position:absolute;left:788px;top:444px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">9b</div>
+    <div style="position:absolute;left:788px;top:562px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">9c</div>
+    <div style="position:absolute;left:788px;top:770px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">9d &#183; fan-in check</div>
+    <div style="position:absolute;left:816px;top:376px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">10 &#183; OCR</div>
+    <div style="position:absolute;left:810px;top:594px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">parsed.json</div>
+    <div style="position:absolute;left:890px;top:616px;background:#fff;border:1px solid #993C1D;color:#993C1D;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">ocr.json</div>
+    <div style="position:absolute;left:958px;top:637px;background:#fff;border:1px solid #993C1D;color:#993C1D;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">rubric.json</div>
+    <div style="position:absolute;left:800px;top:658px;background:#fff;border:1px solid #993C1D;color:#993C1D;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">12 &#183; corrected.json &#183; statuses &#8594; DDB</div>
+    <div style="position:absolute;left:662px;top:832px;background:#fff;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">13 &#183; cond. write grading_triggered</div>
+    <div style="position:absolute;left:800px;top:878px;background:#fff;border:1px solid #993C1D;color:#993C1D;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">14 &#183; report.json + ai_graded</div>
+    <div style="position:absolute;left:798px;top:928px;background:#fff;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">15 &#183; if flagged &#8594; queue</div>
+    <div style="position:absolute;left:900px;top:806px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">16 &#183; teacher works the queue</div>
+    <div style="position:absolute;left:452px;top:984px;background:#fff;border:1px solid #ccc;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">override / publish API</div>
+    <div style="position:absolute;left:800px;top:1006px;background:#fff;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">17 &#183; publish &#8594; SNS</div>
+    <div style="position:absolute;left:240px;top:1146px;background:#fff;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">18 &#183; notify student (email / push)</div>
+    <div style="position:absolute;left:900px;top:1040px;background:#fff;border:1px solid #0F6E56;color:#0F6E56;border-radius:4px;padding:1px 6px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap">19 &#183; expire abandoned upload_requested items</div>
+
+    <!-- nodes -->
+    <div style="position:absolute;left:20px;top:90px;width:200px;height:120px;box-sizing:border-box;border:1.5px dashed #666;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.08);padding:10px 12px">
+      <div style="font-size:19px">Web client</div>
+      <div style="font-size:12px;color:#666;font-family:'IBM Plex Mono',monospace;margin-top:4px">teacher + student app<br>CloudFront + S3 static hosting</div>
+    </div>
+    <div style="position:absolute;left:20px;top:280px;width:200px;height:80px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:10px 12px">
+      <div style="font-size:19px;color:#2A5A8C">Cognito</div>
+      <div style="font-size:12px;color:#666;font-family:'IBM Plex Mono',monospace">user pools &#183; JWT &#183; roles</div>
+    </div>
+    <div style="position:absolute;left:20px;top:1130px;width:200px;height:80px;box-sizing:border-box;border:1.5px dashed #6B4FA0;border-radius:10px;background:#FBF9FE;padding:10px 12px">
+      <div style="font-size:19px;color:#6B4FA0">Student devices</div>
+      <div style="font-size:12px;color:#666;font-family:'IBM Plex Mono',monospace">email / push via SNS</div>
+    </div>
+
+    <div style="position:absolute;left:300px;top:90px;width:150px;height:956px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#F4F8FC;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:10px 12px">
+      <div style="font-size:19px;color:#2A5A8C">API Gateway</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace;margin-top:6px;line-height:1.8">JWT authorizer<br>throttling<br><br>POST /uploads<br>PUT /rubric/review<br>PUT /answers/correct<br>PUT /grades/override<br>POST /grades/publish</div>
+    </div>
+
+    <div style="position:absolute;left:530px;top:90px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; presign</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">issues presigned PUT URL</div>
+    </div>
+    <div style="position:absolute;left:530px;top:200px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; ingest</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">S3 event handler</div>
+    </div>
+    <div style="position:absolute;left:530px;top:310px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; parse-qp</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">split QP &#8594; questions &#183; OCR</div>
+    </div>
+    <div style="position:absolute;left:530px;top:420px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; ocr-answer</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">11 &#183; Textract on student PDF</div>
+    </div>
+    <div style="position:absolute;left:530px;top:530px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; rubric-gen</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">Bedrock &#183; only if teacher gave none</div>
+    </div>
+    <div style="position:absolute;left:530px;top:640px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; review + correction APIs</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">teacher approves rubric &#183; student fixes OCR</div>
+    </div>
+    <div style="position:absolute;left:530px;top:750px;width:250px;height:76px;box-sizing:border-box;border:2px solid #2A5A8C;border-radius:10px;background:#F4F8FC;box-shadow:3px 3px 0 rgba(42,90,140,.2);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; readiness-check &#9670; fan-in</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">needs rubric_reviewed AND corrected</div>
+    </div>
+    <div style="position:absolute;left:530px;top:860px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; grading-engine</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">reads rubric.json + corrected.json</div>
+    </div>
+    <div style="position:absolute;left:530px;top:970px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; override + publish</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">teacher_reviewed &#183; published &#8594; DDB</div>
+    </div>
+    <div style="position:absolute;left:530px;top:1080px;width:250px;height:76px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">&#955; expiry-sweeper</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">checks presignedUrlExpiresAt</div>
+    </div>
+
+    <div style="position:absolute;left:840px;top:360px;width:170px;height:90px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#EDF3F9;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">Textract</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">handwriting OCR for QP + answers</div>
+    </div>
+    <div style="position:absolute;left:840px;top:690px;width:170px;height:90px;box-sizing:border-box;border:1.5px solid #2A5A8C;border-radius:10px;background:#EDF3F9;box-shadow:3px 3px 0 rgba(42,90,140,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#2A5A8C">Bedrock</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">rubric generation + AI grading</div>
+    </div>
+    <div style="position:absolute;left:840px;top:1080px;width:170px;height:76px;box-sizing:border-box;border:1.5px solid #6B4FA0;border-radius:10px;background:#FBF9FE;box-shadow:3px 3px 0 rgba(107,79,160,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#6B4FA0">EventBridge</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">cron every 15 min</div>
+    </div>
+
+    <div style="position:absolute;left:1070px;top:90px;width:250px;height:100px;box-sizing:border-box;border:1.5px solid #993C1D;border-radius:10px;background:#FDF8F4;box-shadow:3px 3px 0 rgba(153,60,29,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#993C1D">S3 &#183; raw uploads</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace">qp/**/raw.pdf<br>answers/**/raw.pdf<br>event notifications: ON</div>
+    </div>
+    <div style="position:absolute;left:1070px;top:240px;width:250px;height:190px;box-sizing:border-box;border:2px solid #0F6E56;border-radius:10px;background:#F5FAF8;box-shadow:3px 3px 0 rgba(15,110,86,.2);padding:8px 12px">
+      <div style="font-size:18px;color:#0F6E56">DynamoDB</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace;line-height:1.7;margin-top:4px">ASSIGNMENTS<br>QUESTION_PAPERS<br>SUBMISSIONS (+ GSI1)<br><br>single source of truth for status &#8594; see <a href="#1a" style="color:#0F6E56">1a</a></div>
+    </div>
+    <div style="position:absolute;left:1070px;top:480px;width:250px;height:60px;box-sizing:border-box;border:1.5px solid #0F6E56;border-radius:10px;background:#F5FAF8;box-shadow:3px 3px 0 rgba(15,110,86,.15);padding:8px 12px">
+      <div style="font-size:17px;color:#0F6E56">DynamoDB Streams</div>
+      <div style="font-size:11px;color:#666;font-family:'IBM Plex Mono',monospace">fan-out on status change</div>
+    </div>
+    <div style="position:absolute;left:1070px;top:600px;width:250px;height:150px;box-sizing:border-box;border:1.5px solid #993C1D;border-radius:10px;background:#FDF8F4;box-shadow:3px 3px 0 rgba(153,60,29,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#993C1D">S3 &#183; processed content</div>
+      <div style="font-size:11.5px;color:#666;font-family:'IBM Plex Mono',monospace;line-height:1.7;margin-top:4px">processed/&#8230;/parsed.json &#183; ocr.json &#183; corrected.json<br>rubrics/&#8230;/rubric.json<br>reports/&#8230;/report.json</div>
+    </div>
+    <div style="position:absolute;left:1070px;top:800px;width:250px;height:70px;box-sizing:border-box;border:1.5px solid #6B4FA0;border-radius:10px;background:#FBF9FE;box-shadow:3px 3px 0 rgba(107,79,160,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#6B4FA0">SQS &#183; review queue</div>
+      <div style="font-size:11px;color:#666;font-family:'IBM Plex Mono',monospace">low-confidence grades &#183; + DLQ</div>
+    </div>
+    <div style="position:absolute;left:1070px;top:910px;width:250px;height:70px;box-sizing:border-box;border:1.5px solid #6B4FA0;border-radius:10px;background:#FBF9FE;box-shadow:3px 3px 0 rgba(107,79,160,.15);padding:8px 12px">
+      <div style="font-size:18px;color:#6B4FA0">SNS &#183; results topic</div>
+      <div style="font-size:11px;color:#666;font-family:'IBM Plex Mono',monospace">grades-published fan-out</div>
+    </div>
+
+    <div style="position:absolute;left:20px;top:1250px;width:1300px;height:55px;box-sizing:border-box;border:1.5px dashed #888;border-radius:10px;background:#fdfcf9;display:flex;align-items:center;gap:16px;padding:0 16px">
+      <span style="font-size:17px">CloudWatch + X-Ray</span>
+      <span style="font-size:12px;color:#666;font-family:'IBM Plex Mono',monospace">logs &#183; metrics &#183; alarms on every &#955; &#183; DLQs for ingest/grading &#183; traces across the whole pipeline</span>
+    </div>
+
+  </div>
+
+  <div style="border-top:2px dashed #b9b2a4;margin-top:16px;padding-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:6px 28px;font-size:14.5px;color:#444;line-height:1.5">
+    <div>1&#8211;2 Cognito sign-in, JWT on every API Gateway call &#183; 3&#8211;5 &#955; presign reserves the S3 key + writes <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">upload_requested</span> &#183; 6&#8211;8 client PUTs straight to S3; the bucket event drives &#955; ingest &#8594; <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">*_uploaded</span> &#183; 9 every status change hits DynamoDB Streams, which fans out to the right &#955;.</div>
+    <div>10&#8211;12 Textract OCR + Bedrock rubric-gen write JSON to S3, statuses to DDB; teacher/student fix via API &#183; 13&#8211;15 fan-in &#955; conditionally fires grading once; report.json + <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">ai_graded</span>; flagged &#8594; SQS &#183; 16&#8211;18 teacher overrides, publish &#8594; SNS notifies students &#183; 19 EventBridge sweeps abandoned uploads.</div>
+  </div>
+
+</div>
+</div>
+
+<p class="dv-next">Try next: "zoom into the grading fan-in as a sequence diagram" &#183; "add IAM roles + VPC boundaries to <a class="dv-oid" href="#2a">2a</a>" &#183; "estimate monthly cost per service"</p>
+</section>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">GradeAnt — end-to-end system wireframe: AWS architecture, table schemas, and every status with its DynamoDB + S3 payload</span></div>
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Full board — architecture map &#8594; table schemas &#8594; twin status flows with fan-in gate &#8594; grading tail</div>
+
+<div style="width:1560px;background:#fbf9f4;border:2px solid #1a1a1a;border-radius:12px;box-shadow:5px 5px 0 rgba(0,0,0,.12);padding:36px 40px;display:flex;flex-direction:column;gap:36px">
+
+<!-- ============ HEADER + LEGEND ============ -->
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;border-bottom:2px dashed #b9b2a4;padding-bottom:18px">
+  <div>
+    <div style="font-size:34px;line-height:1.1">GradeAnt backend — who writes what, when</div>
+    <div style="font-size:16px;color:#666;margin-top:4px">Rule: DynamoDB stores pointers + state only. S3 stores the actual content (JSON, or raw PDF for uploads).</div>
+  </div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:14px">
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#fff;border:2px solid #0F6E56;border-radius:3px"></span>DynamoDB item</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#fff;border:2px solid #993C1D;border-radius:3px"></span>S3 object</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#E8F0F7;border:2px solid #2A5A8C;border-radius:3px"></span>AWS service invoked</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:14px;background:#F0EBF9;border:2px solid #6B4FA0;border-radius:3px"></span>Queue / notification</span>
+  </div>
+</div>
+
+<!-- ============ AWS ARCHITECTURE MAP ============ -->
+<sc-if value="{{ showArchitecture }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">A · AWS architecture — four lanes</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">1 · UPLOAD<br>(teacher or student)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Client (web app)</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">API Gateway</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; presign</span>
+        <span style="font-size:16px;color:#888">&#8594; presigned PUT &#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 raw bucket</span>
+        <span style="font-size:16px;color:#888">&#8594; event notification &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; ingest</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">DynamoDB</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">2 · PROCESS<br>(async)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#EAF5F1;border:1.5px solid #0F6E56;color:#0F6E56;border-radius:6px;padding:5px 10px;font-size:15px">DynamoDB Streams</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; parse / OCR</span>
+        <span style="font-size:16px;color:#888">+</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">Textract</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 processed/</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; rubric-gen</span>
+        <span style="font-size:16px;color:#888">+</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">Bedrock</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 rubrics/</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">3 · GRADE<br>(fan-in)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; readiness check</span>
+        <span style="font-size:16px;color:#888">&#8594; conditional write &#8594;</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; grading engine</span>
+        <span style="font-size:16px;color:#888">+</span>
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">Bedrock</span>
+        <span style="font-size:16px;color:#888">&#8594;</span>
+        <span style="background:#FDF1EA;border:1.5px solid #993C1D;color:#993C1D;border-radius:6px;padding:5px 10px;font-size:15px">S3 reports/</span>
+        <span style="font-size:16px;color:#888">&amp; if flagged &#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SQS review queue</span>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:110px;flex:none;font-size:15px;color:#666;text-align:right">4 · DELIVER<br>(+ hygiene)</div>
+      <div style="flex:1;display:flex;align-items:center;flex-wrap:wrap;gap:8px;border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;padding:12px 14px;box-shadow:3px 3px 0 rgba(0,0,0,.08)">
+        <span style="background:#E8F0F7;border:1.5px solid #2A5A8C;color:#2A5A8C;border-radius:6px;padding:5px 10px;font-size:15px">&#955; review / override API</span>
+        <span style="font-size:16px;color:#888">&#8594; publish &#8594;</span>
+        <span style="background:#F0EBF9;border:1.5px solid #6B4FA0;color:#6B4FA0;border-radius:6px;padding:5px 10px;font-size:15px">SNS &#8594; student notify</span>
+        <span style="font-size:16px;color:#888">&#183;</span>
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">EventBridge cron &#8594; sweep abandoned uploads (presignedUrlExpiresAt)</span>
+        <span style="font-size:16px;color:#888">&#183;</span>
+        <span style="background:#fff;border:1.5px dashed #888;border-radius:6px;padding:5px 10px;font-size:15px">Cognito auth &#183; CloudWatch logs/alarms</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ TABLE SCHEMAS ============ -->
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">B · DynamoDB table schemas (single-table-per-entity, S3 pointers only)</div>
+  <div style="display:grid;grid-template-columns:0.8fr 1.1fr 1.3fr;gap:16px;align-items:start">
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 1 — ASSIGNMENTS (container)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">ASSIGNMENT#&lt;id&gt;</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">METADATA</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">teacherId, classId, title, dueDate</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">String</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">contentStatus</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">draft | published</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">gradesStatus</td><td style="padding:6px 12px;color:#555">not_started | ai_graded | teacher_reviewing | published</td></tr>
+        </tbody>
+      </table>
+      <div style="padding:8px 12px;font-size:14px;color:#666;font-family:'Patrick Hand',cursive;border-top:1px dashed #ddd">Pure metadata — no S3 object for this table.</div>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 2 — QUESTION_PAPERS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">ASSIGNMENT#&lt;id&gt; / QP#&lt;questionId&gt;</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">uploadId, presignedUrlExpiresAt</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">abandoned-upload tracking</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">qpRawS3Key</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">teacher's original PDF (binary)</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">qpParsedS3Key</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">parsed question JSON | null</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">rubricS3Key, rubricSource, hasRubric</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">teacher | ai_generated</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">status</td><td style="padding:6px 12px;color:#555">6 states — see flow C</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="border:1.5px solid #0F6E56;border-radius:10px;background:#fff;overflow:hidden;box-shadow:3px 3px 0 rgba(15,110,86,.15)">
+      <div style="background:#EAF5F1;color:#0F6E56;padding:8px 12px;font-size:18px;border-bottom:1.5px solid #0F6E56">Table 3 — SUBMISSIONS</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'IBM Plex Mono',monospace">
+        <tbody>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">PK / SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">SUBMISSION#&lt;studentId&gt;#&lt;assignmentId&gt; / QP#&lt;questionId&gt;</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">GSI1PK / GSI1SK</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">ASSIGNMENT#&lt;id&gt; / QP#&lt;qId&gt;#STUDENT#&lt;sId&gt; — teacher review query</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">rawAnswerS3Key, ocrTextS3Key, correctedAnswerS3Key, reportS3Key</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">S3 pointers</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">gradingMode, aiScore, aiConfidence</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">frozen once written</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">finalScore, flaggedForReview, sqsMessageId</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">finalScore = only field UI reads</td></tr>
+        <tr><td style="padding:6px 12px;border-bottom:1px dashed #ddd;font-weight:500">overriddenBy/At/Reason · notifiedAt · revisionHistory</td><td style="padding:6px 12px;border-bottom:1px dashed #ddd;color:#555">audit fields</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:500">status</td><td style="padding:6px 12px;color:#555">10 states — see flows D + E</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ TWIN FLOWS ============ -->
+<div style="display:flex;flex-direction:column;gap:14px">
+  <div style="font-size:24px">C + D · Twin flows — every status, with the exact record written at that moment</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">
+
+    <!-- ======= QP COLUMN ======= -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div style="text-align:center;font-size:20px;background:#1a1a1a;color:#fff;border-radius:8px;padding:8px;margin-bottom:14px">C · QUESTION_PAPERS flow (teacher side)</div>
+
+      <!-- qp: upload_requested -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9312; upload_requested</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">API Gateway</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; presign</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB &#183; QUESTION_PAPERS</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "ASSIGNMENT#A100", "SK": "QP#Q1",
+  "uploadId": "u-8821",
+  "presignedUrlExpiresAt": "2026-07-10T09:15:00Z",
+  "status": "upload_requested"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — nothing yet. Presigned URL grants write to reserved key <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">qp/A100/Q1/raw.pdf</span></div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; client PUTs the PDF &#8594; S3 event notification fires</div>
+
+      <!-- qp: qp_uploaded -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9313; qp_uploaded</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#FDF1EA;border:1px solid #993C1D;color:#993C1D;border-radius:5px;padding:2px 8px;font-size:13px">S3 raw bucket</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; ingest</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "ASSIGNMENT#A100", "SK": "QP#Q1",
+  "qpRawS3Key": "qp/A100/Q1/raw.pdf",
+  "status": "qp_uploaded",
+  "uploadedAt": "2026-07-10T09:12:40Z"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 &#183; <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">qp/A100/Q1/raw.pdf</span> — raw binary PDF, no JSON schema</div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; DynamoDB Streams triggers parse Lambda</div>
+
+      <!-- qp: qp_parsed -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9314; qp_parsed</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; parse/OCR</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Textract</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update (denormalized questionText for list views)</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "ASSIGNMENT#A100", "SK": "QP#Q1",
+  "qpParsedS3Key": "processed/qp/A100/Q1/parsed.json",
+  "questionText": "Solve for x: 2x + 5 = 11",
+  "order": 1,
+  "status": "qp_parsed"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#993C1D;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">S3 &#183; processed/qp/A100/Q1/parsed.json</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "assignmentId": "A100", "questionId": "Q1",
+  "sourcePdfKey": "qp/A100/Q1/raw.pdf",
+  "pageRange": [1, 1],
+  "rawOcrText": "Solve for x: 2x + 5 = 11",
+  "cleanedText": "Solve for x: 2x + 5 = 11",
+  "latexBlocks": ["2x + 5 = 11"],
+  "parsedAt": "2026-07-10T09:13:05Z"
+}</pre>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; teacher uploaded a rubric? no &#8594; AI generates one</div>
+
+      <!-- qp: rubric_generating -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9315; rubric_generating</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; rubric-gen</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Bedrock</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "ASSIGNMENT#A100", "SK": "QP#Q1",
+  "status": "rubric_generating",
+  "rubricSource": null
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — none yet</div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; Lambda writes rubric.json, then updates the item</div>
+
+      <!-- qp: rubric_generated -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9316; rubric_generated</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; writes S3 + DDB</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "ASSIGNMENT#A100", "SK": "QP#Q1",
+  "rubricS3Key": "rubrics/A100/Q1/rubric.json",
+  "rubricSource": "teacher",
+  "hasRubric": true,
+  "status": "rubric_generated"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#993C1D;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">S3 &#183; rubrics/A100/Q1/rubric.json</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "questionId": "Q1",
+  "referenceAnswer": "x = 3",
+  "solutionSteps": [
+    { "step": 1, "text": "Subtract 5 from both sides", "expected": "2x = 6" },
+    { "step": 2, "text": "Divide both sides by 2", "expected": "x = 3" }
+  ],
+  "gradingCriteria": [
+    { "criterion": "Correct setup", "points": 3 },
+    { "criterion": "Correct algebraic steps", "points": 4 },
+    { "criterion": "Correct final answer", "points": 3 }
+  ],
+  "maxPoints": 10,
+  "generatedBy": "teacher_upload",
+  "generatedAt": "2026-07-10T09:20:00Z"
+}</pre>
+          </div>
+          <div style="border:1.5px dashed #6B4FA0;background:#F8F5FC;border-radius:6px;padding:8px 10px;font-size:14px;color:#6B4FA0">Case: <b>rubricSource = "ai_generated"</b> &#8594; same S3 schema + <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">"generatedBy":"ai_model","modelVersion":"..."</span> and DDB status stays <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">ai_solution_pending_review</span> until a teacher acts.</div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; teacher approves / edits in review UI</div>
+
+      <!-- qp: rubric_reviewed -->
+      <div style="border:2px solid #0F6E56;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(15,110,86,.2);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9317; rubric_reviewed &#9733; <span style="font-size:14px;color:#0F6E56">(gate input)</span></span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">API Gateway</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; review API</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "ASSIGNMENT#A100", "SK": "QP#Q1",
+  "status": "rubric_reviewed",
+  "reviewedBy": "T7",
+  "reviewedAt": "2026-07-10T09:30:00Z"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — rubric.json overwritten in place if edited, plus <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">"editedByTeacher": true</span></div>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <!-- ======= SUBMISSION COLUMN ======= -->
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div style="text-align:center;font-size:20px;background:#1a1a1a;color:#fff;border-radius:8px;padding:8px;margin-bottom:14px">D · SUBMISSIONS flow (student side)</div>
+
+      <!-- sub: upload_requested -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9312; upload_requested</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">API Gateway</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; presign</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB &#183; SUBMISSIONS (note GSI1 for teacher's per-assignment query)</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "GSI1PK": "ASSIGNMENT#A100",
+  "GSI1SK": "QP#Q1#STUDENT#S42",
+  "uploadId": "u-9134",
+  "presignedUrlExpiresAt": "2026-07-11T08:10:00Z",
+  "status": "upload_requested"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — nothing yet. Reserved key <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">answers/S42/A100/Q1/raw.pdf</span></div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; student PUTs PDF &#8594; S3 event notification</div>
+
+      <!-- sub: answer_uploaded -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9313; answer_uploaded</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#FDF1EA;border:1px solid #993C1D;color:#993C1D;border-radius:5px;padding:2px 8px;font-size:13px">S3 raw bucket</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; ingest</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "rawAnswerS3Key": "answers/S42/A100/Q1/raw.pdf",
+  "status": "answer_uploaded",
+  "uploadedAt": "2026-07-11T08:05:12Z"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 &#183; raw binary PDF, no JSON</div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; OCR Lambda (Textract) runs on the PDF</div>
+
+      <!-- sub: ocr_done -->
+      <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9314; ocr_done</span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; OCR</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Textract</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "ocrTextS3Key": "processed/answers/S42/A100/Q1/ocr.json",
+  "status": "ocr_done"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#993C1D;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">S3 &#183; processed/answers/S42/A100/Q1/ocr.json</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "studentId": "S42", "questionId": "Q1",
+  "rawOcrText": "2x+5=11 2x=6 x=3",
+  "ocrConfidence": 0.81,
+  "latexBlocksDetected": ["2x+5=11", "2x=6", "x=3"],
+  "processedAt": "2026-07-11T08:06:30Z"
+}</pre>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+      <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; student confirms / fixes the OCR text in UI</div>
+
+      <!-- sub: corrected -->
+      <div style="border:2px solid #0F6E56;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(15,110,86,.2);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+          <span style="font-size:20px">&#9315; corrected &#9733; <span style="font-size:14px;color:#0F6E56">(gate input)</span></span>
+          <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">API Gateway</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; correction API</span></span>
+        </div>
+        <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+          <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "correctedAnswerS3Key": "processed/answers/S42/A100/Q1/corrected.json",
+  "status": "corrected"
+}</pre>
+          </div>
+          <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px">
+            <div style="font-size:13px;color:#993C1D;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">S3 &#183; processed/answers/S42/A100/Q1/corrected.json</div>
+            <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "studentId": "S42", "questionId": "Q1",
+  "correctedText": "2x + 5 = 11\n2x = 6\nx = 3",
+  "correctedBy": "student",
+  "correctedAt": "2026-07-11T08:09:00Z"
+}</pre>
+          </div>
+        </div>
+        </sc-if>
+      </div>
+
+      <!-- assignments container mini-flow -->
+      <div style="border:1.5px dashed #888;border-radius:10px;background:#fdfcf9;padding:12px 14px;margin-top:22px">
+        <div style="font-size:17px;margin-bottom:6px">Meanwhile, Table 1 — ASSIGNMENTS container rolls up:</div>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:12.5px">
+          <span style="border:1px solid #999;border-radius:5px;padding:3px 8px;background:#fff">contentStatus: draft</span><span style="color:#888">&#8594;</span><span style="border:1px solid #999;border-radius:5px;padding:3px 8px;background:#fff">published</span>
+          <span style="color:#888;margin:0 6px">|</span>
+          <span style="border:1px solid #999;border-radius:5px;padding:3px 8px;background:#fff">gradesStatus: not_started</span><span style="color:#888">&#8594;</span><span style="border:1px solid #999;border-radius:5px;padding:3px 8px;background:#fff">ai_graded</span><span style="color:#888">&#8594;</span><span style="border:1px solid #999;border-radius:5px;padding:3px 8px;background:#fff">teacher_reviewing</span><span style="color:#888">&#8594;</span><span style="border:1px solid #999;border-radius:5px;padding:3px 8px;background:#fff">published</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ FAN-IN GATE ============ -->
+  <div style="display:flex;flex-direction:column;align-items:center;gap:0;margin-top:8px">
+    <div style="display:flex;gap:220px;font-size:22px;color:#0F6E56">&#8595;<span>&#8595;</span></div>
+    <div style="border:2.5px dashed #1a1a1a;border-radius:12px;background:#FFF9E8;padding:16px 26px;max-width:820px;text-align:center;box-shadow:4px 4px 0 rgba(0,0,0,.1)">
+      <div style="font-size:24px">&#9670; FAN-IN GATE (&#955; readiness check, fired from DynamoDB Streams on both tables)</div>
+      <div style="font-size:16px;color:#555;margin-top:6px">Grading fires only when <b>QP status = rubric_reviewed</b> AND <b>SUBMISSION status = corrected</b>. Whichever side finishes <i>second</i> wins the race and triggers grading — enforced by a conditional write on <span style="font-family:'IBM Plex Mono',monospace;font-size:13px">status</span>, so it can never fire twice.</div>
+      <div style="font-size:15px;color:#6B4FA0;margin-top:6px">Case: rubric not yet teacher-reviewed at due time &#8594; grade anyway with <span style="font-family:'IBM Plex Mono',monospace;font-size:12.5px">gradingMode: "ai_reference_unreviewed"</span> and auto-flag for review.</div>
+    </div>
+    <div style="font-size:22px;color:#0F6E56">&#8595;</div>
+  </div>
+
+  <!-- ============ GRADING TAIL ============ -->
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="font-size:24px;text-align:center">E · Grading tail (SUBMISSIONS table, statuses continue)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start">
+
+      <!-- left tail column -->
+      <div style="display:flex;flex-direction:column;gap:0">
+        <!-- grading_triggered -->
+        <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+            <span style="font-size:20px">&#9316; grading_triggered</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; readiness check</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">DDB Streams</span></span>
+          </div>
+          <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — audit record that grading was invoked once</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "status": "grading_triggered",
+  "rubricCheckedAt": "2026-07-11T08:09:05Z",
+  "gradingMode": "reference_based"
+}</pre>
+            </div>
+            <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — none new</div>
+          </div>
+          </sc-if>
+        </div>
+        <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; grading Lambda loads rubric.json + corrected.json, calls Bedrock</div>
+
+        <!-- ai_graded -->
+        <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+            <span style="font-size:20px">&#9317; ai_graded</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; grading engine</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">Bedrock</span></span>
+          </div>
+          <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — aiScore frozen forever; finalScore starts equal</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "aiScore": 6, "aiConfidence": "medium",
+  "reportS3Key": "reports/S42/A100/Q1/report.json",
+  "finalScore": 6,
+  "flaggedForReview": false,
+  "status": "ai_graded"
+}</pre>
+            </div>
+            <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#993C1D;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">S3 &#183; reports/S42/A100/Q1/report.json</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "studentId": "S42", "questionId": "Q1",
+  "score": 6, "maxPoints": 10,
+  "criteriaBreakdown": [
+    { "criterion": "Correct setup", "awarded": 3, "possible": 3 },
+    { "criterion": "Correct algebraic steps", "awarded": 1, "possible": 4,
+      "note": "Sign error in step 2" },
+    { "criterion": "Correct final answer", "awarded": 2, "possible": 3,
+      "note": "Off by rounding" }
+  ],
+  "reasoning": "Correct setup, arithmetic error carried through",
+  "confidence": "medium",
+  "generatedAt": "2026-07-11T08:10:40Z"
+}</pre>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+        <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; flaggedForReview: true? (low confidence / unreviewed rubric)</div>
+
+        <!-- queued_for_review -->
+        <div style="border:2px dashed #6B4FA0;border-radius:10px;background:#FBF9FE;box-shadow:3px 3px 0 rgba(107,79,160,.15);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #d5cbe8;flex-wrap:wrap">
+            <span style="font-size:20px;color:#6B4FA0">&#9318; queued_for_review <span style="font-size:14px">(branch — only when flagged)</span></span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#F0EBF9;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:5px;padding:2px 8px;font-size:13px">SQS review queue</span></span>
+          </div>
+          <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S43#A100", "SK": "QP#Q2",
+  "flaggedForReview": true,
+  "sqsMessageId": "msg-77213",
+  "status": "queued_for_review"
+}</pre>
+            </div>
+            <div style="border-left:4px solid #6B4FA0;background:#F8F5FC;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#6B4FA0;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">SQS message body — lightweight; consumer re-fetches full item by key</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "submissionKey": "SUBMISSION#S43#A100#QP#Q2",
+  "reason": "low_confidence",
+  "aiConfidence": "low",
+  "gradingMode": "ai_reference_unreviewed"
+}</pre>
+            </div>
+          </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <!-- right tail column -->
+      <div style="display:flex;flex-direction:column;gap:0">
+        <!-- teacher_reviewed -->
+        <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+            <span style="font-size:20px">&#9319; teacher_reviewed</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">API Gateway</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; override API</span></span>
+          </div>
+          <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — aiScore untouched, finalScore overridden + audit trail</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "aiScore": 6, "finalScore": 9,
+  "status": "teacher_reviewed",
+  "overriddenBy": "T7",
+  "overriddenAt": "2026-07-11T10:15:00Z",
+  "overrideReason": "AI missed valid alternate method"
+}</pre>
+            </div>
+            <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — none new. Optional: append <span style="font-family:'IBM Plex Mono',monospace;font-size:12px">teacherNote</span> to existing report.json so the student sees the override reasoning.</div>
+          </div>
+          </sc-if>
+        </div>
+        <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; teacher hits "Publish grades" &#8594; SNS fan-out to students</div>
+
+        <!-- published -->
+        <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+            <span style="font-size:20px">&#9320; published</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; publish</span><span style="background:#F0EBF9;border:1px solid #6B4FA0;color:#6B4FA0;border-radius:5px;padding:2px 8px;font-size:13px">SNS notify</span></span>
+          </div>
+          <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — SNS delivery tracked on the item</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "finalScore": 9,
+  "status": "published",
+  "notifiedAt": "2026-07-12T09:00:00Z",
+  "notificationStatus": "sent"
+}</pre>
+            </div>
+            <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — none new. SNS is fire-and-forget; log the payload to S3 separately if an audit trail of what was sent is needed.</div>
+          </div>
+          </sc-if>
+        </div>
+        <div style="text-align:center;font-size:15px;color:#666;padding:6px">&#8595; teacher edits a score after publishing</div>
+
+        <!-- published_revised -->
+        <div style="border:1.5px solid #1a1a1a;border-radius:10px;background:#fff;box-shadow:3px 3px 0 rgba(0,0,0,.1);overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1.5px dashed #ccc;flex-wrap:wrap">
+            <span style="font-size:20px">&#9321; published_revised</span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">API Gateway</span><span style="background:#E8F0F7;border:1px solid #2A5A8C;color:#2A5A8C;border-radius:5px;padding:2px 8px;font-size:13px">&#955; revise API</span></span>
+          </div>
+          <sc-if value="{{ showJson }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:12px">
+            <div style="border-left:4px solid #0F6E56;background:#F7FBF9;border-radius:6px;padding:8px 10px">
+              <div style="font-size:13px;color:#0F6E56;font-family:'IBM Plex Mono',monospace;margin-bottom:4px">DynamoDB update — post-publish edits kept in revisionHistory</div>
+              <pre style="margin:0;font-size:11.5px;line-height:1.5;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace">{
+  "PK": "SUBMISSION#S42#A100", "SK": "QP#Q1",
+  "aiScore": 6, "finalScore": 8,
+  "status": "published_revised",
+  "revisionHistory": [
+    { "score": 9, "changedAt": "2026-07-11T10:15:00Z",
+      "changedBy": "T7" }
+  ]
+}</pre>
+            </div>
+            <div style="border-left:4px solid #993C1D;background:#FCF7F3;border-radius:6px;padding:8px 10px;font-size:14px;color:#7a5140">S3 — none new</div>
+          </div>
+          </sc-if>
+        </div>
+
+        <!-- storage recap -->
+        <div style="border:1.5px dashed #888;border-radius:10px;background:#fdfcf9;padding:12px 14px;margin-top:22px">
+          <div style="font-size:17px;margin-bottom:6px">S3 bucket layout recap</div>
+          <pre style="margin:0;font-size:12px;line-height:1.7;white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;color:#555">qp/&lt;aId&gt;/&lt;qId&gt;/raw.pdf                    raw QP upload (binary)
+processed/qp/&lt;aId&gt;/&lt;qId&gt;/parsed.json      parsed question
+rubrics/&lt;aId&gt;/&lt;qId&gt;/rubric.json           rubric (teacher or AI)
+answers/&lt;sId&gt;/&lt;aId&gt;/&lt;qId&gt;/raw.pdf         raw answer upload (binary)
+processed/answers/&lt;sId&gt;/&lt;aId&gt;/&lt;qId&gt;/ocr.json
+processed/answers/&lt;sId&gt;/&lt;aId&gt;/&lt;qId&gt;/corrected.json
+reports/&lt;sId&gt;/&lt;aId&gt;/&lt;qId&gt;/report.json     grading report</pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<p class="dv-next">Try next: "turn this into a slide deck" &#183; "add the abandoned-upload / expiry edge-case flow" &#183; "show the teacher review UI screens for the SQS queue"</p>
+</section>
+</x-dc>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/x-dc" data-dc-script data-props="{
+  &quot;showJson&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Detail level&quot;},
+  &quot;showArchitecture&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Detail level&quot;}
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showJson: this.props.showJson ?? true,
+      showArchitecture: this.props.showArchitecture ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>

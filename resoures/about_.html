@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | About Us</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+
+    /* ============================================
+       BENTO COLOR SYSTEM (matched to reference)
+       ============================================ */
+    :root {
+      --b-black:  #0d0d0d;
+      --b-white:  #ffffff;
+      --b-light:  #f5f5f5;
+      --b-purple: #ede8fb;
+      --b-blue:   #dce9f8;
+      --b-beige:  #e8d4a0;
+      --b-text:   #111111;
+      --b-muted:  #888888;
+    }
+
+    /* ============================================
+       SECTION TITLE
+       ============================================ */
+    .section-title {
+      text-align: center;
+      font-size: 2.5em;
+      color: #2c3e50;
+      margin-bottom: 50px;
+      font-weight: 700;
+      position: relative;
+    }
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 4px;
+      background-color: #007bff;
+      margin: 15px auto 0;
+      border-radius: 2px;
+    }
+    @media (max-width: 768px) { .section-title { font-size: 2em; } }
+
+    /* ============================================
+       SHARED BENTO PRIMITIVES
+       ============================================ */
+    .b-pill {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7em;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(0,0,0,0.05);
+      color: var(--b-text);
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .b-pill-dark {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.88);
+    }
+    .b-arrow {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,0.15);
+      background: transparent;
+      color: var(--b-text);
+      font-size: 0.95em;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+    .b-arrow:hover { background: rgba(0,0,0,0.07); transform: translate(2px,-2px); }
+    .b-arrow-dark { border-color: rgba(255,255,255,0.22); color: #ffffff; }
+    .b-arrow-dark:hover { background: rgba(255,255,255,0.1); }
+
+    /* ============================================
+       WHY EDUCATORS — BENTO
+       ============================================ */
+    .bento-section {
+      padding: 80px 0;
+      background-color: #f8f9fa;
+    }
+    .bento-section .section-subtitle {
+      text-align: center;
+      font-size: 1.05em;
+      color: var(--b-muted);
+      max-width: 640px;
+      margin: -30px auto 50px;
+      line-height: 1.7;
+    }
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 180px;
+      gap: 14px;
+    }
+    .bento-card {
+      border-radius: 20px;
+      padding: 22px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .bento-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.09); }
+
+    /* Hero 2x2 — black */
+    .bc-hero {
+      grid-column: span 2;
+      grid-row: span 2;
+      background-color: var(--b-black);
+      color: #fff;
+      justify-content: space-between;
+    }
+    .bc-hero .b-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bc-hero h3 { font-size: 1.6em; font-weight: 700; line-height: 1.25; color: #fff; margin: 18px 0 12px; }
+    .bc-hero p  { font-size: 0.88em; line-height: 1.65; color: rgba(255,255,255,0.68); }
+    .bc-hero .icon { font-size: 2em; align-self: flex-end; }
+
+    /* Stat — white */
+    .bc-stat {
+      background-color: var(--b-white);
+      justify-content: space-between;
+    }
+    .bc-stat .row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bc-stat .num {
+      font-size: 3.2em; font-weight: 800;
+      color: var(--b-text); line-height: 1;
+      letter-spacing: -2px; margin-top: 8px;
+    }
+    .bc-stat .num sup { font-size: 0.42em; letter-spacing: 0; vertical-align: super; }
+    .bc-stat .lbl { font-size: 0.8em; color: var(--b-muted); line-height: 1.4; }
+
+    /* Lavender feature */
+    .bc-purple {
+      background-color: var(--b-purple);
+      justify-content: space-between;
+    }
+    .bc-purple .row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bc-purple .feat-icon { font-size: 1.8em; margin: 10px 0 6px; }
+    .bc-purple h3 { font-size: 1.1em; font-weight: 700; color: var(--b-text); margin-bottom: 4px; }
+    .bc-purple p  { font-size: 0.83em; color: #555; line-height: 1.5; }
+
+    /* Sky blue feature */
+    .bc-blue {
+      background-color: var(--b-blue);
+      justify-content: space-between;
+    }
+    .bc-blue .row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bc-blue .feat-icon { font-size: 1.8em; margin: 10px 0 6px; }
+    .bc-blue h3 { font-size: 1.1em; font-weight: 700; color: var(--b-text); margin-bottom: 4px; }
+    .bc-blue p  { font-size: 0.83em; color: #555; line-height: 1.5; }
+
+    /* Quote — off-white span 3 */
+    .bc-quote {
+      grid-column: span 3;
+      background-color: var(--b-light);
+      justify-content: center;
+      gap: 8px;
+    }
+    .bc-quote .qm { font-family: Georgia,serif; font-size: 3.5em; line-height: 0.6; color: var(--b-text); opacity: 0.12; }
+    .bc-quote blockquote { font-size: 1.05em; font-weight: 600; line-height: 1.55; color: var(--b-text); font-style: italic; }
+    .bc-quote .qa { font-size: 0.8em; color: var(--b-muted); }
+    .bc-quote .qa strong { color: var(--b-text); }
+
+    /* CTA — beige */
+    .bc-beige {
+      background-color: var(--b-beige);
+      justify-content: space-between;
+    }
+    .bc-beige .row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .bc-beige h3 { font-size: 1.05em; font-weight: 700; color: var(--b-text); line-height: 1.3; margin: 10px 0 5px; }
+    .bc-beige p  { font-size: 0.8em; color: #7a6030; line-height: 1.5; }
+    .bc-beige .b-arrow { align-self: flex-end; border-color: rgba(0,0,0,0.2); }
+
+    @media (max-width: 992px) {
+      .bento-grid { grid-template-columns: repeat(2,1fr); grid-auto-rows: 170px; }
+      .bc-hero { grid-column: span 2; }
+      .bc-quote { grid-column: span 2; }
+      .bc-hero h3 { font-size: 1.35em; }
+    }
+    @media (max-width: 580px) {
+      .bento-section { padding: 60px 0; }
+      .bento-grid { grid-template-columns: 1fr; grid-auto-rows: minmax(150px,auto); gap: 10px; }
+      .bc-hero, .bc-quote { grid-column: 1; grid-row: span 1; }
+      .bc-hero { min-height: 260px; }
+      .bc-hero h3 { font-size: 1.25em; }
+      .bc-stat .num { font-size: 2.6em; }
+    }
+
+    /* ============================================
+       TEAM — BENTO GRID
+       ============================================ */
+    .team-section { padding: 80px 0; background: #fff; }
+    .team-bento-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 240px;
+      gap: 14px;
+    }
+
+    .tbc {
+      border-radius: 20px;
+      padding: 20px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--b-white);
+    }
+    .tbc:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.08); }
+    .tbc-light  { background-color: var(--b-light); }
+    .tbc-purple { background-color: var(--b-purple); }
+    .tbc-blue   { background-color: var(--b-blue); }
+    .tbc-beige  { background-color: var(--b-beige); }
+
+    /* Card inner layout */
+    .tbc .t-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; width: 100%;
+      margin-bottom: auto;
+    }
+    .tbc img {
+      width: 76px; height: 76px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2.5px solid rgba(0,0,0,0.07);
+      margin: 10px 0 10px;
+    }
+    .tbc h3    { font-size: 1.05em; color: var(--b-text); font-weight: 700; margin-bottom: 3px; line-height: 1.3; }
+    .t-role    { font-size: 0.78em; color: var(--b-muted); margin-bottom: 6px; line-height: 1.4; }
+    .t-subject { font-size: 0.7em; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--b-text); opacity: 0.45; }
+    .tbc-beige .t-role { color: #7a6030; }
+
+    /* HERO card (2x2) — black */
+    .tbc-hero {
+      grid-column: span 2;
+      grid-row: span 2;
+      background-color: var(--b-black);
+      align-items: flex-start;
+      justify-content: space-between;
+      text-align: left;
+      padding: 26px;
+    }
+    .tbc-hero img { border-color: rgba(255,255,255,0.14); width: 86px; height: 86px; margin: 14px 0 10px; }
+    .tbc-hero h3  { font-size: 1.55em; color: #fff; margin: 0 0 5px; line-height: 1.2; }
+    .tbc-hero .t-role    { color: rgba(255,255,255,0.58); font-size: 0.88em; }
+    .tbc-hero .t-subject { color: rgba(255,255,255,0.38); border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; margin-bottom: 8px; }
+    .tbc-hero .t-bio     { font-size: 0.83em; color: rgba(255,255,255,0.68); line-height: 1.6; }
+
+    /* Info (2x1) — beige */
+    .tbc-info {
+      grid-column: span 2;
+      align-items: flex-start;
+      justify-content: center;
+      text-align: left;
+    }
+    .tbc-info .info-lbl { font-size: 0.68em; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: #7a6030; margin-bottom: 10px; }
+    .tbc-info h3 { font-size: 1.2em; font-weight: 700; color: var(--b-text); margin-bottom: 8px; line-height: 1.3; }
+    .tbc-info p  { font-size: 0.83em; color: #7a6030; line-height: 1.6; }
+
+    @media (max-width: 992px) {
+      .team-bento-grid { grid-template-columns: repeat(2,1fr); grid-auto-rows: 220px; }
+      .tbc-hero { grid-column: span 2; }
+      .tbc-info { grid-column: span 2; }
+    }
+    @media (max-width: 580px) {
+      .team-bento-grid { grid-template-columns: 1fr; grid-auto-rows: minmax(200px,auto); gap: 10px; }
+      .tbc-hero, .tbc-info { grid-column: 1; grid-row: span 1; }
+      .tbc-hero { min-height: 360px; }
+    }
+
+    /* ============================================
+       VALUES — BENTO GRID
+       ============================================ */
+    .values-section { padding: 80px 0; background: #f8f9fa; }
+    .values-bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 220px;
+      gap: 14px;
+    }
+    .vbc {
+      border-radius: 20px;
+      padding: 26px;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .vbc:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.08); }
+    .vbc .v-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .vbc .v-icon { font-size: 1.8em; line-height: 1; }
+    .vbc h3 { font-size: 1.3em; font-weight: 700; margin-bottom: 8px; line-height: 1.2; }
+    .vbc p  { font-size: 0.88em; line-height: 1.65; }
+
+    .vbc-black { grid-column: span 2; background-color: var(--b-black); color: #fff; }
+    .vbc-black h3 { color: #fff; }
+    .vbc-black p  { color: rgba(255,255,255,0.65); }
+
+    .vbc-purple { background-color: var(--b-purple); }
+    .vbc-purple h3 { color: var(--b-text); }
+    .vbc-purple p  { color: #555; }
+
+    .vbc-blue { background-color: var(--b-blue); }
+    .vbc-blue h3 { color: var(--b-text); }
+    .vbc-blue p  { color: #555; }
+
+    .vbc-beige { grid-column: span 2; background-color: var(--b-beige); }
+    .vbc-beige h3 { color: var(--b-text); }
+    .vbc-beige p  { color: #7a6030; }
+
+    @media (max-width: 768px) {
+      .values-bento-grid { grid-template-columns: repeat(2,1fr); grid-auto-rows: 200px; }
+      .vbc-black, .vbc-beige { grid-column: span 2; }
+    }
+    @media (max-width: 500px) {
+      .values-bento-grid { grid-template-columns: 1fr; grid-auto-rows: minmax(180px,auto); gap: 10px; }
+      .vbc-black, .vbc-beige { grid-column: 1; }
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container navbar-container">
+      <a href="../index.html" class="logo-container">
+        <img src="..\img\Designer.jpeg" alt="GradeAnt Logo" class="logo-image">
+        <h1 class="logo">Grade<span>Ant</span></h1>
+      </a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="nav-links" id="navLinks">
+        <a href="../index.html">Home</a>
+        <a href="about.html" class="active">About</a>
+        <a href="contact.html">Contact</a>
+        <div class="auth-buttons">
+          <a href="..\auth\login.html" class="btn btn-secondary">Login</a>
+          <a href="..\auth\signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- About Hero Section -->
+  <section class="page-hero about-hero">
+    <div class="container">
+      <h1>About GradeAnt</h1>
+      <p>Our mission is to empower educators with intelligent tools that save time and improve student outcomes.</p>
+    </div>
+  </section>
+
+  <!-- Our Story Section -->
+  <section class="our-story">
+    <div class="container">
+      <div class="story-content">
+        <h2>Our Story</h2>
+        <p>GradeAnt began in 2024 when a group of educators and technologists came together with a shared vision: to solve one of education's most persistent challenges - the grading bottleneck.</p>
+        <p>After spending countless late nights grading papers, our founders realized there had to be a better way. They set out to build an AI-powered grading assistant that could understand nuanced responses while maintaining the human touch that makes feedback valuable.</p>
+        <p>Today, GradeAnt helps thousands of educators across the globe reclaim their time while providing more consistent, thoughtful feedback to their students.</p>
+      </div>
+      <div class="story-image">
+        <img src="..\img\group.jpeg" alt="GradeAnt Team">
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       WHY EDUCATORS — BENTO
+       ============================================ -->
+  <section class="bento-section">
+    <div class="container">
+      <h2 class="section-title">Why Educators Choose GradeAnt</h2>
+      <p class="section-subtitle">A glance at what makes our platform a trusted companion in classrooms around the world.</p>
+      <div class="bento-grid">
+
+        <!-- Hero (2×2) — black -->
+        <div class="bento-card bc-hero">
+          <div class="b-header">
+            <span class="b-pill b-pill-dark">Flagship feature</span>
+            <a href="..\auth\signup.html" class="b-arrow b-arrow-dark" aria-label="Get started">↗</a>
+          </div>
+          <div>
+            <h3>AI that understands the nuance of student answers.</h3>
+            <p>Our grading engine reads context, weighs reasoning, and rewards partial credit the way a thoughtful teacher would — so feedback feels personal, not mechanical.</p>
+          </div>
+          <div class="icon">🧠</div>
+        </div>
+
+        <!-- Stat 1 — white -->
+        <div class="bento-card bc-stat">
+          <div class="row">
+            <span class="b-pill">Speed</span>
+          </div>
+          <div class="num">10<sup>×</sup></div>
+          <div class="lbl">Faster grading — hours down to minutes per assignment.</div>
+        </div>
+
+        <!-- Stat 2 — white -->
+        <div class="bento-card bc-stat">
+          <div class="row">
+            <span class="b-pill">Accuracy</span>
+          </div>
+          <div class="num">98<sup>%</sup></div>
+          <div class="lbl">Benchmarked against expert human graders.</div>
+        </div>
+
+        <!-- Instant Feedback — lavender -->
+        <div class="bento-card bc-purple">
+          <div class="row">
+            <span class="b-pill">Feedback</span>
+            <a href="#" class="b-arrow" aria-label="Learn more">↗</a>
+          </div>
+          <div class="feat-icon">⚡</div>
+          <h3>Instant Feedback</h3>
+          <p>Students receive detailed comments the moment they submit.</p>
+        </div>
+
+        <!-- Multi-Subject — sky blue -->
+        <div class="bento-card bc-blue">
+          <div class="row">
+            <span class="b-pill">Coverage</span>
+            <a href="#" class="b-arrow" aria-label="Learn more">↗</a>
+          </div>
+          <div class="feat-icon">📚</div>
+          <h3>Multi-Subject</h3>
+          <p>Physics to English essays — one platform, every subject.</p>
+        </div>
+
+        <!-- Quote — off-white, span 3 -->
+        <div class="bento-card bc-quote">
+          <div class="qm">"</div>
+          <blockquote>GradeAnt gave me back my weekends. I can finally focus on the students who need me most, not on stacks of paper.</blockquote>
+          <div class="qa"><strong>Maya Patel</strong> · High School Science Teacher · Boston, MA</div>
+        </div>
+
+        <!-- CTA — beige -->
+        <div class="bento-card bc-beige">
+          <div class="row">
+            <span class="b-pill">Community</span>
+          </div>
+          <div>
+            <h3>Trusted by 10,000+ educators worldwide.</h3>
+            <p>Join the community redefining how feedback gets delivered.</p>
+          </div>
+          <a href="..\auth\signup.html" class="b-arrow" aria-label="Sign up">↗</a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       TEAM — BENTO GRID
+       ============================================ -->
+  <section class="team-section">
+    <div class="container">
+      <h2 class="section-title">Meet Our Team</h2>
+      <div class="team-bento-grid">
+
+        <!-- HERO: Dr. Shradha Agarwal — black 2×2 -->
+        <div class="tbc tbc-hero">
+          <div class="t-header">
+            <span class="b-pill b-pill-dark">Head of AI</span>
+            <span class="b-pill b-pill-dark" style="opacity:0.6">SME · Physics</span>
+          </div>
+          <img src="..\img\shradha.jpg" alt="Dr. Shradha Agarwal">
+          <div>
+            <h3>Dr. Shradha Agarwal</h3>
+            <p class="t-role">Leads LLM, RAG &amp; computer-vision projects powering GradeAnt's grading engine.</p>
+            <p class="t-bio">Deep expertise in NLP, Generative AI, GANs, transformers &amp; diffusion models. Specializes in prompt engineering, subject classification &amp; OCR-based image analysis.</p>
+          </div>
+        </div>
+
+        <!-- Dr. Nilanjan Chakraborty — white -->
+        <div class="tbc">
+          <div class="t-header"><span class="b-pill">SME · Math</span></div>
+          <img src="..\img\nirlanjan_chakarborty.jpg" alt="Dr. Nilanjan Chakraborty">
+          <h3>Dr. Nilanjan Chakraborty</h3>
+          <p class="t-role">Asst. Professor, Missouri S&amp;T</p>
+          <p class="t-subject">Mathematics &amp; Statistics</p>
+        </div>
+
+        <!-- Dr. Donald C. Wunsch — light gray -->
+        <div class="tbc tbc-light">
+          <div class="t-header"><span class="b-pill">SME · ECE</span></div>
+          <img src="..\img\Don_Wunsh.jpg" alt="Dr. Donald C. Wunsch">
+          <h3>Dr. Donald C. Wunsch</h3>
+          <p class="t-role">Professor &amp; Kummer Centre Director</p>
+          <p class="t-subject">Electrical &amp; Computer Eng.</p>
+        </div>
+
+        <!-- Dr. Beth Kania-Gosche — lavender -->
+        <div class="tbc tbc-purple">
+          <div class="t-header"><span class="b-pill">SME · Education</span></div>
+          <img src="..\img\Kania_beth.jpg" alt="Dr. Beth Kania-Gosche">
+          <h3>Dr. Beth Kania-Gosche</h3>
+          <p class="t-role">Chair of Education, Missouri S&amp;T</p>
+          <p class="t-subject">Cognitive Science</p>
+        </div>
+
+        <!-- Tariq Jamil — sky blue -->
+        <div class="tbc tbc-blue">
+          <div class="t-header"><span class="b-pill">Pedagogy</span></div>
+          <img src="..\img\tariq.jpg" alt="Tariq Jamil">
+          <h3>Tariq Jamil</h3>
+          <p class="t-role">Head of Pedagogy</p>
+          <p class="t-subject">Assessment Strategy</p>
+        </div>
+
+        <!-- Deepak Rajbhar — white -->
+        <div class="tbc">
+          <div class="t-header"><span class="b-pill">Engineering</span></div>
+          <img src="..\img\deepak.jpg" alt="Deepak Rajbhar">
+          <h3>Deepak Rajbhar</h3>
+          <p class="t-role">AI Engineer</p>
+          <p class="t-subject">EdTech &amp; ML</p>
+        </div>
+
+        <!-- Narayan Adhikari — light gray -->
+        <div class="tbc tbc-light">
+          <div class="t-header"><span class="b-pill">Engineering</span></div>
+          <img src="..\img\narayan.jpg" alt="Narayan Adhikari">
+          <h3>Narayan Adhikari</h3>
+          <p class="t-role">AI Engineer</p>
+          <p class="t-subject">NLP &amp; Education</p>
+        </div>
+
+        <!-- Info — beige 2×1 -->
+        <div class="tbc tbc-beige tbc-info">
+          <p class="info-lbl">Educators × Engineers</p>
+          <h3>Decades of classroom &amp; ML expertise, in one team.</h3>
+          <p>Seven specialists across AI, statistics, engineering, and education — united by one mission.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       VALUES — BENTO GRID
+       ============================================ -->
+  <section class="values-section">
+    <div class="container">
+      <h2 class="section-title">Our Values</h2>
+      <div class="values-bento-grid">
+
+        <!-- Educator-First — black 2×1 -->
+        <div class="vbc vbc-black">
+          <div class="v-header">
+            <span class="b-pill b-pill-dark">Core belief</span>
+            <span class="v-icon">🎯</span>
+          </div>
+          <div>
+            <h3>Educator-First</h3>
+            <p>Every feature starts with a teacher's workflow in mind — we build tools that fit how educators already work, not the other way around.</p>
+          </div>
+        </div>
+
+        <!-- Innovation — lavender 1×1 -->
+        <div class="vbc vbc-purple">
+          <div class="v-header">
+            <span class="b-pill">Innovation</span>
+            <span class="v-icon">💡</span>
+          </div>
+          <div>
+            <h3>Always Pushing Forward</h3>
+            <p>We constantly explore what's next in educational technology so educators are never left behind.</p>
+          </div>
+        </div>
+
+        <!-- Partnership — sky blue 1×1 -->
+        <div class="vbc vbc-blue">
+          <div class="v-header">
+            <span class="b-pill">Partnership</span>
+            <span class="v-icon">🤝</span>
+          </div>
+          <div>
+            <h3>Genuine Partnership</h3>
+            <p>We see ourselves as collaborators in education, not just a SaaS tool. Your success is our success.</p>
+          </div>
+        </div>
+
+        <!-- Trust & Privacy — beige 2×1 -->
+        <div class="vbc vbc-beige">
+          <div class="v-header">
+            <span class="b-pill">Security</span>
+            <span class="v-icon">🔒</span>
+          </div>
+          <div>
+            <h3>Trust &amp; Privacy</h3>
+            <p>We hold ourselves to the highest standards of data security and student privacy — because trust, once broken, is hard to earn back.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <h2 class="logo">Grade<span>Ant</span></h2>
+          <p>Making grading smarter and faster.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-column">
+            <h3>Product</h3>
+            <a href="..\quick_links\features.html">Features</a>
+          </div>
+          <div class="footer-column">
+            <h3>Company</h3>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <div class="footer-column">
+            <h3>Legal</h3>
+            <a href="..\legal\terms.html">Terms</a>
+            <a href="..\legal\privacy.html">Privacy</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 GradeAnt. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('active');
+    });
+  </script>
+</body>
+</html>

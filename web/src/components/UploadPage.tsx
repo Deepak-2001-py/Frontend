@@ -1,21 +1,36 @@
 import { useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react'
+<<<<<<< HEAD
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+=======
+import { useNavigate } from 'react-router-dom'
+>>>>>>> origin/main
 import { useAlerts } from '../hooks/useAlerts'
 import { apiCache } from '../lib/apiCache'
 import {
   formatFileSize,
+<<<<<<< HEAD
   renameSolutionFile,
+=======
+>>>>>>> origin/main
   requestPresignedUrls,
   uploadToPresignedUrl,
   UPLOAD_LIMITS,
   type UploadMetadata,
   type UploadType,
 } from '../lib/upload'
+<<<<<<< HEAD
 import { AnimatePresence, motion } from 'motion/react'
 import { AppHero, Panel, Stagger } from './app/AppKit'
 import { Notice, ProgressBar } from './ui'
 import WorkflowPage from './WorkflowPage'
+=======
+import '../styles/themes/aesthetic.css'
+import '../styles/pages/upload.css'
+import AlertStack from './AlertStack'
+import AppShell from './AppShell'
+import PageScope from './PageScope'
+>>>>>>> origin/main
 
 export interface UploadPageCopy {
   title: string
@@ -47,6 +62,7 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
   const { alerts, show, dismiss, clear } = useAlerts()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+<<<<<<< HEAD
   // Prefilled when opened from an assignment (e.g. the student inbox's "Start submission").
   const [params] = useSearchParams()
   const [uploadType, setUploadType] = useState<UploadType | ''>(() =>
@@ -56,6 +72,12 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
   const [courseId, setCourseId] = useState(() => params.get('qp_id') ?? '')
   const { session } = useAuth()
   const [studentId, setStudentId] = useState(() => (session?.userType === 'student' ? session.userId : ''))
+=======
+  const [uploadType, setUploadType] = useState<UploadType | ''>('')
+  const [assignmentId, setAssignmentId] = useState('')
+  const [courseId, setCourseId] = useState('')
+  const [studentId, setStudentId] = useState('')
+>>>>>>> origin/main
   const [files, setFiles] = useState<File[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -90,7 +112,11 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
     setUploadType('')
     setAssignmentId('')
     setCourseId('')
+<<<<<<< HEAD
     setStudentId(session?.userType === 'student' ? session.userId : '')
+=======
+    setStudentId('')
+>>>>>>> origin/main
     setFiles([])
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -118,9 +144,21 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
     if (type === 'student' && studentId.trim()) metadata.studentId = studentId.trim()
 
     if (type === 'answer') {
+<<<<<<< HEAD
       metadata.qpId = qp
       const uploads = files.map((f) => {
         const renamed = renameSolutionFile(f, aId, qp)
+=======
+      // The grading Lambda finds solution keys by name: {assignmentId}_{qpId}_answer.pdf
+      metadata.qpId = qp
+      const clean = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '_')
+      const uploads = files.map((f) => {
+        const ext = f.name.split('.').pop()
+        const renamed = new File([f], `${clean(aId)}_${clean(qp)}_answer.${ext}`, {
+          type: f.type,
+          lastModified: f.lastModified,
+        })
+>>>>>>> origin/main
         metadata.files.push({ name: renamed.name, originalName: f.name, type: renamed.type, size: renamed.size })
         return renamed
       })
@@ -207,6 +245,7 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
     timers.current.push(window.setTimeout(() => navigate(`${target}?${params}`), 1500))
   }
 
+<<<<<<< HEAD
   const typeLabel = uploadType ? copy.types.find((t) => t.value === uploadType)?.label : null
 
   return (
@@ -405,5 +444,201 @@ export default function UploadPage({ copy }: { copy: UploadPageCopy }) {
         </Panel>
       </Stagger>
     </WorkflowPage>
+=======
+  return (
+    <PageScope name="upload" theme="aesthetic" title={copy.title}>
+      <AppShell footer={false}>
+        <main className="main-content">
+          <div className="container">
+            <section className="tab-content active">
+              <div className="card">
+                <div className="card-header">
+                  <span className="header-icon-badge">
+                    <i className="fas fa-file-upload" />
+                  </span>
+                  <h2>{uploadType ? HEADINGS[uploadType] : copy.title}</h2>
+                  <p>{copy.subtitle}</p>
+                </div>
+                <div className="card-body">
+                  <div className="upload-layout">
+                    <div className="upload-main">
+                      <form className="form" onSubmit={handleSubmit} noValidate>
+                        <div className="form-row">
+                          <div className="form-group">
+                            <label htmlFor="upload-type">Upload Type</label>
+                            <select
+                              id="upload-type"
+                              className="form-control"
+                              value={uploadType}
+                              onChange={(e) => setUploadType(e.target.value as UploadType | '')}
+                            >
+                              <option value="">Select Upload Type</option>
+                              {copy.types.map((t) => (
+                                <option key={t.value} value={t.value}>
+                                  {t.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="form-group">
+                            <label htmlFor="assignment-id">Assignment ID</label>
+                            <input
+                              type="text"
+                              id="assignment-id"
+                              className="form-control"
+                              placeholder="e.g. assignment456"
+                              value={assignmentId}
+                              onChange={(e) => setAssignmentId(e.target.value)}
+                            />
+                          </div>
+                          {uploadType === 'student' && (
+                            <div className="form-group student-id-container">
+                              <label htmlFor="student-id">Student ID</label>
+                              <input
+                                type="text"
+                                id="student-id"
+                                className="form-control"
+                                placeholder="Enter your student ID"
+                                value={studentId}
+                                onChange={(e) => setStudentId(e.target.value)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="course-id">Question Paper ID</label>
+                          <input
+                            type="text"
+                            id="course-id"
+                            className="form-control"
+                            placeholder="e.g. physics_101"
+                            value={courseId}
+                            onChange={(e) => setCourseId(e.target.value)}
+                          />
+                        </div>
+
+                        <div
+                          className={`file-upload${dragOver ? ' drag-over' : ''}`}
+                          onDragEnter={(e) => onDrag(e, true)}
+                          onDragOver={(e) => onDrag(e, true)}
+                          onDragLeave={(e) => onDrag(e, false)}
+                          onDrop={(e) => {
+                            onDrag(e, false)
+                            addFiles(e.dataTransfer.files)
+                          }}
+                        >
+                          <label htmlFor="file-input" className="file-upload-label">
+                            <span className="upload-icon-circle">
+                              <i className="fas fa-cloud-upload-alt" />
+                            </span>
+                            <span>{copy.dropLabel}</span>
+                          </label>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            id="file-input"
+                            className="file-input"
+                            accept=".pdf"
+                            multiple
+                            onChange={(e) => {
+                              addFiles(e.target.files)
+                              e.target.value = ''
+                            }}
+                          />
+                          <div className="upload-specs">
+                            <span className="spec-item">PDF only</span>
+                            <span className="spec-item">·</span>
+                            <span className="spec-item">up to {UPLOAD_LIMITS.maxFileSizeMb} MB</span>
+                            <span className="spec-item">·</span>
+                            <span className="spec-item">multi-page supported</span>
+                          </div>
+                        </div>
+
+                        <div className="file-list-container">
+                          <ul className="file-list">
+                            {files.map((f) => (
+                              <li key={f.name}>
+                                <span className="file-name">{f.name}</span>
+                                <span className="file-size">{formatFileSize(f.size)}</span>
+                                <button
+                                  type="button"
+                                  className="remove-file"
+                                  onClick={() => setFiles((fs) => fs.filter((x) => x !== f))}
+                                >
+                                  &times;
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {progress && (
+                          <div className="progress-container" style={{ display: 'block' }}>
+                            <div className="progress">
+                              <div
+                                className="progress-bar"
+                                role="progressbar"
+                                aria-valuenow={progress.percent}
+                                aria-valuemin={0}
+                                aria-valuemax={100}
+                                style={{ width: `${progress.percent}%` }}
+                              />
+                            </div>
+                            <p className="progress-text">{progress.text}</p>
+                            {fileProgress.map((fp) => (
+                              <div key={fp.name} className={`file-progress${fp.error ? ' upload-failed' : ''}`}>
+                                <p>
+                                  {fp.name} ({fp.error ? `Failed: ${fp.error}` : `${fp.percent}%`})
+                                </p>
+                                <div className="progress">
+                                  <div className="progress-bar" style={{ width: `${fp.percent}%` }} />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <AlertStack alerts={alerts} onDismiss={dismiss} />
+
+                        <div className="form-actions">
+                          <button type="submit" className="btn btn-primary" disabled={submitting}>
+                            {submitting ? (
+                              'Uploading...'
+                            ) : (
+                              <>
+                                <i className="fas fa-upload" /> {copy.submitLabel}
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                    <aside className="upload-aside">
+                      <h3>How it works</h3>
+                      <div className="upload-steps">
+                        {copy.steps.map((s, i) => (
+                          <div className="upload-step" key={s.title}>
+                            <span className="step-num">{i + 1}</span>
+                            <p>
+                              <strong>{s.title}</strong>
+                              {s.text}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="upload-aside-note">
+                        <i className="fas fa-circle-info" />
+                        <span>{copy.note}</span>
+                      </div>
+                    </aside>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </main>
+      </AppShell>
+    </PageScope>
+>>>>>>> origin/main
   )
 }

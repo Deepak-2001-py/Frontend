@@ -1,0 +1,486 @@
+/* ==========================================================================
+   Student Upload — page-specific overlay
+   Loaded after ../css/asthetic_style.css. References the GradeAnt semantic
+   design tokens (--brand, --accent, --ink-*, --surface-card, --border-*,
+   --radius-*, --shadow-*, --font-display/--font-sans) which are declared in
+   :root by asthetic_style.css. No tokens are redeclared here.
+
+   Professional ed-tech upload studio look, matching the wireframe's
+   "Create Assignment / Upload" screens (dashed dropzone with icon circle,
+   spec pills, file cards with a type chip, two-column layout with a
+   how-it-works aside). All functional element ids/classes referenced by
+   javascript/upload_pdf.js are unchanged — only presentation is added.
+   ========================================================================== */
+
+/* ---- App shell: sidebar + content row (nav.html is now a left sidebar) ----
+   align-items must stay "stretch" (the css/asthetic_style.css default) —
+   #nav (the sidebar's wrapper div) needs to stretch to match .app-main's
+   full height so the sticky sidebar inside it has room to stay pinned
+   while the page scrolls. Overriding it to flex-start (as this rule used
+   to) collapses #nav down to the sidebar's own 100vh height, which on any
+   page taller than one screen leaves the sidebar with nowhere to "float"
+   — position:sticky then behaves just like static, scrolling the nav
+   links and logo off-screen along with the rest of the page. */
+.app-shell {
+  display: flex;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Page surface ---- */
+.main-content {
+  background: var(--surface-page, var(--ink-50));
+  padding: var(--space-8, 3rem) 0;
+  min-height: 100vh;
+}
+
+/* The base .container (css/asthetic_style.css) centers with margin:0 auto
+   and only 15px padding — fine for marketing pages, but on this sidebar
+   layout it leaves a large dead gutter next to the 232px sidebar on
+   typical laptop widths. Widened + repadded so the card fills the
+   available width fluidly instead of floating in a fixed centered block. */
+.main-content .container {
+  max-width: 1280px;
+  padding: 0 2rem;
+}
+
+/* ---- Card ---- */
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, var(--radius-md));
+  box-shadow: var(--shadow-md);
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.card-header {
+  position: relative;
+  background: var(--surface-card);
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-subtle, var(--border-default));
+  text-align: left;
+  padding: 2rem 2rem 1.5rem;
+}
+
+/* Brand gradient rule under the header, echoing the wireframe's
+   gradient-brand accents used across hero sections. */
+.card-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--gradient-brand);
+}
+
+.card-header .header-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-brand);
+  color: var(--white, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-brand, 0 10px 24px rgba(255, 122, 0, 0.3));
+  margin-bottom: 0.9rem;
+}
+
+.card-header h2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--ink-900);
+  margin-bottom: 0.4rem;
+}
+
+.card-header h2 i {
+  color: var(--brand);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.card-header p {
+  color: var(--text-muted, var(--ink-500));
+  font-size: 0.95rem;
+  max-width: 46ch;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* ---- Two-column layout: form + "how it works" aside ---- */
+.upload-layout {
+  display: grid;
+  grid-template-columns: 1.7fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.upload-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: var(--surface-page, var(--ink-50));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+.upload-aside h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink-900);
+}
+
+.upload-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.upload-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.upload-step .step-num {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-step p {
+  font-size: 0.85rem;
+  color: var(--text-body, var(--ink-700));
+  line-height: 1.5;
+}
+
+.upload-step strong {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink-900);
+  margin-bottom: 2px;
+}
+
+.upload-aside-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: var(--color-info-soft);
+  color: var(--sky-700);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.upload-aside-note i {
+  margin-top: 2px;
+}
+
+/* ---- Labelled input rows (label above bordered input) ---- */
+.form {
+  gap: 1.25rem;
+}
+
+.form-group label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.84rem;
+  color: var(--text-strong, var(--ink-900));
+  margin-bottom: 0.45rem;
+}
+
+.form-control {
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--text-strong, var(--ink-900));
+  transition: border-color var(--dur-fast, 0.16s) var(--ease-out, ease),
+              box-shadow var(--dur-fast, 0.16s) var(--ease-out, ease);
+}
+
+.form-control::placeholder {
+  color: var(--text-subtle, var(--ink-400));
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--ring, 0 0 0 3px rgba(255, 122, 0, 0.28));
+}
+
+/* Native <select id="upload-type"> — kept as a real <select> so
+   javascript/upload_pdf.js's `.value`/`change` handling needs no changes;
+   only its appearance is upgraded with a custom chevron. */
+select.form-control {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%237C7263'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+  padding-right: 2.4rem;
+  cursor: pointer;
+}
+
+/* ---- File upload drop zone ---- */
+.file-upload {
+  background: var(--brand-soft, var(--orange-50));
+  border: 2px dashed var(--orange-300, var(--border-strong));
+  border-radius: var(--radius-lg, var(--radius-md));
+  text-align: center;
+  padding: 2.25rem 1.5rem;
+  cursor: pointer;
+  transition: border-color var(--dur-base, 0.24s) var(--ease-out, ease),
+              background var(--dur-base, 0.24s) var(--ease-out, ease);
+}
+
+.file-upload:hover,
+.file-upload.highlight,
+.file-upload.drag-over {
+  border-color: var(--brand);
+  background: var(--brand-soft, var(--orange-50));
+  box-shadow: var(--shadow-sm);
+}
+
+.file-upload-label {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-body, var(--ink-700));
+}
+
+.file-upload-label .upload-icon-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  border: 1px solid var(--orange-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.3rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.file-upload-label i {
+  font-size: 1.4rem;
+  color: var(--brand);
+}
+
+.file-upload-label span {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--ink-900);
+}
+
+.upload-specs {
+  margin-top: 0.4rem;
+}
+
+.upload-specs .spec-item {
+  font-size: 0.78rem;
+  color: var(--text-muted, var(--ink-500));
+  font-family: var(--font-sans);
+}
+
+/* ---- Selected file list ---- */
+.file-list-container {
+  margin-top: 0.9rem;
+}
+
+.file-list {
+  gap: 0.6rem;
+}
+
+.file-list li {
+  position: relative;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle, var(--border-default));
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem 0.7rem 3.2rem;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--text-body, var(--ink-700));
+  box-shadow: var(--shadow-xs);
+}
+
+/* PDF type chip — pure CSS, no markup change needed since
+   javascript/upload_pdf.js only ever creates <li><span class="file-name">
+   ... via addFileToList(). */
+.file-list li::before {
+  content: 'PDF';
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+}
+
+.file-list li .file-name {
+  font-weight: 600;
+  color: var(--ink-800);
+}
+
+.file-list li .file-size {
+  color: var(--text-muted, var(--ink-500));
+  font-size: 0.8rem;
+  margin-left: 0.5rem;
+}
+
+.file-list li button,
+.file-list li .remove-file {
+  background: var(--color-danger);
+  color: var(--white, #fff);
+}
+
+/* ---- Progress ---- */
+.progress-container {
+  background: var(--surface-sunken, var(--ink-50));
+  border: 1px solid var(--border-subtle, var(--border-default));
+  border-radius: var(--radius-md);
+}
+
+.progress,
+.progress-container .progress {
+  background: var(--border-subtle, var(--ink-150));
+  border-radius: var(--radius-full, 999px);
+}
+
+.progress-bar,
+.progress-container .progress-bar {
+  background: var(--gradient-warm, var(--brand));
+}
+
+.progress-text {
+  color: var(--text-muted, var(--ink-500));
+}
+
+/* ---- Alerts ---- */
+.alert {
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.alert-info {
+  background: var(--color-info-soft);
+  color: var(--sky-700, #235AA0);
+  border-color: var(--color-info);
+}
+
+.alert-success {
+  background: var(--color-success-soft);
+  color: var(--teal-700, #0B6F60);
+  border-color: var(--color-success);
+}
+
+.alert-warning {
+  background: var(--color-warning-soft);
+  color: #9A6B00;
+  border-color: var(--color-warning);
+}
+
+.alert-danger {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+/* ---- Buttons ---- */
+.form-actions {
+  margin-top: 0.25rem;
+}
+
+.btn {
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: var(--brand-on, #fff);
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-primary:hover {
+  background: var(--brand-hover);
+  box-shadow: var(--shadow-brand, 0 10px 24px rgba(255, 122, 0, 0.3));
+}
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ---- Footer ---- */
+.site-footer {
+  background: var(--ink-900);
+  box-shadow: none;
+  color: var(--ink-300);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .upload-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-aside {
+    position: static;
+    order: -1;
+  }
+}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // URLs, API paths, pages and roles, all from config/app.yaml at the repo root
 // (compiled in at build time, see vite.config.ts). Edit that file, not this one.
 //
@@ -45,3 +46,9 @@ export const ROLES = (Object.keys(app.roles) as RoleName[]).map((name) => ({ nam
 export const SELF_SIGNUP_ROLES = ROLES.filter((r) => r.signup.includes('self'))
 
 export const roleLabel = (name: RoleName): string => app.roles[name]?.label ?? name
+=======
+// Single place for the API Gateway host. Override per environment with
+// VITE_API_BASE_URL in web/.env (e.g. a staging stage instead of /dev).
+export const API_BASE_URL: string =
+  import.meta.env.VITE_API_BASE_URL ?? 'https://rus9nultj9.execute-api.eu-north-1.amazonaws.com/dev'
+>>>>>>> origin/main

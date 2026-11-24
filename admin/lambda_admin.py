@@ -27,9 +27,12 @@ Deploy
      SESSION_TOKEN_SECRET  (REQUIRED in production — HMAC signing key for
                             session tokens; falls back to an insecure
                             dev default with a loud warning if unset)
+<<<<<<< HEAD
      JWT_SECRET            (REQUIRED) — same value as the /auth/login
                             Lambda (authetication.py), so admins can use the
                             token they get from the normal login page
+=======
+>>>>>>> origin/main
      SES_SENDER_EMAIL      (default "no-reply@gradeant.io") — From
                             address for invite emails via SES
      APP_BASE_URL           (default "https://app.gradeant.io") — used to
@@ -71,12 +74,18 @@ import os
 import secrets
 import time
 import uuid
+<<<<<<< HEAD
 from datetime import datetime
+=======
+>>>>>>> origin/main
 from decimal import Decimal
 
 import boto3
 from boto3.dynamodb.conditions import Attr
+<<<<<<< HEAD
 from botocore.exceptions import ClientError
+=======
+>>>>>>> origin/main
 
 # ----------------------------------------------------------------------
 # Config
@@ -100,8 +109,11 @@ APP_BASE_URL = os.environ.get("APP_BASE_URL", "https://app.gradeant.io")
 
 _DEV_FALLBACK_SECRET = "dev-only-insecure-secret-CHANGE-ME"
 SESSION_TOKEN_SECRET = os.environ.get("SESSION_TOKEN_SECRET", _DEV_FALLBACK_SECRET)
+<<<<<<< HEAD
 # Must match authetication.py's JWT_SECRET so tokens from /auth/login are accepted.
 JWT_SECRET = os.environ.get("JWT_SECRET", "")
+=======
+>>>>>>> origin/main
 SESSION_TOKEN_TTL_SECONDS = int(os.environ.get("SESSION_TOKEN_TTL_SECONDS", 24 * 60 * 60))
 INVITE_TOKEN_TTL_SECONDS = int(os.environ.get("INVITE_TOKEN_TTL_SECONDS", 7 * 24 * 60 * 60))
 
@@ -152,11 +164,14 @@ class ValidationError(ApiError):
         super().__init__(400, message)
 
 
+<<<<<<< HEAD
 class ConflictError(ApiError):
     def __init__(self, message="Conflict."):
         super().__init__(409, message)
 
 
+=======
+>>>>>>> origin/main
 # ----------------------------------------------------------------------
 # Minimal signed session tokens (no external JWT dependency)
 #
@@ -224,6 +239,7 @@ def _hash_password_for_login(password: str) -> str:
     return base64.b64encode(salt + hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100_000)).decode("utf-8")
 
 
+<<<<<<< HEAD
 def _password_problem(password: str):
     """authetication.py's password_problem: 8+ chars, an uppercase letter, a number."""
     if len(password) < 8:
@@ -250,6 +266,8 @@ def _issue_login_jwt(user_id: str, email: str) -> str:
     return f"{header_b64}.{payload_b64}.{_b64url_encode(signature)}"
 
 
+=======
+>>>>>>> origin/main
 def _generate_temp_password() -> str:
     # Human-typeable temp password: no ambiguous chars (0/O, 1/l/I).
     alphabet = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"
@@ -295,6 +313,7 @@ def _parse_body(event) -> dict:
         raise ValidationError("Request body must be valid JSON.")
 
 
+<<<<<<< HEAD
 def _verify_login_jwt(token: str) -> dict:
     """HS256 JWT issued by /auth/login (authetication.py's generate_token).
 
@@ -327,12 +346,15 @@ def _verify_login_jwt(token: str) -> dict:
     return {"sub": user_id, "role": user.get("userRole", "student"), "name": user.get("name", "Admin"), "email": email}
 
 
+=======
+>>>>>>> origin/main
 def _get_bearer_claims(event) -> dict:
     headers = event.get("headers") or {}
     auth_header = headers.get("Authorization") or headers.get("authorization") or ""
     if not auth_header.lower().startswith("bearer "):
         raise AuthError("Missing Authorization: Bearer <token> header.")
     token = auth_header[7:].strip()
+<<<<<<< HEAD
     # Three dot-separated parts = a JWT from /auth/login; two = this file's
     # own session token (issued by completeFirstLogin).
     if token.count(".") == 2:
@@ -345,6 +367,9 @@ def _get_bearer_claims(event) -> dict:
     if not account or account.get("status") == "suspended":
         raise AuthError("Account no longer active.")
     return dict(claims, role=account.get("role", "student"), name=account.get("name", claims.get("name")))
+=======
+    return _verify_token(token)
+>>>>>>> origin/main
 
 
 def _require_admin(event) -> dict:
@@ -407,6 +432,7 @@ def list_users(payload, claims):
     return {"users": users, "total": len(users)}
 
 
+<<<<<<< HEAD
 def _set_login_status(email: str, status: str):
     """Set the app login account's status ('active' | 'suspended'). A no-op when
     there's no login account for that email (e.g. an invite never completed)."""
@@ -423,23 +449,31 @@ def _set_login_status(email: str, status: str):
             raise
 
 
+=======
+>>>>>>> origin/main
 def update_user_status(payload, claims):
     user_id = payload.get("userId")
     status = payload.get("status")
     if not user_id or status not in ("active", "suspended", "invited"):
         raise ValidationError("userId and a valid status are required.")
 
+<<<<<<< HEAD
     account = _table(USERS_TABLE).get_item(Key={"user_id": user_id}).get("Item") or {}
+=======
+>>>>>>> origin/main
     _table(USERS_TABLE).update_item(
         Key={"user_id": user_id},
         UpdateExpression="SET #s = :status",
         ExpressionAttributeNames={"#s": "status"},
         ExpressionAttributeValues={":status": status},
     )
+<<<<<<< HEAD
     # The login account lives in the Users table (keyed by email): mirror a suspension
     # there too, or the user could keep signing in to the app.
     if account.get("email") and status != "invited":
         _set_login_status(account["email"], status)
+=======
+>>>>>>> origin/main
     _write_audit_log(claims["sub"], f"Set user status to {status}", user_id)
     return {"success": True}
 
@@ -448,10 +482,13 @@ def delete_user(payload, claims):
     user_id = payload.get("userId")
     if not user_id:
         raise ValidationError("userId is required.")
+<<<<<<< HEAD
     account = _table(USERS_TABLE).get_item(Key={"user_id": user_id}).get("Item") or {}
     # Block the login account rather than deleting it, so grades stay attributable.
     if account.get("email"):
         _set_login_status(account["email"], "suspended")
+=======
+>>>>>>> origin/main
     _table(USERS_TABLE).delete_item(Key={"user_id": user_id})
     _write_audit_log(claims["sub"], "Deleted user", user_id)
     return {"success": True}
@@ -514,8 +551,12 @@ def invite_users(payload, claims):
             "consumed": False,
         })
 
+<<<<<<< HEAD
         # The React app's first-login page (web/src/App.tsx route "/first-login").
         invite_link = f"{APP_BASE_URL}/first-login?token={token}"
+=======
+        invite_link = f"{APP_BASE_URL}/admin/first_login_setup.html?token={token}"
+>>>>>>> origin/main
         _send_invite_email(email, name, invite_link)
         invited_count += 1
 
@@ -558,6 +599,7 @@ def complete_first_login(payload, claims):
     if float(invite.get("expires_at", 0)) < time.time():
         raise ValidationError("This invite link has expired — ask your admin to resend it.")
 
+<<<<<<< HEAD
     problem = _password_problem(str(password))
     if problem:
         raise ValidationError(problem)
@@ -591,12 +633,16 @@ def complete_first_login(payload, claims):
             raise ConflictError("An account with this email already exists. Log in with it, or ask your admin for help.")
         raise
 
+=======
+    user_id = invite["user_id"]
+>>>>>>> origin/main
     _table(USERS_TABLE).update_item(
         Key={"user_id": user_id},
         UpdateExpression="SET #s = :active, password_hash = :ph",
         ExpressionAttributeNames={"#s": "status"},
         ExpressionAttributeValues={":active": "active", ":ph": _hash_password(password)},
     )
+<<<<<<< HEAD
     # "consumed" is a DynamoDB reserved word: it must go through an alias, or this
     # update fails (500) after the account was created and the invite never closes.
     invites_table.update_item(
@@ -609,6 +655,17 @@ def complete_first_login(payload, claims):
     return {
         # A normal login token, accepted by the app APIs and the admin console alike.
         "token": _issue_login_jwt(user_id, email),
+=======
+    invites_table.update_item(
+        Key={"token": token},
+        UpdateExpression="SET consumed = :true",
+        ExpressionAttributeValues={":true": True},
+    )
+
+    session_token = _make_token({"sub": user_id, "role": invite["role"]}, SESSION_TOKEN_TTL_SECONDS)
+    return {
+        "token": session_token,
+>>>>>>> origin/main
         "userId": user_id,
         "role": invite["role"],
         "fullName": invite["full_name"],

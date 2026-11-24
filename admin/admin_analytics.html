@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt Admin | Analytics</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../css/asthetic_style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="admin_dashboard.html" class="admin-sidebar-logo">
+        <span class="logo-mark"></span>
+        <span class="logo-word">GradeAnt</span>
+        <span class="admin-badge">ADMIN</span>
+      </a>
+      <a href="admin_dashboard.html" class="admin-nav-link"><span class="material-icons">dashboard</span>Overview</a>
+      <a href="admin_users.html" class="admin-nav-link"><span class="material-icons">group</span>Users</a>
+      <a href="admin_reset_requests.html" class="admin-nav-link"><span class="material-icons">lock_reset</span>Reset Requests</a>
+      <a href="admin_content.html" class="admin-nav-link"><span class="material-icons">article</span>Content &amp; Blog</a>
+      <a href="admin_analytics.html" class="admin-nav-link"><span class="material-icons">bar_chart</span>Analytics</a>
+      <a href="admin_tickets.html" class="admin-nav-link"><span class="material-icons">confirmation_number</span>Support Tickets</a>
+      <a href="admin_audit_logs.html" class="admin-nav-link"><span class="material-icons">history</span>Audit Logs</a>
+      <a href="admin_settings.html" class="admin-nav-link"><span class="material-icons">settings</span>System Settings</a>
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card" id="adminUserCard">
+          <span class="admin-user-avatar"></span>
+          <div class="admin-user-meta">
+            <div class="admin-user-name" id="adminUserName">Admin</div>
+            <div class="admin-user-role">Administrator</div>
+          </div>
+          <div class="admin-user-menu" id="adminUserMenu">
+            <a href="admin_profile.html"><span class="material-icons" style="font-size:16px;">person</span>My Profile</a>
+            <a href="#" id="adminLogoutBtn" class="danger"><span class="material-icons" style="font-size:16px;">logout</span>Logout</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <div class="admin-page-title">Platform analytics</div>
+        <select class="form-control" id="rangeSelect" style="width:auto;">
+          <option value="7d">Last 7 days</option>
+          <option value="30d" selected>Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+        </select>
+      </div>
+
+      <span id="adminAlert" class="status-pill" style="display:none;"></span>
+
+      <div class="admin-stat-grid">
+        <div class="admin-stat-card">
+          <span class="admin-stat-label">Active Users</span>
+          <div class="admin-stat-value" data-stat="activeUsers">—</div>
+          <div class="admin-stat-trend" data-trend="activeUsers"></div>
+        </div>
+        <div class="admin-stat-card accent">
+          <span class="admin-stat-label">Papers Graded</span>
+          <div class="admin-stat-value" data-stat="papersGraded">—</div>
+          <div class="admin-stat-trend" data-trend="papersGraded"></div>
+        </div>
+        <div class="admin-stat-card info">
+          <span class="admin-stat-label">Schools</span>
+          <div class="admin-stat-value" data-stat="schools">—</div>
+          <div class="admin-stat-trend" data-trend="schools"></div>
+        </div>
+        <div class="admin-stat-card warning">
+          <span class="admin-stat-label">Avg Uptime</span>
+          <div class="admin-stat-value" data-stat="uptime">—</div>
+          <div class="admin-stat-trend flat" data-trend="uptime"></div>
+        </div>
+      </div>
+
+      <div class="admin-analytics-row">
+        <div class="admin-panel">
+          <div class="admin-panel-title">Papers graded / week</div>
+          <div class="admin-bar-chart" id="papersChart"></div>
+        </div>
+        <div class="admin-panel">
+          <div class="admin-panel-title">Top schools</div>
+          <div class="admin-ranked-list" id="topSchoolsList"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/admin-common.js"></script>
+  <script src="../javascript/admin-analytics.js"></script>
+</body>
+</html>

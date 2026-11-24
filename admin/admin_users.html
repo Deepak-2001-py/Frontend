@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt Admin | Users</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="../css/asthetic_style.css">
+  <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="admin_dashboard.html" class="admin-sidebar-logo">
+        <span class="logo-mark"></span>
+        <span class="logo-word">GradeAnt</span>
+        <span class="admin-badge">ADMIN</span>
+      </a>
+      <a href="admin_dashboard.html" class="admin-nav-link"><span class="material-icons">dashboard</span>Overview</a>
+      <a href="admin_users.html" class="admin-nav-link"><span class="material-icons">group</span>Users</a>
+      <a href="admin_reset_requests.html" class="admin-nav-link"><span class="material-icons">lock_reset</span>Reset Requests</a>
+      <a href="admin_content.html" class="admin-nav-link"><span class="material-icons">article</span>Content &amp; Blog</a>
+      <a href="admin_analytics.html" class="admin-nav-link"><span class="material-icons">bar_chart</span>Analytics</a>
+      <a href="admin_tickets.html" class="admin-nav-link"><span class="material-icons">confirmation_number</span>Support Tickets</a>
+      <a href="admin_audit_logs.html" class="admin-nav-link"><span class="material-icons">history</span>Audit Logs</a>
+      <a href="admin_settings.html" class="admin-nav-link"><span class="material-icons">settings</span>System Settings</a>
+      <div class="admin-sidebar-footer">
+        <div class="admin-user-card" id="adminUserCard">
+          <span class="admin-user-avatar"></span>
+          <div class="admin-user-meta">
+            <div class="admin-user-name" id="adminUserName">Admin</div>
+            <div class="admin-user-role">Administrator</div>
+          </div>
+          <div class="admin-user-menu" id="adminUserMenu">
+            <a href="admin_profile.html"><span class="material-icons" style="font-size:16px;">person</span>My Profile</a>
+            <a href="#" id="adminLogoutBtn" class="danger"><span class="material-icons" style="font-size:16px;">logout</span>Logout</a>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-page-header">
+        <div>
+          <div class="admin-page-title">Users <span class="count" id="userCount"></span></div>
+          <div class="admin-page-subtitle">Teachers &amp; students, roles, bulk import</div>
+        </div>
+        <div class="admin-page-actions">
+          <button type="button" class="btn btn-secondary" id="openImportBtn"><span class="material-icons" style="font-size:18px;">upload_file</span>Bulk Import (CSV)</button>
+          <button type="button" class="btn btn-primary" id="openInviteBtn"><span class="material-icons" style="font-size:18px;">person_add</span>+ Add User</button>
+        </div>
+      </div>
+
+      <span id="adminAlert" class="status-pill" style="display:none;"></span>
+
+      <div class="admin-toolbar">
+        <input type="text" class="form-control admin-toolbar-search" id="userSearch" placeholder="Search by name or email…">
+        <select class="form-control" id="roleFilter">
+          <option value="">Role ▾</option>
+          <option value="teacher">Teacher</option>
+          <option value="student">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+        <select class="form-control" id="statusFilter">
+          <option value="">Status ▾</option>
+          <option value="active">Active</option>
+          <option value="invited">Invited</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>School</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="5">Loading users…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add People wizard — merges Onboarding Flow §17 (Invite/Import → Assign Roles) into user management -->
+  <div class="admin-modal-overlay" id="wizardOverlay">
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <span class="admin-modal-title">Add people</span>
+        <div class="admin-stepper" id="wizardStepper">
+          <span class="step current" data-step="1"><span class="dot">1</span>Invite</span>
+          <span class="sep">›</span>
+          <span class="step" data-step="2"><span class="dot">2</span>Roles</span>
+          <span class="sep">›</span>
+          <span class="step" data-step="3">First login</span>
+        </div>
+        <button type="button" class="admin-modal-close" id="wizardCloseBtn">&times;</button>
+      </div>
+
+      <div class="admin-modal-body">
+        <!-- Step 1: Invite by email / Import CSV -->
+        <div class="admin-wizard-step active" data-wizard-step="1">
+          <div class="admin-onboard-choice">
+            <div class="admin-onboard-choice-card active" id="choiceInvite">
+              <div class="admin-onboard-choice-icon"><span class="material-icons">mail</span></div>
+              <div class="admin-onboard-choice-title">Invite by email</div>
+              <div class="admin-onboard-choice-sub">Add a few people one at a time.</div>
+            </div>
+            <div class="admin-onboard-choice-card" id="choiceImport">
+              <div class="admin-onboard-choice-icon"><span class="material-icons">upload</span></div>
+              <div class="admin-onboard-choice-title">Import CSV</div>
+              <div class="admin-onboard-choice-sub">Bulk-add a whole roster at once.</div>
+            </div>
+          </div>
+          <input type="file" id="csvFileInput" accept=".csv" style="display:none;">
+
+          <div class="admin-panel" id="inviteFormPanel">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inviteEmail">Email address</label>
+                <input type="email" class="form-control" id="inviteEmail" placeholder="name@school.edu">
+              </div>
+              <div class="form-group">
+                <label for="inviteName">Full name</label>
+                <input type="text" class="form-control" id="inviteName" placeholder="Jane Doe">
+              </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="form-text">An invite email with a setup link will be sent.</span>
+              <button type="button" class="btn btn-secondary" id="addToListBtn">+ Add to list</button>
+            </div>
+          </div>
+
+          <div class="admin-invite-list" id="inviteList"></div>
+
+          <div style="display:flex; justify-content:flex-end; margin-top: var(--space-4);">
+            <button type="button" class="btn btn-primary" id="continueToRolesBtn" disabled>Continue to roles →</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Assign role, class & permissions -->
+        <div class="admin-wizard-step" data-wizard-step="2">
+          <div class="table-responsive">
+            <table class="data-table" id="rolesTable">
+              <thead><tr><th>Person</th><th>Role</th><th>Class</th></tr></thead>
+              <tbody id="rolesTableBody"></tbody>
+            </table>
+          </div>
+          <div class="admin-info-callout"><span class="material-icons" style="font-size:16px;">info</span>Role sets each person's permissions &amp; navigation — see the permission matrix on the Reset Requests page.</div>
+          <div style="display:flex; justify-content:space-between;">
+            <button type="button" class="btn btn-secondary" id="backToInviteBtn">Back</button>
+            <button type="button" class="btn btn-primary" id="sendInvitesBtn">Send invites →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../javascript/api-cache.js"></script>
+  <script src="../javascript/admin-common.js"></script>
+  <script src="../javascript/admin-users.js"></script>
+</body>
+</html>

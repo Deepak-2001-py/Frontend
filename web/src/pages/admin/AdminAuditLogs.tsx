@@ -36,7 +36,11 @@ export default function AdminAuditLogs() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <select className="form-control" value={category} onChange={(e) => setCategory(e.target.value)}>
+<<<<<<< HEAD
           <option value="">All actions</option>
+=======
+          <option value="">All actions ▾</option>
+>>>>>>> origin/main
           <option value="user">User management</option>
           <option value="reset">Password resets</option>
           <option value="content">Content</option>

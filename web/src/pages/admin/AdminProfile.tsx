@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useEffect, useState, type FormEvent } from 'react'
+=======
+import { useEffect, useState } from 'react'
+>>>>>>> origin/main
 import { adminApiRequest } from '../../lib/api'
 import AdminLayout, { useAdminAlert } from './AdminLayout'
 import { AdminModal, useAdminData } from './adminShared'
@@ -53,9 +57,13 @@ function ProfileBody() {
     setPw(EMPTY_PASSWORDS)
   }
 
+<<<<<<< HEAD
   async function changePassword(e?: FormEvent) {
     e?.preventDefault()
     if (pwSaving) return
+=======
+  async function changePassword() {
+>>>>>>> origin/main
     if (!pw.current || !pw.next) {
       showAlert('Enter your current and new password.', 'warning')
       return
@@ -85,6 +93,7 @@ function ProfileBody() {
   const pwField = (name: keyof typeof pw, id: string, label: string) => (
     <div className="form-group">
       <label htmlFor={id}>{label}</label>
+<<<<<<< HEAD
       <input
         type="password"
         className="form-control"
@@ -93,6 +102,9 @@ function ProfileBody() {
         value={pw[name]}
         onChange={(e) => setPw({ ...pw, [name]: e.target.value })}
       />
+=======
+      <input type="password" className="form-control" id={id} value={pw[name]} onChange={(e) => setPw({ ...pw, [name]: e.target.value })} />
+>>>>>>> origin/main
     </div>
   )
 
@@ -165,18 +177,30 @@ function ProfileBody() {
             <button type="button" className="btn btn-secondary" onClick={closePw}>
               Cancel
             </button>
+<<<<<<< HEAD
             <button type="submit" form="admin-password-form" className="btn btn-primary" disabled={pwSaving}>
+=======
+            <button type="button" className="btn btn-primary" disabled={pwSaving} onClick={changePassword}>
+>>>>>>> origin/main
               Update Password
             </button>
           </>
         }
       >
+<<<<<<< HEAD
         {/* A real form, so Enter submits and password managers recognise the fields. */}
         <form id="admin-password-form" className="form" onSubmit={changePassword} noValidate>
           {pwField('current', 'currentPassword', 'Current password')}
           {pwField('next', 'newPassword', 'New password')}
           {pwField('confirm', 'confirmNewPassword', 'Confirm new password')}
         </form>
+=======
+        <div className="form">
+          {pwField('current', 'currentPassword', 'Current password')}
+          {pwField('next', 'newPassword', 'New password')}
+          {pwField('confirm', 'confirmNewPassword', 'Confirm new password')}
+        </div>
+>>>>>>> origin/main
       </AdminModal>
     </>
   )

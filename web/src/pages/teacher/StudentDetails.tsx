@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import AlertStack from '../../components/AlertStack'
+<<<<<<< HEAD
 import { AssistantDock } from '../../components/assistant/AssistantPanel'
+=======
+>>>>>>> origin/main
 import AppShell from '../../components/AppShell'
 import PageScope from '../../components/PageScope'
 import QuestionViewer, { FeedbackToggle } from '../../components/grades/QuestionViewer'
@@ -635,6 +638,7 @@ export default function StudentDetails() {
           </div>
         </main>
       </AppShell>
+<<<<<<< HEAD
       {query.assignment_id && (
         <AssistantDock
           context={{ assignment_id: query.assignment_id, student_id: query.student_id ?? undefined }}
@@ -644,6 +648,8 @@ export default function StudentDetails() {
           placeholder="Ask about this paper…"
         />
       )}
+=======
+>>>>>>> origin/main
     </PageScope>
   )
 }

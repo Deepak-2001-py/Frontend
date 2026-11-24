@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Image Presentation Showcase 2025</title>
+    <style>
+        :root {
+            --primary-color: #ff7b00;
+            --secondary-color: #4A90E2;
+            --accent-color: #F5A623;
+            --background-color: #F4F7FA;
+            --text-color: #2D3E50;
+            --text-light: #212529;
+            --border-color: #E0E6EA;
+            --success-color: #2ECC71;
+            --danger-color: #E74C3C;
+            --warning-color: #F1C40F;
+            --light-primary: #E3F2FD;
+            --light-secondary: #E8F8F5;
+            --hover-color: #2C8F92;
+            --focus-color: #8E44AD;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #1e3c72 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Advanced Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(255, 123, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(74, 144, 226, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(245, 166, 35, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundDance 25s ease-in-out infinite;
+        }
+
+        @keyframes backgroundDance {
+            0%, 100% { transform: rotate(0deg) scale(1); filter: hue-rotate(0deg); }
+            25% { transform: rotate(90deg) scale(1.1); filter: hue-rotate(90deg); }
+            50% { transform: rotate(180deg) scale(0.9); filter: hue-rotate(180deg); }
+            75% { transform: rotate(270deg) scale(1.05); filter: hue-rotate(270deg); }
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            margin: 2rem;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, var(--primary-color), var(--secondary-color), var(--accent-color), var(--success-color), var(--primary-color));
+            animation: heroSpin 20s linear infinite;
+            opacity: 0.1;
+        }
+
+        @keyframes heroSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            background-size: 400% 400%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientWave 8s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes gradientWave {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Section Headers */
+        .section-header {
+            text-align: center;
+            margin: 4rem 0 3rem 0;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+            animation: underlineGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes underlineGlow {
+            0%, 100% { width: 60px; box-shadow: 0 0 10px rgba(255, 123, 0, 0.5); }
+            50% { width: 120px; box-shadow: 0 0 20px rgba(255, 123, 0, 0.8); }
+        }
+
+        /* 1. Parallax Image Gallery */
+        .parallax-gallery {
+            perspective: 1000px;
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            margin-bottom: 4rem;
+        }
+
+        .parallax-image {
+            position: absolute;
+            width: 300px;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .parallax-image:nth-child(1) {
+            top: 50px;
+            left: 10%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            animation: floatImage1 8s ease-in-out infinite;
+        }
+
+        .parallax-image:nth-child(2) {
+            top: 150px;
+            right: 15%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--hover-color));
+            animation: floatImage2 10s ease-in-out infinite;
+        }
+
+        .parallax-image:nth-child(3) {
+            top: 300px;
+            left: 25%;
+            background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+            animation: floatImage3 12s ease-in-out infinite;
+        }
+
+        .parallax-image:nth-child(4) {
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--focus-color), var(--primary-color));
+            animation: floatImage4 9s ease-in-out infinite;
+        }
+
+        @keyframes floatImage1 {
+            0%, 100% { transform: translateY(0px) rotateX(0deg); }
+            50% { transform: translateY(-30px) rotateX(10deg); }
+        }
+
+        @keyframes floatImage2 {
+            0%, 100% { transform: translateY(0px) rotateY(0deg); }
+            50% { transform: translateY(40px) rotateY(-10deg); }
+        }
+
+        @keyframes floatImage3 {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        @keyframes floatImage4 {
+            0%, 100% { transform: translateX(-50%) translateY(0px) scale(1); }
+            50% { transform: translateX(-50%) translateY(-25px) scale(1.05); }
+        }
+
+        .parallax-image:hover {
+            transform: scale(1.1) rotateY(15deg);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        /* 2. Masonry Grid Layout */
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .masonry-item {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+            position: relative;
+        }
+
+        .masonry-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+            z-index: 1;
+        }
+
+        .masonry-item:hover::before {
+            transform: translateX(100%);
+        }
+
+        .masonry-item:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .masonry-image {
+            height: 250px;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .masonry-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) skew(-25deg); }
+            100% { transform: translateX(200%) skew(-25deg); }
+        }
+
+        .masonry-content {
+            padding: 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .masonry-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .masonry-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Generate different heights for masonry items */
+        .masonry-item:nth-child(1) .masonry-image { height: 200px; background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); }
+        .masonry-item:nth-child(2) .masonry-image { height: 300px; background: linear-gradient(135deg, var(--secondary-color), var(--hover-color)); }
+        .masonry-item:nth-child(3) .masonry-image { height: 250px; background: linear-gradient(135deg, var(--success-color), var(--secondary-color)); }
+        .masonry-item:nth-child(4) .masonry-image { height: 280px; background: linear-gradient(135deg, var(--focus-color), var(--primary-color)); }
+        .masonry-item:nth-child(5) .masonry-image { height: 220px; background: linear-gradient(135deg, var(--accent-color), var(--success-color)); }
+        .masonry-item:nth-child(6) .masonry-image { height: 320px; background: linear-gradient(135deg, var(--hover-color), var(--focus-color)); }
+
+        /* 3. Image Reveal Animations */
+        .reveal-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .reveal-item {
+            position: relative;
+            height: 300px;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+
+        .reveal-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .reveal-item:hover .reveal-content {
+            transform: rotateY(180deg);
+        }
+
+        .reveal-front, .reveal-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3rem;
+            color: white;
+        }
+
+        .reveal-back {
+            transform: rotateY(180deg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            flex-direction: column;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .reveal-front:nth-child(1) { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); }
+
+        /* 4. Floating Image Cards */
+        .floating-gallery {
+            position: relative;
+            height: 500px;
+            margin-bottom: 4rem;
+            perspective: 1000px;
+        }
+
+        .floating-card {
+            position: absolute;
+            width: 250px;
+            height: 180px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .floating-card:nth-child(1) {
+            top: 20%;
+            left: 5%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            animation: float1 6s ease-in-out infinite;
+        }
+
+        .floating-card:nth-child(2) {
+            top: 10%;
+            right: 10%;
+            background: linear-gradient(135deg, var(--secondary-color), var(--hover-color));
+            animation: float2 8s ease-in-out infinite;
+        }
+
+        .floating-card:nth-child(3) {
+            bottom: 30%;
+            left: 20%;
+            background: linear-gradient(135deg, var(--success-color), var(--secondary-color));
+            animation: float3 7s ease-in-out infinite;
+        }
+
+        .floating-card:nth-child(4) {
+            bottom: 10%;
+            right: 5%;
+            background: linear-gradient(135deg, var(--focus-color), var(--primary-color));
+            animation: float4 9s ease-in-out infinite;
+        }
+
+        @keyframes float1 {
+            0%, 100% { transform: translateY(0px) rotateZ(0deg); }
+            50% { transform: translateY(-20px) rotateZ(5deg); }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translateX(0px) rotateZ(0deg); }
+            50% { transform: translateX(15px) rotateZ(-3deg); }
+        }
+
+        @keyframes float3 {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(25px) scale(1.05); }
+        }
+
+        @keyframes float4 {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(10deg); }
+        }
+
+        .floating-card:hover {
+            transform: scale(1.1) translateZ(50px);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        /* 5. Interactive Image Slider */
+        .interactive-slider {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 3rem;
+            margin-bottom: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slider-container {
+            position: relative;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .slider-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+
+        .slider-item {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
+
+        .slider-item:nth-child(1) { background: linear-gradient(135deg, var(--primary-color), var(--accent-color)); }
+        .slider-item:nth-child(2) { background: linear-gradient(135deg, var(--secondary-color), var(--hover-color)); }
+        .slider-item:nth-child(3) { background: linear-gradient(135deg, var(--success-color), var(--focus-color)); }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .slider-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .slider-btn:hover {
+            background: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .slider-dots {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: var(--primary-color);
+            transform: scale(1.3);
+        }
+
+        /* 6. Morphing Image Grid */
+        .morphing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 4rem;
+        }
+
+        .morphing-item {
+            aspect-ratio: 1;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+
+        .morphing-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.320, 1);
+            z-index: 1;
+        }
+
+        .morphing-item::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .morphing-item:hover::after {
+            opacity: 1;
+        }
+
+        .morphing-item:hover {
+            transform: scale(1.05);
+            border-radius: 50px;
+        }
+
+        .morphing-item:hover::before {
+            border-radius: 50%;
+            transform: rotate(180deg);
+        }
+
+        .morphing-item:nth-child(1) { background: linear-gradient(45deg, var(--primary-color), var(--accent-color)); }
+        .morphing-item:nth-child(2) { background: linear-gradient(45deg, var(--secondary-color), var(--hover-color)); }
+        .morphing-item:nth-child(3) { background: linear-gradient(45deg, var(--success-color), var(--secondary-color)); }
+        .morphing-item:nth-child(4) { background: linear-gradient(45deg, var(--focus-color), var(--primary-color)); }
+        .morphing-item:nth-child(5) { background: linear-gradient(45deg, var(--accent-color), var(--success-color)); }
+        .morphing-item:nth-child(6) { background: linear-gradient(45deg, var(--hover-color), var(--focus-color)); }
+
+        /* 7. Lightbox Modal */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: lightboxFadeIn 0.3s ease;
+        }
+
+        @keyframes lightboxFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox-content {
+            max-width: 80%;
+            max-height: 80%;
+            border-radius: 20px;
+            position: relative;
+            animation: lightboxSlideIn 0.5s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+
+        @keyframes lightboxSlideIn {
+            from { transform: scale(0.8) translateY(50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -50px;
+            right: 0;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .lightbox-close:hover {
+            background: var(--accent-color);
+            transform: scale(1.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero {
+                margin: 1rem;
+                padding: 2rem 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .parallax-gallery {
+                height: 400px;
+            }
+            
+            .parallax-image {
+                width: 200px;
+                height: 120px;
+                font-size: 0.9rem;
+            }
+            
+            .floating-gallery {
+                height: 350px;
+            }
+            
+            .floating-card {
+                width: 180px;
+                height: 120px;
+            }
+            
+            .masonry-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .reveal-gallery {
+                grid-template-columns: 1fr;
+            }
+            
+            .morphing-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Modern Image Showcase</h1>
+        <p>Discover cutting-edge techniques for presenting and animating images in modern web design</p>
+    </div>
+
+    <div class="container">
+        <!-- 1. Parallax Image Gallery -->
+        <div class="section-header">
+            <h2 class="section-title">3D Parallax Gallery</h2>
+        </div>
+        
+        <div class="parallax-gallery" id="parallaxGallery">
+            <div class="parallax-image">Portfolio Image 1</div>
+            <div class="parallax-image">Creative Design 2</div>
+            <div class="parallax-image">Artistic Vision 3</div>
+            <div class="parallax-image">Modern Layout 4</div>
+        </div>
+
+        <!-- 2. Masonry Grid Layout -->
+        <div class="section-header">
+            <h2 class="section-title">Dynamic Masonry Grid</h2>
+        </div>
+        
+        <div class="masonry-grid">
+            <div class="masonry-item">
+                <div class="masonry-image">Creative Project</div>
+                <div class="masonry-content">
+                    <h3 class="masonry-title">Brand Identity</h3>
+                    <p class="masonry-description">Modern branding solution with vibrant color schemes and innovative typography.</p>
+                </div>
+            </div>
+            
+            <div class="masonry-item">
+                <div class="masonry-image">Web Design</div>
+                <div class="masonry-content">
+                    <h3 class="masonry-title">UI/UX Design</h3>
+                    <p class="masonry-description">Intuitive interface design focused on user experience and accessibility.</p>
+                </div>
+            </div>
+            
+            <div class="masonry-item">
+                <div class="masonry-image">Digital Art</div>
+                <div class="masonry-content">
+                    <h3 class="masonry-title">Digital Artwork</h3>
+                    <p class="masonry-description">Contemporary digital art pieces with abstract compositions.</p>
+                </div>
+            </div>
+            
+            <div class="masonry-item">
+                <div class="masonry-image">Photography</div>
+                <div class="masonry-content">
+                    <h3 class="masonry-title">Photo Series</h3>
+                    <p class="masonry-description">Professional photography with creative post-processing techniques.</p>
+                </div>
+            </div>
+            
+            <div class="masonry-item">
+                <div class="masonry-image">Illustration</div>
+                <div class="masonry-content">
+                    <h3 class="masonry-title">Vector Graphics</h3>
+                    <p class="masonry-description">Clean vector illustrations for modern digital applications.</p>
+                </div>
+            </div>
+            
+            <div class="masonry-item">
+                <div class="masonry-image">Motion Design</div>
+                <div class="masonry-content">
+                    <h3 class="masonry-title">Animation</h3>
+                    <p class="masonry-description">Smooth motion graphics and interactive animations.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Image Reveal Animations -->
+        <div class="section-header">
+            <h2 class="section-title">Interactive Card Reveals</h2>
+        </div>
+        
+        <div class="reveal-gallery">
+            <div class="reveal-item">
+                <div class="reveal-content">
+                    <div class="reveal-front" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));">
+                        Hover to Reveal
+                    </div>
+                    <div class="reveal-back">
+                        <h3>Creative Solution</h3>
+                        <p>Innovative design approach with modern aesthetics and user-centered functionality.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal-item">
+                <div class="reveal-content">
+                    <div class="reveal-front" style="background: linear-gradient(135deg, var(--secondary-color), var(--hover-color));">
+                        Interactive Design
+                    </div>
+                    <div class="reveal-back">
+                        <h3>User Experience</h3>
+                        <p>Seamless interactions that delight users and drive engagement through thoughtful design.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="reveal-item">
+                <div class="reveal-content">
+                    <div class="reveal-front" style="background: linear-gradient(135deg, var(--success-color), var(--focus-color));">
+                        Visual Impact
+                    </div>
+                    <div class="reveal-back">
+                        <h3>Brand Identity</h3>
+                        <p>Strong visual presence that communicates brand values and creates lasting impressions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Floating Image Cards -->
+        <div class="section-header">
+            <h2 class="section-title">Floating Gallery Cards</h2>
+        </div>
+        
+        <div class="floating-gallery">
+            <div class="floating-card">Portfolio Showcase</div>
+            <div class="floating-card">Creative Works</div>
+            <div class="floating-card">Design Process</div>
+            <div class="floating-card">Final Results</div>
+        </div>
+
+        <!-- 5. Interactive Image Slider -->
+        <div class="section-header">
+            <h2 class="section-title">Advanced Image Slider</h2>
+        </div>
+        
+        <div class="interactive-slider">
+            <div class="slider-container">
+                <div class="slider-track" id="sliderTrack">
+                    <div class="slider-item">
+                        <div style="text-align: center;">
+                            <h3 style="margin-bottom: 1rem;">Modern Layouts</h3>
+                            <p>Contemporary design patterns with innovative visual hierarchy</p>
+                        </div>
+                    </div>
+                    <div class="slider-item">
+                        <div style="text-align: center;">
+                            <h3 style="margin-bottom: 1rem;">Interactive Elements</h3>
+                            <p>Engaging user interfaces with smooth animations and transitions</p>
+                        </div>
+                    </div>
+                    <div class="slider-item">
+                        <div style="text-align: center;">
+                            <h3 style="margin-bottom: 1rem;">Visual Storytelling</h3>
+                            <p>Compelling narratives through strategic use of imagery and typography</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slider-controls">
+                <button class="slider-btn" onclick="previousSlide()">‹</button>
+                <button class="slider-btn" onclick="nextSlide()">›</button>
+            </div>
+            
+            <div class="slider-dots">
+                <span class="dot active" onclick="currentSlide(1)"></span>
+                <span class="dot" onclick="currentSlide(2)"></span>
+                <span class="dot" onclick="currentSlide(3)"></span>
+            </div>
+        </div>
+
+        <!-- 6. Morphing Image Grid -->
+        <div class="section-header">
+            <h2 class="section-title">Morphing Image Grid</h2>
+        </div>
+        
+        <div class="morphing-grid">
+            <div class="morphing-item" data-text="Brand Design"></div>
+            <div class="morphing-item" data-text="Web Development"></div>
+            <div class="morphing-item" data-text="Mobile App"></div>
+            <div class="morphing-item" data-text="User Interface"></div>
+            <div class="morphing-item" data-text="Digital Art"></div>
+            <div class="morphing-item" data-text="Photography"></div>
+        </div>
+
+        <!-- 7. Advanced Image Effects -->
+        <div class="section-header">
+            <h2 class="section-title">Advanced Visual Effects</h2>
+        </div>
+        
+        <div class="effects-showcase">
+            <div class="effect-grid">
+                <div class="effect-item blur-effect" data-title="Blur Transition">
+                    <div class="effect-content">Blur Effect</div>
+                </div>
+                
+                <div class="effect-item glitch-effect" data-title="Glitch Animation">
+                    <div class="effect-content">Glitch Effect</div>
+                </div>
+                
+                <div class="effect-item particle-effect" data-title="Particle System">
+                    <div class="effect-content">Particle Effect</div>
+                </div>
+                
+                <div class="effect-item hologram-effect" data-title="Holographic Style">
+                    <div class="effect-content">Hologram Effect</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. Image Comparison Slider -->
+        <div class="section-header">
+            <h2 class="section-title">Before/After Comparison</h2>
+        </div>
+        
+        <div class="comparison-container">
+            <div class="comparison-slider" id="comparisonSlider">
+                <div class="comparison-before">
+                    <div class="comparison-content" style="background: linear-gradient(135deg, #666, #999);">
+                        <h3>Before Design</h3>
+                        <p>Traditional approach with limited visual impact</p>
+                    </div>
+                </div>
+                <div class="comparison-after">
+                    <div class="comparison-content" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));">
+                        <h3>After Design</h3>
+                        <p>Modern transformation with enhanced user experience</p>
+                    </div>
+                </div>
+                <div class="comparison-handle" id="comparisonHandle">
+                    <div class="handle-icon">⟷</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. 360° Product Showcase -->
+        <div class="section-header">
+            <h2 class="section-title">360° Interactive Showcase</h2>
+        </div>
+        
+        <div class="product-360">
+            <div class="product-viewer" id="productViewer">
+                <div class="product-stage">
+                    <div class="product-item" style="transform: rotateY(0deg);">View 1</div>
+                    <div class="product-item" style="transform: rotateY(90deg);">View 2</div>
+                    <div class="product-item" style="transform: rotateY(180deg);">View 3</div>
+                    <div class="product-item" style="transform: rotateY(270deg);">View 4</div>
+                </div>
+            </div>
+            <div class="product-controls">
+                <button class="product-btn" onclick="rotate360(-90)">← Rotate</button>
+                <button class="product-btn" onclick="rotate360(90)">Rotate →</button>
+            </div>
+        </div>
+
+        <!-- 10. Infinite Scroll Gallery -->
+        <div class="section-header">
+            <h2 class="section-title">Infinite Scroll Gallery</h2>
+        </div>
+        
+        <div class="infinite-gallery" id="infiniteGallery">
+            <div class="infinite-track">
+                <div class="infinite-item" style="background: linear-gradient(135deg, var(--primary-color), var(--accent-color));">Image 1</div>
+                <div class="infinite-item" style="background: linear-gradient(135deg, var(--secondary-color), var(--hover-color));">Image 2</div>
+                <div class="infinite-item" style="background: linear-gradient(135deg, var(--success-color), var(--focus-color));">Image 3</div>
+                <div class="infinite-item" style="background: linear-gradient(135deg, var(--accent-color), var(--primary-color));">Image 4</div>
+                <div class="infinite-item" style="background: linear-gradient(135deg, var(--hover-color), var(--secondary-color));">Image 5</div>
+                <div class="infinite-item" style="background: linear-gradient(135deg, var(--focus-color), var(--success-color));">Image 6</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="lightbox-close" onclick="closeLightbox()">×</button>
+            <div id="lightboxImage"></div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced Mouse Tracking for Parallax
+        document.addEventListener('mousemove', (e) => {
+            const parallaxItems = document.querySelectorAll('.parallax-image');
+            const mouseX = e.clientX / window.innerWidth;
+            const mouseY = e.clientY / window.innerHeight;
+
+            parallaxItems.forEach((item, index) => {
+                const speed = (index + 1) * 0.5;
+                const x = (mouseX - 0.5) * speed * 50;
+                const y = (mouseY - 0.5) * speed * 50;
+                
+                item.style.transform = `translate(${x}px, ${y}px) scale(${1 + speed * 0.1})`;
+            });
+
+            // Floating cards mouse interaction
+            const floatingCards = document.querySelectorAll('.floating-card');
+            floatingCards.forEach((card, index) => {
+                const rect = card.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const deltaX = (e.clientX - centerX) * 0.1;
+                const deltaY = (e.clientY - centerY) * 0.1;
+                
+                card.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(${1 + Math.abs(deltaX + deltaY) * 0.001})`;
+            });
+        });
+
+        // Slider Functionality
+        let currentSlideIndex = 0;
+        const totalSlides = 3;
+
+        function updateSlider() {
+            const track = document.getElementById('sliderTrack');
+            const dots = document.querySelectorAll('.dot');
+            
+            track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+            
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlideIndex);
+            });
+        }
+
+        function nextSlide() {
+            currentSlideIndex = (currentSlideIndex + 1) % totalSlides;
+            updateSlider();
+        }
+
+        function previousSlide() {
+            currentSlideIndex = (currentSlideIndex - 1 + totalSlides) % totalSlides;
+            updateSlider();
+        }
+
+        function currentSlide(n) {
+            currentSlideIndex = n - 1;
+            updateSlider();
+        }
+
+        // Auto-advance slider
+        setInterval(nextSlide, 4000);
+
+        // Comparison Slider
+        let isDragging = false;
+        const comparisonSlider = document.getElementById('comparisonSlider');
+        const comparisonHandle = document.getElementById('comparisonHandle');
+
+        function updateComparison(percentage) {
+            const afterElement = comparisonSlider.querySelector('.comparison-after');
+            afterElement.style.clipPath = `inset(0 0 0 ${percentage}%)`;
+            comparisonHandle.style.left = `${percentage}%`;
+        }
+
+        comparisonHandle.addEventListener('mousedown', () => {
+            isDragging = true;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+
+            const rect = comparisonSlider.getBoundingClientRect();
+            const percentage = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+            updateComparison(percentage);
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        // Initialize comparison at 50%
+        updateComparison(50);
+
+        // 360° Product Rotation
+        let currentRotation = 0;
+
+        function rotate360(degrees) {
+            currentRotation += degrees;
+            const productStage = document.querySelector('.product-stage');
+            productStage.style.transform = `rotateY(${currentRotation}deg)`;
+        }
+
+        // Infinite Gallery Auto-scroll
+        const infiniteTrack = document.querySelector('.infinite-track');
+        let scrollPosition = 0;
+
+        function animateInfiniteScroll() {
+            scrollPosition -= 1;
+            if (Math.abs(scrollPosition) >= infiniteTrack.scrollWidth / 2) {
+                scrollPosition = 0;
+            }
+            infiniteTrack.style.transform = `translateX(${scrollPosition}px)`;
+            requestAnimationFrame(animateInfiniteScroll);
+        }
+
+        animateInfiniteScroll();
+
+        // Lightbox functionality
+        function openLightbox(content) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            lightboxImage.innerHTML = content;
+            lightbox.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Add click handlers for opening lightbox
+        document.querySelectorAll('.masonry-item, .parallax-image, .floating-card').forEach(item => {
+            item.addEventListener('click', () => {
+                const content = `<div style="width: 500px; height: 300px; background: ${getComputedStyle(item).background}; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem;">${item.textContent}</div>`;
+                openLightbox(content);
+            });
+        });
+
+        // Advanced Visual Effects
+        function createParticles(element) {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.style.cssText = `
+                    position: absolute;
+                    width: 4px;
+                    height: 4px;
+                    background: var(--primary-color);
+                    border-radius: 50%;
+                    top: 50%;
+                    left: 50%;
+                    pointer-events: none;
+                    animation: particleExplosion 2s ease-out forwards;
+                    animation-delay: ${i * 0.1}s;
+                `;
+                element.appendChild(particle);
+            }
+        }
+
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Apply scroll animations to sections
+        document.querySelectorAll('.section-header, .masonry-item, .reveal-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(50px)';
+            el.style.transition = 'all 0.8s cubic-bezier(0.23, 1, 0.320, 1)';
+            observer.observe(el);
+        });
+
+        // Touch support for mobile devices
+        let startX = 0;
+        let startY = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!startX || !startY) return;
+
+            const deltaX = e.touches[0].clientX - startX;
+            const deltaY = e.touches[0].clientY - startY;
+
+            // Handle swipe gestures for slider
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 50) {
+                    previousSlide();
+                } else if (deltaX < -50) {
+                    nextSlide();
+                }
+            }
+
+            startX = 0;
+            startY = 0;
+        });
+
+        // Performance optimization - pause animations when not visible
+        document.addEventListener('visibilitychange', () => {
+            const isHidden = document.hidden;
+            const animatedElements = document.querySelectorAll('.parallax-image, .floating-card, .morphing-item');
+            
+            animatedElements.forEach(el => {
+                el.style.animationPlayState = isHidden ? 'paused' : 'running';
+            });
+        });
+
+        // Dynamic color theme switching
+        let themeIndex = 0;
+        const themes = [
+            ['#ff7b00', '#4A90E2', '#F5A623'],
+            ['#e74c3c', '#9b59b6', '#3498db'],
+            ['#2ecc71', '#f39c12', '#e67e22'],
+            ['#1abc9c', '#34495e', '#95a5a6']
+        ];
+
+        function switchTheme() {
+            themeIndex = (themeIndex + 1) % themes.length;
+            const [primary, secondary, accent] = themes[themeIndex];
+            
+            document.documentElement.style.setProperty('--primary-color', primary);
+            document.documentElement.style.setProperty('--secondary-color', secondary);
+            document.documentElement.style.setProperty('--accent-color', accent);
+        }
+
+        // Switch theme every 30 seconds
+        setInterval(switchTheme, 30000);
+
+        console.log('🎨 Modern Image Showcase loaded successfully!');
+    </script>
+
+    <!-- Additional CSS for new effects -->
+    <style>
+        .effects-showcase {
+            margin-bottom: 4rem;
+        }
+
+        .effect-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .effect-item {
+            height: 200px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .blur-effect {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            transition: filter 0.5s ease;
+        }
+
+        .blur-effect:hover {
+            filter: blur(5px) brightness(1.2);
+        }
+
+        .glitch-effect {
+            background: linear-gradient(135deg, var(--secondary-color), var(--hover-color));
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translateX(0); }
+            10% { transform: translateX(-2px); }
+            20% { transform: translateX(2px); }
+            30% { transform: translateX(-1px); }
+            40% { transform: translateX(1px); }
+            50% { transform: translateX(0); }
+        }
+
+        .particle-effect {
+            background: linear-gradient(135deg, var(--success-color), var(--focus-color));
+        }
+
+        .particle-effect:hover {
+            background: radial-gradient(circle, var(--success-color), var(--focus-color));
+        }
+
+        .hologram-effect {
+            background: linear-gradient(135deg, var(--focus-color), var(--primary-color));
+            position: relative;
+        }
+
+        .hologram-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 48%, rgba(255, 255, 255, 0.3) 50%, transparent 52%);
+            animation: hologramScan 2s infinite;
+        }
+
+        @keyframes hologramScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .comparison-container {
+            margin-bottom: 4rem;
+        }
+
+        .comparison-slider {
+            position: relative;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: ew-resize;
+            user-select: none;
+        }
+
+        .comparison-before, .comparison-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .comparison-after {
+            clip-path: inset(0 0 0 50%);
+        }
+
+        .comparison-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .comparison-handle {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: white;
+            cursor: ew-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .handle-icon {
+            background: white;
+            color: var(--primary-color);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .product-360 {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .product-viewer {
+            perspective: 1000px;
+            margin-bottom: 2rem;
+        }
+
+        .product-stage {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.320, 1);
+        }
+
+        .product-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.3rem;
+            backface-visibility: hidden;
+        }
+
+        .product-controls {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .product-btn {
+            padding: 0.8rem 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .product-btn:hover {
+            background: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .infinite-gallery {
+            overflow: hidden;
+            margin-bottom: 4rem;
+        }
+
+        .infinite-track {
+            display: flex;
+            width: calc(250px * 12);
+            animation: infiniteScroll 20s linear infinite;
+        }
+
+        .infinite-item {
+            width: 200px;
+            height: 150px;
+            margin-right: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        @keyframes infiniteScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        @keyframes particleExplosion {
+            to {
+                transform: translate(
+                    calc(var(--random-x, 1) * 100px), 
+                    calc(var(--random-y, 1) * 100px)
+                ) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* Enhanced mobile responsiveness */
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .slider-container {
+                height: 250px;
+            }
+            
+            .product-stage {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .comparison-slider {
+                height: 250px;
+            }
+            
+            .infinite-item {
+                width: 150px;
+                height: 100px;
+            }
+        }
+    </style>
+</body>
+</html>

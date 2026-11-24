@@ -1,14 +1,21 @@
+<<<<<<< HEAD
 import { Fragment, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { useAuth } from '../auth/AuthContext'
 import { useDisplayName } from '../hooks/useDisplayName'
 import SidebarToggle, { useSidebarClosed } from './SidebarToggle'
+=======
+import { useEffect, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext'
+>>>>>>> origin/main
 import '../styles/sidebar.css'
 
 interface NavItem {
   to: string
   label: string
+<<<<<<< HEAD
   icon: string
   /** Other routes that should keep this item highlighted. */
   also?: string[]
@@ -24,10 +31,18 @@ interface NavItem {
  * and assistant that already existed.
  */
 const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; role: string; profile: string; cta: { to: string; label: string } }> = {
+=======
+  /** Other routes that should keep this item highlighted. */
+  also?: string[]
+}
+
+const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; role: string; profile: string }> = {
+>>>>>>> origin/main
   student: {
     avatar: '/img/student.jpg',
     role: 'Student',
     profile: '/student/profile',
+<<<<<<< HEAD
     cta: { to: '/student/assignments', label: 'Submit work' },
     items: [
       { to: '/student/dashboard', label: 'Dashboard', icon: 'space_dashboard', section: 'Menu' },
@@ -35,12 +50,19 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
       { to: '/student/grades', label: 'Grades', icon: 'grade' },
       { to: '/student/progress', label: 'Progress', icon: 'trending_up' },
       { to: '/student/announcements', label: 'Announcements', icon: 'campaign' },
+=======
+    items: [
+      { to: '/student/dashboard', label: 'Dashboard' },
+      { to: '/student/upload', label: 'Assignments', also: ['/student/answer-correction'] },
+      { to: '/student/grades', label: 'My Grades' },
+>>>>>>> origin/main
     ],
   },
   teacher: {
     avatar: '/img/teacher-avatar.jpg',
     role: 'Teacher',
     profile: '/teacher/profile',
+<<<<<<< HEAD
     cta: { to: '/teacher/assignments/new', label: 'New assignment' },
     items: [
       { to: '/teacher/dashboard', label: 'Dashboard', icon: 'space_dashboard', section: 'Menu' },
@@ -52,6 +74,13 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
       { to: '/teacher/grades', label: 'Grade lookup', icon: 'leaderboard', section: 'Tools' },
       { to: '/teacher/correction', label: 'Manual correction', icon: 'rate_review' },
       { to: '/teacher/assistant', label: 'GradeFlow Assistant', icon: 'auto_awesome' },
+=======
+    items: [
+      { to: '/teacher/dashboard', label: 'Dashboard' },
+      { to: '/teacher/upload', label: 'Assignments', also: ['/teacher/question-correction'] },
+      { to: '/teacher/grades', label: 'Students Grades', also: ['/teacher/student-details'] },
+      { to: '/teacher/correction', label: 'Manual Grading & Correction' },
+>>>>>>> origin/main
     ],
   },
 }
@@ -60,10 +89,15 @@ const NAV: Record<'student' | 'teacher', { items: NavItem[]; avatar: string; rol
 export default function Sidebar() {
   const { session } = useAuth()
   const { pathname } = useLocation()
+<<<<<<< HEAD
   const name = useDisplayName('User')
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [closed, setClosed] = useSidebarClosed()
+=======
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+>>>>>>> origin/main
   const nav = NAV[session?.userType === 'teacher' ? 'teacher' : 'student']
 
   // Close menus on navigation and on any outside click.
@@ -80,6 +114,7 @@ export default function Sidebar() {
     return () => document.removeEventListener('click', close)
   }, [dropdownOpen])
 
+<<<<<<< HEAD
   const isActive = (item: NavItem) =>
     pathname === item.to || pathname.startsWith(item.to + '/') || !!item.also?.some((p) => pathname.startsWith(p))
 
@@ -126,11 +161,40 @@ export default function Sidebar() {
             type="button"
             className="user-dropdown-toggle"
             aria-expanded={dropdownOpen}
+=======
+  return (
+    <aside className="app-sidebar">
+      <div className="sidebar-inner">
+        <Link to="/" className="sidebar-logo">
+          <span className="logo-mark" />
+          <span className="logo-word">GradeAnt</span>
+        </Link>
+        <button className="mobile-menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-label="Toggle menu">
+          <span className="material-icons">menu</span>
+        </button>
+        <nav className={`nav-links${menuOpen ? ' active' : ''}`}>
+          {nav.items.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                isActive || item.also?.some((p) => pathname.startsWith(p)) ? 'active' : ''
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="user-dropdown">
+          <div
+            className="user-dropdown-toggle"
+>>>>>>> origin/main
             onClick={(e) => {
               e.stopPropagation()
               setDropdownOpen((o) => !o)
             }}
           >
+<<<<<<< HEAD
             <img src={nav.avatar} alt="" className="avatar" />
             <span className="user-info">
               <span className="user-name">{name}</span>
@@ -167,6 +231,34 @@ export default function Sidebar() {
               </motion.div>
             )}
           </AnimatePresence>
+=======
+            <img src={nav.avatar} alt={`${nav.role} Avatar`} className="avatar" />
+            <div className="user-info">
+              <span className="user-name">{session?.userName ?? 'User'}</span>
+              <span className="user-role">{nav.role}</span>
+            </div>
+            <span className="material-icons">expand_more</span>
+          </div>
+          <div className={`dropdown-menu${dropdownOpen ? ' show' : ''}`}>
+            <Link to={nav.profile}>
+              <span className="material-icons">person</span>
+              My Profile
+            </Link>
+            <Link to={nav.profile.replace('/profile', '/change-password')}>
+              <span className="material-icons">lock</span>
+              Change Password
+            </Link>
+            <Link to={`${nav.profile}#request-reset`}>
+              <span className="material-icons">help_outline</span>
+              Request Password Reset
+            </Link>
+            <div className="dropdown-divider" />
+            <Link to="/logout">
+              <span className="material-icons">logout</span>
+              Logout
+            </Link>
+          </div>
+>>>>>>> origin/main
         </div>
       </div>
     </aside>

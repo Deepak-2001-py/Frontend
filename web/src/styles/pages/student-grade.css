@@ -1,0 +1,639 @@
+/* ==========================================================================
+   Student Grade Lookup — page-specific overlay
+   Loaded after ../css/asthetic_style.css. References the GradeAnt semantic
+   design tokens (--brand, --accent, --ink-*, --surface-card, --border-*,
+   --radius-*, --shadow-*, --grade-a..f, --font-display/--font-sans) which
+   are declared in :root by asthetic_style.css. No tokens are redeclared here.
+   ========================================================================== */
+
+/* ---- App shell: sidebar + content row (nav.html is now a left sidebar) ----
+   align-items must stay "stretch" (the css/asthetic_style.css default) —
+   #nav (the sidebar's wrapper div) needs to stretch to match .app-main's
+   full height so the sticky sidebar inside it has room to stay pinned
+   while the page scrolls. Overriding it to flex-start (as this rule used
+   to) collapses #nav down to the sidebar's own 100vh height, which on any
+   page taller than one screen leaves the sidebar with nowhere to "float"
+   — position:sticky then behaves just like static, scrolling the nav
+   links and logo off-screen along with the rest of the page. */
+.app-shell {
+  display: flex;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---- Page surface ---- */
+.main-content {
+  background: var(--surface-page, var(--ink-50));
+  padding: var(--space-8, 3rem) 0;
+  min-height: 100vh;
+}
+
+/* The base .container (css/asthetic_style.css) is a marketing-page rule:
+   max-width 1200px, margin:0 auto, 15px padding. On a sidebar layout that
+   centers the card in the leftover space next to the 232px sidebar,
+   producing a large dead gutter on typical laptop widths (and, combined
+   with a too-narrow max-width, cramped/clipped tables on anything under
+   ~1400px). Widened + repadded so the card fills the available width
+   fluidly instead of floating in a fixed centered block. */
+.main-content .container {
+  max-width: 1200px;
+  padding: 0 2rem;
+}
+
+/* ---- Card ---- */
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, var(--radius-md));
+  box-shadow: var(--shadow-md);
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.card-header {
+  position: relative;
+  background: var(--surface-card);
+  border-radius: 0;
+  border-bottom: 1px solid var(--border-subtle, var(--border-default));
+  text-align: left;
+  padding: 2rem 2rem 1.5rem;
+}
+
+/* Brand gradient rule under the header — same hero treatment as the
+   upload pages, for one consistent visual language across roles. */
+.card-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--gradient-brand);
+}
+
+.card-header .header-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-grow, var(--accent));
+  color: var(--white, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-accent, 0 10px 24px rgba(18, 168, 142, 0.26));
+  margin-bottom: 0.9rem;
+}
+
+.card-header h2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--ink-900);
+  margin-bottom: 0.35rem;
+}
+
+.card-header h2 i {
+  color: var(--accent);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.card-header p {
+  color: var(--text-muted, var(--ink-500));
+  font-size: 0.95rem;
+  max-width: 52ch;
+}
+
+.card-body {
+  padding: 2rem;
+}
+
+/* ---- Secondary nav / view tabs ---- */
+.nav-tabs {
+  justify-content: flex-start;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 1.5rem;
+}
+
+.tab-btn {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-muted, var(--ink-500));
+  padding: 0.6rem 1rem;
+}
+
+.tab-btn.active {
+  color: var(--brand);
+  border-bottom: 3px solid var(--brand);
+}
+
+.student-grade-container h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink-900);
+  margin-bottom: 1rem;
+}
+
+/* ---- Labelled input rows (label above bordered input) ---- */
+.form {
+  gap: 1.25rem;
+}
+
+.form-group label {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.84rem;
+  color: var(--text-strong, var(--ink-900));
+  margin-bottom: 0.45rem;
+}
+
+.form-control {
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--text-strong, var(--ink-900));
+  transition: border-color var(--dur-fast, 0.16s) var(--ease-out, ease),
+              box-shadow var(--dur-fast, 0.16s) var(--ease-out, ease);
+}
+
+.form-control::placeholder {
+  color: var(--text-subtle, var(--ink-400));
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: var(--ring, 0 0 0 3px rgba(255, 122, 0, 0.28));
+}
+
+.form-text {
+  color: var(--text-subtle, var(--ink-400));
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+/* ---- Buttons ---- */
+.form-actions {
+  margin-top: 0.25rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn {
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: var(--brand-on, #fff);
+  padding: 0.85rem 1.5rem;
+  box-shadow: none;
+}
+
+.btn-primary:hover {
+  background: var(--brand-hover);
+}
+
+.btn-secondary {
+  background: var(--surface-sunken, var(--ink-50));
+  color: var(--text-body, var(--ink-700));
+  border: 1px solid var(--border-default);
+  padding: 0.85rem 1.5rem;
+}
+
+.btn-secondary:hover {
+  background: var(--border-subtle, var(--ink-150));
+}
+
+/* ---- Loader ---- */
+.loader-container {
+  margin: 1.5rem 0;
+}
+
+.loader,
+#student-loader {
+  border-color: var(--border-default);
+  border-top-color: var(--brand);
+}
+
+/* ---- Results: summary card + table ---- */
+.result-container {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-lg, var(--radius-md));
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem 1.75rem;
+  margin: 1.5rem 0;
+}
+
+.result-container h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink-900);
+  margin: 0 0 0.75rem;
+}
+
+.result-container h4:not(:first-child) {
+  margin-top: 1.75rem;
+}
+
+.summary-table,
+.data-table {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.summary-table th,
+.data-table th {
+  background: var(--surface-sunken, var(--ink-50));
+  color: var(--text-strong, var(--ink-900));
+  text-shadow: none;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps, 0.08em);
+  border-bottom: 2px solid var(--accent);
+}
+
+.summary-table td,
+.data-table td {
+  border-color: var(--border-subtle, var(--border-default));
+  color: var(--text-body, var(--ink-700));
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+
+.summary-table tbody tr:nth-of-type(even),
+.data-table tbody tr:nth-of-type(even) {
+  background: var(--surface-sunken, var(--ink-50));
+}
+
+.summary-table tbody tr:nth-of-type(odd),
+.data-table tbody tr:nth-of-type(odd) {
+  background: var(--surface-card);
+}
+
+.summary-table tbody tr:hover,
+.data-table tbody tr:hover {
+  background: var(--brand-soft, var(--orange-50));
+}
+
+/* ---- Results: per-question feedback cards ----
+   javascript/student_grade.js classifies each question as correct/partial/
+   incorrect by comparing the marks/max_marks the grading API already
+   returns, and adds a matching status-* class + badge here.
+
+   #questions-container is a horizontal, scroll-snapped row — one question
+   card fills the viewport at a time (mirrors the wireframe's "‹ Q3 / Q5 ›"
+   pager pattern) instead of a vertical stacked list. The .q-path-nav pill
+   strip above it lets you jump directly to a question or step prev/next;
+   swiping/scrolling the row directly keeps the pills in sync (JS). */
+#questions-container {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.question-item {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle, var(--border-default));
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem 1.25rem;
+}
+
+.question-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Question path nav — horizontal pill strip + prev/next pager */
+.q-path-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.q-path-track {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  flex: 1;
+  padding: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.q-path-pill {
+  flex-shrink: 0;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 0.6rem;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.q-path-pill.status-correct {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.q-path-pill.status-partial {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.q-path-pill.status-incorrect {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.q-path-pill.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-on, #fff);
+}
+
+.q-path-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-body);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.q-path-btn:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.q-path-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.q-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+  text-align: center;
+}
+
+/* #questions-container stays collapsed until a pill is clicked; the hint
+   below the pill nav guides that first click. */
+#questions-container.is-collapsed {
+  display: none;
+}
+
+.q-path-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.85rem;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.6rem;
+}
+
+.question-item.status-correct {
+  border-left-color: var(--color-success);
+}
+
+.question-item.status-partial {
+  border-left-color: var(--color-warning);
+}
+
+.question-item.status-incorrect {
+  border-left-color: var(--color-danger);
+}
+
+.question-item.status-incorrect .reasoning-section,
+.question-item.status-partial .reasoning-section {
+  background: var(--color-warning-soft);
+  border-left-color: var(--color-warning);
+}
+
+.question-item.status-incorrect .reasoning-section {
+  background: var(--color-danger-soft);
+  border-left-color: var(--color-danger);
+}
+
+.question-item.status-incorrect .reasoning-section h4,
+.question-item.status-partial .reasoning-section h4,
+.question-item.status-incorrect .feedback-toggle-btn,
+.question-item.status-partial .feedback-toggle-btn {
+  color: var(--color-warning);
+}
+
+.question-item.status-incorrect .reasoning-section h4,
+.question-item.status-incorrect .feedback-toggle-btn {
+  color: var(--color-danger);
+}
+
+.question-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border-bottom: none;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.status-badge-correct {
+  background: var(--color-success-soft);
+  color: var(--teal-700);
+}
+
+.status-badge-partial {
+  background: var(--color-warning-soft);
+  color: #9a6b00;
+}
+
+.status-badge-incorrect {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.question-header h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink-900);
+}
+
+.question-meta {
+  color: var(--text-muted, var(--ink-500));
+  font-size: 0.82rem;
+  margin-bottom: 0.75rem;
+}
+
+.marks {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.question-text {
+  color: var(--text-body, var(--ink-700));
+  font-size: 0.95rem;
+}
+
+.answer-section pre,
+.student-answer pre {
+  background: var(--surface-sunken, var(--ink-50));
+  border-left: 4px solid var(--border-strong, var(--ink-300));
+  font-family: var(--font-mono);
+  color: var(--text-body, var(--ink-700));
+}
+
+.reasoning-section {
+  background: var(--accent-soft, var(--teal-50));
+  border-left: 4px solid var(--accent);
+}
+
+.reasoning-section h4 {
+  color: var(--accent-hover, var(--teal-600));
+  font-family: var(--font-sans);
+}
+
+/* Feedback/correction starts collapsed; clicking this toggle reveals the
+   .feedback-container that follows it (JS toggles the `hidden` attribute). */
+.feedback-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--accent-hover, var(--teal-600));
+}
+
+.feedback-toggle-icon {
+  transition: transform var(--dur-fast) var(--ease-out);
+  font-size: 0.9em;
+}
+
+.feedback-toggle-btn[aria-expanded="true"] .feedback-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.feedback-container {
+  margin-top: 0.5rem;
+}
+
+.timestamp {
+  color: var(--text-subtle, var(--ink-400));
+}
+
+.no-questions {
+  color: var(--text-muted, var(--ink-500));
+  border: 2px dashed var(--border-default);
+  background: var(--surface-sunken, var(--ink-50));
+}
+
+/* ---- Print button ---- */
+.print-button {
+  background: var(--accent);
+  box-shadow: none;
+  border-radius: var(--radius-md);
+}
+
+.print-button:hover {
+  background: var(--accent-hover);
+  box-shadow: var(--shadow-accent);
+  transform: none;
+}
+
+/* ---- Footer ---- */
+.site-footer {
+  background: var(--ink-900);
+  box-shadow: none;
+  color: var(--ink-300);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .app-shell {
+    flex-direction: column;
+  }
+}
+
+@media print {
+  .app-sidebar,
+  .site-footer,
+  .form,
+  .nav-tabs {
+    display: none !important;
+  }
+
+  /* Full fix (expanding every question card out of the collapsed/
+     one-at-a-time pager) lives in css/asthetic_style.css §17, which this
+     page also loads — repeated here only for the .is-collapsed rule that
+     is specific to this file (see line ~426 above). */
+  #questions-container.is-collapsed {
+    display: block !important;
+  }
+}
+
+/* From the inline <style> in student/student_grade.html */
+.main-content {
+  padding: 4rem 0;
+}

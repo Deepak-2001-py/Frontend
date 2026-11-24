@@ -11,7 +11,11 @@ const ATTENTION = [
 
 const QUICK_LINKS = [
   { icon: 'group_add', text: 'Manage users', to: '/admin/users' },
+<<<<<<< HEAD
   { icon: 'shield', text: 'Permission matrix', to: '/admin/reset-requests#permission-matrix' },
+=======
+  { icon: 'shield', text: 'Permission matrix', to: '/admin/reset-requests' },
+>>>>>>> origin/main
   { icon: 'insights', text: 'Full analytics', to: '/admin/analytics' },
   { icon: 'tune', text: 'System settings', to: '/admin/settings' },
 ]

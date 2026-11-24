@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GradeAnt | AI-Powered STEM Homework Grading</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="..\css\index.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container navbar-container">
+      <a href="#" class="logo-container">
+        <img src="img\grade-antlogo-removebg-preview.png" alt="GradeAnt Logo" class="logo-image">
+        <h1 class="logo">Grade<span>Ant</span></h1>
+      </a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+      <div class="nav-links" id="navLinks">
+        <a href="../index.html" class="active">Home</a>
+        <!-- <a href="Frontend\Gradeant_dashboard.html">Dashboard</a> -->
+        <a href="..\resoures\about.html">About</a>
+        <!-- <a href="resoures\blog.html">Blog</a> -->
+        <a href="..\resoures\contact.html">Contact</a>
+        <div class="auth-buttons">
+          <a href="auth\login.html" class="btn btn-secondary">Login</a>
+          <a href="auth\signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <span class="hero-eyebrow">AI-Powered STEM Homework Grading</span>
+        <h1 class="hero-title">Welcome to GradeAnt  The Future of STEM Grading</h1>
+        <p class="hero-description">Evaluate assignments with personalized rubrics, detailed insights, and effortless handwritten recognition.</p>
+        <div class="hero-buttons">
+          <a href="#getstarted" class="btn btn-primary">Get Started</a>
+          <a href="quick_links\features.html" class="btn btn-secondary">Learn More</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="showcase" id="features">
+    <div class="container">
+      <h2 class="section-title">Transform Your STEM Grading Workflow</h2>
+      <p class="section-subtitle">Our AI-powered platform saves educators hours while providing students with detailed, actionable feedback.</p>
+      <div class="features-grid">
+        <div class="feature">
+          <div class="ant-thinking text-6xl mb-4">⚡</div>
+          <h3>Instant Feedback</h3>
+          <p>AI analyzes and grades assignments in seconds, not hours. Upload an assignment and get comprehensive grading instantly.</p>
+        </div>
+        <div class="feature">
+          <div class="ant-thinking text-6xl mb-4">🔎</div>
+          <h3>Rich, Actionable Insights</h3>
+          <p>Provides comprehensive feedback, pinpointing errors and suggesting improvements to help students learn from their mistakes.</p>
+        </div>
+        <div class="feature">
+          <div class="ant-thinking text-6xl mb-4">✍️</div>
+          <h3>Conquer Handwritten Chaos</h3>
+          <p>Effortlessly grades freeform handwritten answersheets with ease. No more struggling to decipher student handwriting.</p>
+        </div>
+        <div class="feature">
+          <div class="ant-thinking text-6xl mb-4">🎯</div>
+          <h3>AI-Powered Precision</h3>
+          <p>GradeFlow™ model analyzes STEM subjects with unmatched accuracy, understanding math, physics, chemistry, and more.</p>
+        </div>
+        <div class="feature">
+          <div class="ant-thinking text-6xl mb-4">⚙️</div>
+          <h3>Grade Your Way</h3>
+          <p>Customize grading with specific rubrics, question papers, and teacher personas to match your exact requirements.</p>
+        </div>
+        <div class="feature">
+          <div class="ant-thinking text-6xl mb-4">⏱️</div>
+          <h3>Save Time</h3>
+          <p>No more manual grading—focus on what really matters: teaching and supporting your students' learning journey.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+<section class="how-it-works">
+  <div class="container">
+    <h2>How GradeAnt Works</h2>
+    <p class="subtitle">Our intuitive 4-step process makes automated grading simple, accurate, and time-saving for educators.</p>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 2V8H20" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V12" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M9 15H15" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Upload Content</h3>
+        <p>Upload your assignments or question papers with detailed answer keys to our secure platform.</p>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 11.08V12C21.9988 14.1564 21.3005 16.2547 20.0093 17.9818C18.7182 19.709 16.9033 20.9725 14.8354 21.5839C12.7674 22.1953 10.5573 22.1219 8.53447 21.3746C6.51168 20.6273 4.78465 19.2461 3.61096 17.4371C2.43727 15.628 1.87979 13.4881 2.02168 11.3363C2.16356 9.18455 2.99721 7.13631 4.39828 5.49706C5.79935 3.85781 7.69279 2.71537 9.79619 2.24013C11.8996 1.7649 14.1003 1.98232 16.07 2.85999" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 4L12 14.01L9 11.01" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Verify Settings</h3>
+        <p>Customize grading parameters, scoring criteria, and feedback preferences to match your teaching style.</p>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Automated Grading</h3>
+        <p>Our AI system analyzes student submissions against your answer key with advanced natural language processing.</p>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 19.5C4 20.163 4.26339 20.7989 4.73223 21.2678C5.20107 21.7366 5.83696 22 6.5 22H20C20.5304 22 21.0391 21.7893 21.4142 21.4142C21.7893 21.0391 22 20.5304 22 20V8L14 0H6.5C5.83696 0 5.20107 0.263392 4.73223 0.732233C4.26339 1.20107 4 1.83696 4 2.5V19.5Z" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M14 0V8H22" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 13H8" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 17H8" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M10 9H8" stroke="#0088cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Review & Export</h3>
+        <p>Access detailed analytics, review grades, provide personalized feedback, and export reports instantly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- Slideshow Section -->
+  <section class="slideshow-section" id="demo">
+    <div class="container">
+      <h2 class="section-title">See GradeAnt in Action</h2>
+      <div class="bg-amber-50 p-6 rounded-lg flex flex-col items-center justify-center text-center feedback-card min-h-[300px] md:min-h-full">
+        <div class="ant-thinking text-10xl mb-4">🐜</div>
+      </div>
+
+      <p class="section-subtitle">Experience how our platform transforms grading workflow</p>
+      <div class="slideshow-container">
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <div class="slides">
+          <img src="img\pitch_gradeant.pptx (1).png" alt="GradeAnt Dashboard">
+          <div class="slide-caption">Intuitive dashboard for managing all assignments</div>
+        </div>
+        <div class="slides">
+          <img src="img\pitch_gradeant.pptx (2).png" alt="Grading Process">
+          <div class="slide-caption">Powerful AI analyzes every detail of student work</div>
+        </div>
+        <div class="slides">
+          <img src="img\pitch_gradeant.pptx (3).png" alt="Feedback Generation">
+          <div class="slide-caption">Comprehensive feedback with actionable insights</div>
+        </div>
+        <div class="slides">
+          <img src="img\pitch_gradeant.pptx (4).png" alt="Performance Analytics">
+          <div class="slide-caption">Track progress with detailed analytics</div>
+        </div>
+        <div class="slides">
+          <img src="img\pitch_gradeant.pptx (5).png" alt="Student View">
+          <div class="slide-caption">Student-friendly interface for reviewing feedback</div>
+        </div>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+        <div class="progress-bar" id="slideProgressBar"></div>
+      </div>
+      <div class="dot-container">
+        <span class="dot" onclick="currentSlide(1)"></span>
+        <span class="dot" onclick="currentSlide(2)"></span>
+        <span class="dot" onclick="currentSlide(3)"></span>
+        <span class="dot" onclick="currentSlide(4)"></span>
+        <span class="dot" onclick="currentSlide(5)"></span>
+      </div>
+    </div>
+  </section>
+
+<!-- CTA Section -->
+<section class="cta-section" id="getstarted">
+  <div class="container">
+    <h2 class="cta-title">Ready to Transform Your Grading Experience?</h2>
+    <p class="cta-description">Join thousands of educators who have reclaimed their time while providing better feedback to students.</p>
+    <button onclick="location.href='auth/signup.html'"class="btn cta-button pulse" id="getStartedButton">
+      Get Started Today <span>→</span>
+    </button>
+  </div>
+</section>
+
+
+
+  <!-- Footer -->
+  <footer class="footer" id="contact">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-column">
+          <h3>Quick Links</h3>
+          <ul>
+            <!-- <li><a href="home.html">Home</a></li> -->
+            <li><a href="quick_links\features.html">Features</a></li>
+            <!-- <li><a href="how-it-works.html">How It Works</a></li> -->
+            <!-- <li><a href="quick_links\demo.html">Demo</a></li> -->
+            <li><a href="auth\signup.html">Get Started</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Resources</h3>
+          <ul>
+            <!-- <li><a href="resoures\blog.html">Blog</a></li> -->
+            <!-- <li><a href="Frontend\Gradeant_dashboard.html">Dashboard</a></li> -->
+            <li><a href="resoures\about.html">About Us</a></li>
+            <li><a href="resoures\contact.html">Contact</a></li>
+            <!-- <li><a href="faq.html">FAQ</a></li> -->
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Legal</h3>
+          <ul>
+            <li><a href="legal\terms.html">Terms of Service</a></li>
+            <li><a href="legal\privacy.html">Privacy Policy</a></li>
+            <!-- <li><a href="legal\cookies.html">Cookie Policy</a></li> -->
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Contact Us</h3>
+          <ul>
+            <li><a href="mailto:contact@gradeant.com">contact@gradeant.com</a></li>
+            <li><a href="tel:+1-573-341-4720">+1-573-341-4720</a></li>
+            <li>222 Fulton Hall, 301 W. 14th Street, Rolla MO 65409</li>
+          </ul>
+          <div class="social-icons mt-3">
+            <a href="#linkedin"><span>in</span></a>
+            <a href="#twitter"><span>𝕏</span></a>
+            <a href="#github"><span>GH</span></a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2025 GradeAnt. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+
+    // Navbar Toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+      document.getElementById('navLinks').classList.toggle('active');
+    });
+    
+    // Smooth Scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href').substring(1);
+        if (!targetId) return;
+        
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 70,
+            behavior: 'smooth'
+          });
+          
+          // Close mobile menu if open
+          document.getElementById('navLinks').classList.remove('active');
+        }
+      });
+    });
+    
+    // Slideshow Functionality
+    let slideIndex = 1;
+    let slideInterval;
+    let progressBar;
+    
+    // Initialize when document is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      progressBar = document.getElementById('slideProgressBar');
+      startSlideShow();
+      
+      // Observe elements for animation
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('animate-in');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      
+      document.querySelectorAll('.feature, .step, .section-title, .section-subtitle').forEach(el => {
+        observer.observe(el);
+      });
+      
+      // Add touch events for mobile users
+      const slideshowContainer = document.querySelector('.slideshow-container');
+      let touchStartX = 0;
+      let touchEndX = 0;
+      
+      slideshowContainer.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+      });
+      
+      slideshowContainer.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      });
+      
+      function handleSwipe() {
+        if (touchEndX < touchStartX - 50) {
+          // Swipe left
+          plusSlides(1);
+        } else if (touchEndX > touchStartX + 50) {
+          // Swipe right
+          plusSlides(-1);
+        }
+      }
+    });
+    
+    function showSlides(n) {
+      const slides = document.getElementsByClassName("slides");
+      const dots = document.getElementsByClassName("dot");
+      
+      if (n > slides.length) { slideIndex = 1; }
+      if (n < 1) { slideIndex = slides.length; }
+      
+      // Hide all slides
+      for (let i = 0; i < slides.length; i++) {
+        slides[i].style.display = "none";
+      }
+      
+      // Remove active class from all dots
+      for (let i = 0; i < dots.length; i++) {
+        dots[i].className = dots[i].className.replace(" active", "");
+      }
+      
+      // Show the current slide and activate corresponding dot
+      slides[slideIndex - 1].style.display = "block";
+      dots[slideIndex - 1].className += " active";
+      
+      // Reset the progress bar animation
+      if (progressBar) {
+        progressBar.style.animation = 'none';
+        progressBar.offsetHeight; // Trigger reflow
+        progressBar.style.animation = 'progress 5s linear';
+      }
+    }
+    
+    function plusSlides(n) {
+      // Clear the automatic slideshow interval when user navigates manually
+      clearInterval(slideInterval);
+      showSlides(slideIndex += n);
+      // Restart the automatic slideshow
+      startSlideShow();
+    }
+    
+    function currentSlide(n) {
+      // Clear the automatic slideshow interval when user navigates manually
+      clearInterval(slideInterval);
+      showSlides(slideIndex = n);
+      // Restart the automatic slideshow
+      startSlideShow();
+    }
+    
+    function startSlideShow() {
+      // Clear any existing interval
+      clearInterval(slideInterval);
+      
+      // Show the current slide
+      showSlides(slideIndex);
+      
+      // Set up automatic slideshow with 5-second interval
+      slideInterval = setInterval(() => {
+        slideIndex++;
+        showSlides(slideIndex);
+      }, 5000);
+    }
+    
+    // Add event listeners for keyboard navigation
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowLeft') {
+        plusSlides(-1);
+      } else if (e.key === 'ArrowRight') {
+        plusSlides(1);
+      }
+    });
+    
+    // Add scroll animations for elements
+    window.addEventListener('scroll', function() {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      
+      // Add animations for sections as they come into view
+      document.querySelectorAll('section').forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        
+        if (scrollPosition > (sectionTop - windowHeight + 100) && 
+            scrollPosition < (sectionTop + sectionHeight)) {
+          section.classList.add('active');
+        }
+      });
+    });
+    
+    // Handle window resize events
+    window.addEventListener('resize', function() {
+      // Adjust mobile menu behavior on resize
+      const navLinks = document.getElementById('navLinks');
+      if (window.innerWidth > 768 && navLinks.classList.contains('active')) {
+        navLinks.classList.remove('active');
+      }
+    });
+    
+    // Initialize slideshow when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      startSlideShow();
+    });
+  </script>
+   <!-- Back to Top Button -->
+   <a href="#" id="backToTop" class="back-to-top" aria-label="Back to top">
+    <span>↑</span>
+  </a>
+  
+  <!-- Additional CSS for Back to Top Button -->
+  <style>
+    .back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      background-color: var(--brand);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      box-shadow: var(--shadow-md);
+    }
+
+    .back-to-top.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .back-to-top:hover {
+      background-color: var(--brand-hover);
+      transform: translateY(-5px);
+    }
+    
+    .back-to-top span {
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+  
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="loader"></div>
+  </div>
+  
+  <style>
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+
+    .loader {
+      width: 50px;
+      height: 50px;
+      border: 5px solid var(--ink-150);
+      border-radius: 50%;
+      border-top: 5px solid var(--brand);
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+  
+  <script>
+    // Hide preloader when page is loaded
+    window.addEventListener('load', function() {
+      const preloader = document.getElementById('preloader');
+      preloader.style.opacity = '0';
+      setTimeout(() => {
+        preloader.style.display = 'none';
+      }, 500);
+    });
+  </script>
+</body>
+</html>

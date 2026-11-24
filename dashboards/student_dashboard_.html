@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GradeAnt Dashboard</title>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="..\dashboards\student_dashboard.css" />
+  </head>
+  <script src="../component-loader.js"></script>
+  <body>
+    <div class="app-shell">
+      <!-- Navigation will be loaded here -->
+      <div id="nav"></div>
+      <main class="app-main">
+    <!-- Main Dashboard Content -->
+    <section class="dashboard-container container">
+      <!-- 1. Welcome Section (Top) -->
+      <div class="welcome-section">
+        <div class="welcome-text">
+          <h1>Welcome, <span id="userName">Student</span>!</h1>
+          <p>Here's an overview of your academic progress</p>
+        </div>
+        <div>
+          <button
+            onclick="location.href='../student/student_upload.html'"
+            class="btn btn-primary"
+            id="viewAssignmentsBtn"
+          >
+            <i class="material-icons">assignment</i> View Assignments
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Stats Cards (Directly below welcome) -->
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <h3>Overall Grade</h3>
+          <div class="stat-value">B+</div>
+          <div class="stat-change positive">
+            <i class="material-icons">arrow_upward</i> Improved from B
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Assignments Completed</h3>
+          <div class="stat-value">18/24</div>
+          <div class="stat-change neutral">
+            <i class="material-icons">timeline</i> 75% completion rate
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Average Score</h3>
+          <div class="stat-value">83%</div>
+          <div class="stat-change positive">
+            <i class="material-icons">arrow_upward</i> 5% from last month
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Upcoming Due</h3>
+          <div class="stat-value">3</div>
+          <div class="stat-change negative">
+            <i class="material-icons">today</i> Next due in 2 days
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Dashboard Options (Below stats) -->
+      <div class="dashboard-options">
+        <div class="option-card">
+          <div class="option-image">
+            <img
+              src="../img/Screenshot 2025-04-03 164627.png"
+              alt="Submit Assignment"
+            />
+          </div>
+          <div class="option-content">
+            <h3>Submit Assignment</h3>
+            <p>
+              Upload your completed assignments for grading and receive
+              feedback.
+            </p>
+            <button
+              class="btn btn-primary"
+              onclick="setNavAndGo('student-nav-upload', '../student/student_upload.html')"
+            >
+              Submit Work
+            </button>
+          </div>
+        </div>
+
+        <div class="option-card">
+          <div class="option-image">
+            <img
+              src="../img/ChatGPT Image Apr 3, 2025, 04_52_22 PM.png"
+              alt="View Feedback"
+            />
+          </div>
+          <div class="option-content">
+            <h3>View Feedback & Grades</h3>
+            <p>
+              Access teacher comments, review graded assignments, and track your
+              progress.
+            </p>
+            <button
+              class="btn btn-primary"
+               onclick="setNavAndGo('student-nav-grades', '../student/student_grade.html')"
+            >
+              View Grades
+            </button>
+          </div>
+        </div>
+
+        <div class="option-card">
+          <div class="option-image">
+            <img src="..\img\study_resources.png" alt="Study Resources" />
+          </div>
+          <div class="option-content">
+            <h3>Study Resources</h3>
+            <p>
+              Access study materials, practice questions, and additional
+              learning resources.
+            </p>
+            <button
+              class="btn btn-primary"
+              onclick="location.href='../study_resources.html'"
+            >
+              Browse Resources
+            </button>
+          </div>
+        </div>
+
+        <div class="option-card">
+          <div class="option-image">
+            <img src="..\img\academic_calendar.png" alt="Academic Calendar" />
+          </div>
+          <div class="option-content">
+            <h3>Academic Calendar</h3>
+            <p>
+              View important dates, upcoming assignments, tests and project
+              deadlines.
+            </p>
+            <button
+              class="btn btn-primary"
+              onclick="location.href='../calendar.html'"
+            >
+              View Calendar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Upcoming Assignments and Progress Cards (Between dashboard options and sections below) -->
+      <!-- Upcoming Assignments Section -->
+      <div class="upcoming-section">
+        <h2>Upcoming & Recent Assignments</h2>
+        <div class="table-responsive">
+          <table class="assignment-table">
+            <thead>
+              <tr>
+                <th>Assignment</th>
+                <th>Subject</th>
+                <th>Due Date</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Final Project Report</td>
+                <td>Computer Science</td>
+                <td>Apr 25, 2025</td>
+                <td>
+                  <span class="status-badge status-pending">Pending</span>
+                </td>
+                <td><button class="btn btn-sm btn-primary">Start</button></td>
+              </tr>
+              <tr>
+                <td>Chapter 8 Problems</td>
+                <td>Mathematics</td>
+                <td>Apr 24, 2025</td>
+                <td>
+                  <span class="status-badge status-pending">Pending</span>
+                </td>
+                <td><button class="btn btn-sm btn-primary">Start</button></td>
+              </tr>
+              <tr>
+                <td>Essay Draft</td>
+                <td>English Literature</td>
+                <td>Apr 20, 2025</td>
+                <td>
+                  <span class="status-badge status-submitted">Submitted</span>
+                </td>
+                <td><button class="btn btn-sm btn-secondary">View</button></td>
+              </tr>
+              <tr>
+                <td>Lab Report</td>
+                <td>Physics</td>
+                <td>Apr 18, 2025</td>
+                <td>
+                  <span class="status-badge status-graded">Graded: A-</span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">
+                    View Feedback
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>Midterm Exam</td>
+                <td>Chemistry</td>
+                <td>Apr 15, 2025</td>
+                <td>
+                  <span class="status-badge status-graded">Graded: B+</span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">
+                    View Feedback
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-cards">
+        <div class="progress-card">
+          <h3>Semester Progress</h3>
+          <div class="progress-bar">
+            <div
+              class="progress-bar-fill"
+              style="width: 65%"
+            ></div>
+          </div>
+          <div class="progress-percentage">
+            <span>65% Complete</span>
+            <span>5 weeks remaining</span>
+          </div>
+
+          <div class="subject-scores">
+            <div class="subject-score">
+              <span class="subject-name">Mathematics</span>
+              <span class="subject-grade grade-b">B+</span>
+            </div>
+            <div class="subject-score">
+              <span class="subject-name">English Literature</span>
+              <span class="subject-grade grade-a">A-</span>
+            </div>
+            <div class="subject-score">
+              <span class="subject-name">Computer Science</span>
+              <span class="subject-grade grade-a">A</span>
+            </div>
+            <div class="subject-score">
+              <span class="subject-name">Physics</span>
+              <span class="subject-grade grade-b">B</span>
+            </div>
+            <div class="subject-score">
+              <span class="subject-name">Chemistry</span>
+              <span class="subject-grade grade-c">C+</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-card">
+          <h3>Recent Feedback</h3>
+          <div class="feedback-items">
+            <div class="feedback-item">
+              <p>
+                <strong>Physics Lab Report:</strong> Good experimental
+                procedure, but needs more detailed analysis of results. Consider
+                adding error analysis in future reports.
+              </p>
+              <small>Apr 19, 2025 - Dr. Wilson</small>
+            </div>
+            <hr />
+            <div class="feedback-item">
+              <p>
+                <strong>English Essay:</strong> Excellent thesis statement and
+                strong supporting arguments. Work on conclusion to better tie
+                your points together.
+              </p>
+              <small>Apr 16, 2025 - Ms. Rodriguez</small>
+            </div>
+            <hr />
+            <div class="feedback-item">
+              <p>
+                <strong>Chemistry Midterm:</strong> Good understanding of basic
+                concepts, but struggled with organic chemistry section. Review
+                chapters 7-9.
+              </p>
+              <small>Apr 15, 2025 - Dr. Thompson</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+      </main>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner" style="display: none">
+      <div class="spinner"></div>
+    </div>
+      <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 GradeAnt. All rights reserved.</p>
+    </div>
+  </footer>
+    <!-- Scripts -->
+    <script src="../javascript/api-cache.js"></script>
+    <script src="../dashboards/student_dashboard.js"></script>
+  </body>
+</html>

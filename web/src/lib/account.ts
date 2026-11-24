@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import { API } from '../config'
+=======
+>>>>>>> origin/main
 import { apiRequest } from './api'
 
 export interface MeResponse {
@@ -13,6 +16,7 @@ export interface MeResponse {
 
 /** Files a reset request for an admin to approve (teachers/students can't self-reset). */
 export function requestPasswordReset(email: string) {
+<<<<<<< HEAD
   return apiRequest<{ message: string }>(API.auth.forgotPassword, { auth: false, body: { email } })
 }
 
@@ -22,6 +26,17 @@ export function changePassword(currentPassword: string, newPassword: string) {
 
 export function fetchMe() {
   return apiRequest<MeResponse>(API.auth.me, { body: {} })
+=======
+  return apiRequest<{ message: string }>('/auth/forgot-password', { auth: false, body: { email } })
+}
+
+export function changePassword(currentPassword: string, newPassword: string) {
+  return apiRequest<{ message: string }>('/auth/change-password', { body: { currentPassword, newPassword } })
+}
+
+export function fetchMe() {
+  return apiRequest<MeResponse>('/auth/me', { body: {} })
+>>>>>>> origin/main
 }
 
 export const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -32,13 +47,22 @@ export async function uploadProfilePhoto(file: File): Promise<string> {
   if (!PHOTO_TYPES.includes(file.type)) throw new Error('Use a JPG, PNG or WebP image.')
   if (file.size > PHOTO_MAX_BYTES) throw new Error('Photo must be under 5 MB.')
 
+<<<<<<< HEAD
   const { uploadUrl, key } = await apiRequest<{ uploadUrl: string; key: string }>(API.auth.profilePhoto, {
     body: { action: 'upload-url', contentType: file.type, size: file.size },
+=======
+  const { uploadUrl, key } = await apiRequest<{ uploadUrl: string; key: string }>('/auth/profile-photo', {
+    body: { action: 'upload-url', contentType: file.type },
+>>>>>>> origin/main
   })
   const put = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
   if (!put.ok) throw new Error(`Photo upload failed (${put.status})`)
 
+<<<<<<< HEAD
   const { photoUrl } = await apiRequest<{ photoUrl: string }>(API.auth.profilePhoto, {
+=======
+  const { photoUrl } = await apiRequest<{ photoUrl: string }>('/auth/profile-photo', {
+>>>>>>> origin/main
     body: { action: 'confirm', key, contentType: file.type },
   })
   return photoUrl
