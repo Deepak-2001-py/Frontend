@@ -56,7 +56,6 @@ class JSONEncoder(json.JSONEncoder):
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('assignment_grading')  # Replace with your actual table name
 
-<<<<<<< HEAD
 JWT_SECRET = os.environ.get('JWT_SECRET', '')  # REQUIRED: same value as the auth Lambda; no fallback
 users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
 assignments_table = dynamodb.Table(os.environ.get('ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'))
@@ -95,10 +94,6 @@ def can_manage(caller, assignment_id, row_owner=None, resolve=None):
 
 def first_owner(rows):
     return next((r.get('teacher_id') for r in rows if r and r.get('teacher_id')), None)
-=======
-JWT_SECRET = os.environ.get('JWT_SECRET', '23042db269fe61ae30aeb5a3dbf4a276616f464858094dc2eac57dd5dc5ada7e')
-users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
->>>>>>> origin/main
 
 
 class AuthError(Exception):
@@ -118,11 +113,8 @@ def authenticate(event):
         raise AuthError(401, 'Missing Authorization: Bearer <token> header.')
 
     token = auth_header[len('Bearer '):].strip()
-<<<<<<< HEAD
     if not JWT_SECRET:
         raise AuthError(500, 'Server misconfigured: JWT_SECRET is not set.')
-=======
->>>>>>> origin/main
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
@@ -138,11 +130,8 @@ def authenticate(event):
     user = users_table.get_item(Key={'email': email}).get('Item')
     if not user or user.get('user_id') != user_id:
         raise AuthError(401, 'Account no longer exists.')
-<<<<<<< HEAD
     if user.get('status') == 'suspended':
         raise AuthError(401, 'This account is suspended.')
-=======
->>>>>>> origin/main
 
     return {'user_id': user_id, 'email': email, 'role': user.get('userRole', 'student')}
 
@@ -182,11 +171,7 @@ def lambda_handler(event, context):
         return create_response(200, {'message': 'CORS preflight successful'})
 
     try:
-<<<<<<< HEAD
         # (Never log the raw event: its headers carry the caller's bearer token.)
-=======
-        print(f"Received event: {json.dumps(event, indent=2)}")
->>>>>>> origin/main
 
         if 'body' in event and event['body']:
             body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
@@ -253,17 +238,9 @@ def get_answers_for_correction(body, caller):
         )
         items = response.get('Items', [])
 
-<<<<<<< HEAD
         # A teacher (not admin) may only browse submissions for assignments they own.
         if caller['role'] == 'teacher':
             if not can_manage(caller, assignment_id, first_owner(items)):
-=======
-        # A teacher (not admin) may only browse a submission that's unowned
-        # or already theirs — same best-effort check as get_grades.py.
-        if caller['role'] == 'teacher':
-            owner_ids = {item.get('teacher_id') for item in items if item.get('teacher_id')}
-            if owner_ids and caller['user_id'] not in owner_ids:
->>>>>>> origin/main
                 return create_response(403, {'error': "This student's answers belong to a different teacher's class."})
 
         answers = [{
@@ -428,12 +405,8 @@ def get_questions_for_correction(body, caller):
         roster = _class_roster(qp_id, assignment_id)
 
         if caller['role'] == 'teacher':
-<<<<<<< HEAD
             resolve = owner_resolver()
             roster = [g for g in roster if can_manage(caller, assignment_id, g.get('teacher_id'), resolve)]
-=======
-            roster = [g for g in roster if not g.get('teacher_id') or g.get('teacher_id') == caller['user_id']]
->>>>>>> origin/main
 
         if not roster:
             return create_response(200, {'qp_id': qp_id, 'assignment_id': assignment_id, 'questions': []})
@@ -514,10 +487,7 @@ def submit_question_corrections(body, caller):
         print(f"Error loading roster in submit_question_corrections: {str(e)}")
         return create_response(500, {'error': str(e)})
 
-<<<<<<< HEAD
     resolve = owner_resolver()
-=======
->>>>>>> origin/main
     now = datetime.datetime.utcnow().isoformat()
     updated_questions = []
     errors = []
@@ -541,16 +511,8 @@ def submit_question_corrections(body, caller):
             if not student_id:
                 continue
 
-<<<<<<< HEAD
             # Rows of an assignment the caller doesn't own are skipped, not overwritten.
             if not can_manage(caller, assignment_id, student.get('teacher_id'), resolve):
-=======
-            # A student's rows already owned by a different teacher are
-            # skipped rather than overwritten — same best-effort isolation
-            # as update_db.py's ownership checks.
-            existing_owner = student.get('teacher_id')
-            if existing_owner and caller['role'] != 'admin' and existing_owner != caller['user_id']:
->>>>>>> origin/main
                 continue
 
             try:

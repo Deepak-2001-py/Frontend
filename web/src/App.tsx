@@ -1,10 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import RequireRole from './auth/RequireRole'
-<<<<<<< HEAD
 import { PAGES } from './config'
-=======
->>>>>>> origin/main
 import NotFound from './pages/NotFound'
 import { Logout, MultipleLogin, SessionExpired, Unauthorized } from './pages/session/SessionPages'
 
@@ -25,7 +22,6 @@ const StudentDetails = lazy(() => import('./pages/teacher/StudentDetails'))
 const TeacherCorrection = lazy(() => import('./pages/teacher/TeacherCorrection'))
 const TeacherQuestionCorrection = lazy(() => import('./pages/teacher/TeacherQuestionCorrection'))
 
-<<<<<<< HEAD
 const AssignmentList = lazy(() => import('./pages/teacher/AssignmentList'))
 const CreateAssignment = lazy(() => import('./pages/teacher/CreateAssignment'))
 const GradingRun = lazy(() => import('./pages/teacher/GradingRun'))
@@ -41,8 +37,6 @@ const Announcements = lazy(() => import('./pages/student/Announcements'))
 const AssignmentInbox = lazy(() => import('./pages/student/AssignmentInbox'))
 const Recheck = lazy(() => import('./pages/student/Recheck'))
 
-=======
->>>>>>> origin/main
 const Profile = lazy(() => import('./pages/profile/Profile'))
 const ChangePassword = lazy(() => import('./pages/profile/ChangePassword'))
 
@@ -60,17 +54,11 @@ const FirstLoginSetup = lazy(() => import('./pages/admin/FirstLoginSetup'))
 const Home = lazy(() => import('./pages/public/Home'))
 const Features = lazy(() => import('./pages/public/Features'))
 const Demo = lazy(() => import('./pages/public/Demo'))
-<<<<<<< HEAD
 const About = lazy(() => import('./pages/public/About'))
 const Research = lazy(() => import('./pages/public/Research'))
 const Careers = lazy(() => import('./pages/public/Careers'))
 const Security = lazy(() => import('./pages/public/Security'))
 const RequestPilot = lazy(() => import('./pages/public/RequestPilot'))
-=======
-const GetStarted = lazy(() => import('./pages/public/GetStarted'))
-const About = lazy(() => import('./pages/public/About'))
-const Blog = lazy(() => import('./pages/public/Blog'))
->>>>>>> origin/main
 const Contact = lazy(() => import('./pages/public/Contact'))
 const Privacy = lazy(() => import('./pages/public/Privacy'))
 const Terms = lazy(() => import('./pages/public/Terms'))
@@ -84,7 +72,6 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/features" element={<Features />} />
         <Route path="/demo" element={<Demo />} />
-<<<<<<< HEAD
         <Route path="/about" element={<About />} />
         <Route path="/research" element={<Research />} />
         <Route path="/careers" element={<Careers />} />
@@ -93,11 +80,6 @@ export default function App() {
         {/* Retired pages: sign-up is pilots-only for now, and the blog had no real posts. */}
         <Route path="/get-started" element={<Navigate to="/request-a-pilot" replace />} />
         <Route path="/blog" element={<Navigate to="/research" replace />} />
-=======
-        <Route path="/get-started" element={<GetStarted />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/blog" element={<Blog />} />
->>>>>>> origin/main
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
@@ -111,24 +93,18 @@ export default function App() {
         <Route path="/session-expired" element={<SessionExpired />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/multiple-login" element={<MultipleLogin />} />
-<<<<<<< HEAD
         {/* Old static-site URLs (bookmarks, old links) → their React pages. */}
         <Route path="/auth/signup.html" element={<Navigate to="/signup" replace />} />
         <Route path="/auth/login.html" element={<Navigate to="/login" replace />} />
-=======
->>>>>>> origin/main
 
         {/* Student */}
         <Route path="/student" element={<RequireRole roles={['student']} />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<StudentDashboard />} />
-<<<<<<< HEAD
           <Route path="assignments" element={<AssignmentInbox />} />
           <Route path="progress" element={<Progress />} />
           <Route path="announcements" element={<Announcements />} />
           <Route path="assignments/:id/recheck" element={<Recheck />} />
-=======
->>>>>>> origin/main
           <Route path="upload" element={<StudentUpload />} />
           <Route path="grades" element={<StudentGrade />} />
           <Route path="answer-correction" element={<StudentAnswerCorrection />} />
@@ -140,7 +116,6 @@ export default function App() {
         <Route path="/teacher" element={<RequireRole roles={['teacher']} />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<TeacherDashboard />} />
-<<<<<<< HEAD
           <Route path="assignments" element={<AssignmentList />} />
           <Route path="assignments/new" element={<CreateAssignment />} />
           <Route path="assignments/:id/setup" element={<CreateAssignment />} />
@@ -152,8 +127,6 @@ export default function App() {
           <Route path="students" element={<Students />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<TeacherSettings />} />
-=======
->>>>>>> origin/main
           <Route path="upload" element={<TeacherUpload />} />
           <Route path="grades" element={<TeacherViewGrade />} />
           <Route path="student-details" element={<StudentDetails />} />
@@ -177,11 +150,7 @@ export default function App() {
           <Route path="profile" element={<AdminProfile />} />
         </Route>
         {/* Reached from an unauthenticated invite link (?token=). */}
-<<<<<<< HEAD
         <Route path={PAGES.firstLogin} element={<FirstLoginSetup />} />
-=======
-        <Route path="/first-login" element={<FirstLoginSetup />} />
->>>>>>> origin/main
 
         <Route path="*" element={<NotFound />} />
       </Routes>

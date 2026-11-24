@@ -174,11 +174,7 @@
   --shadow-md: 0 6px 16px rgba(43, 33, 20, 0.08), 0 2px 4px rgba(43, 33, 20, 0.05);
   --shadow-lg: 0 14px 32px rgba(43, 33, 20, 0.10), 0 4px 8px rgba(43, 33, 20, 0.05);
   --shadow-brand: 0 10px 24px rgba(255, 122, 0, 0.30);
-<<<<<<< HEAD
   --shadow-accent: 0 10px 24px rgba(20, 33, 61, 0.18);
-=======
-  --shadow-accent: 0 10px 24px rgba(18, 168, 142, 0.26);
->>>>>>> origin/main
 
   --container-max: 1200px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);

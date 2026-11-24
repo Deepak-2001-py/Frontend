@@ -4,7 +4,6 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { AuthProvider } from './auth/AuthContext'
 import './styles/tokens.css'
-<<<<<<< HEAD
 import './styles/theme.css'
 import './index.css'
 import './styles/mobile.css'
@@ -21,10 +20,6 @@ if (plausibleDomain) {
   s.src = 'https://plausible.io/js/script.js'
   document.head.appendChild(s)
 }
-=======
-import './index.css'
-import './styles/mobile.css'
->>>>>>> origin/main
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

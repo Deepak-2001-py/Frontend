@@ -46,7 +46,6 @@ table = dynamodb.Table('assignment_grading')  # Replace with your actual table n
 # waiting for their token to expire.
 # ----------------------------------------------------------------------
 
-<<<<<<< HEAD
 JWT_SECRET = os.environ.get('JWT_SECRET', '')  # REQUIRED: same value as the auth Lambda; no fallback
 users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
 assignments_table = dynamodb.Table(os.environ.get('ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'))
@@ -85,10 +84,6 @@ def can_manage(caller, assignment_id, row_owner=None, resolve=None):
 
 def first_owner(rows):
     return next((r.get('teacher_id') for r in rows if r and r.get('teacher_id')), None)
-=======
-JWT_SECRET = os.environ.get('JWT_SECRET', '23042db269fe61ae30aeb5a3dbf4a276616f464858094dc2eac57dd5dc5ada7e')
-users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
->>>>>>> origin/main
 
 
 class AuthError(Exception):
@@ -108,11 +103,8 @@ def authenticate(event):
         raise AuthError(401, 'Missing Authorization: Bearer <token> header.')
 
     token = auth_header[len('Bearer '):].strip()
-<<<<<<< HEAD
     if not JWT_SECRET:
         raise AuthError(500, 'Server misconfigured: JWT_SECRET is not set.')
-=======
->>>>>>> origin/main
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
@@ -128,11 +120,8 @@ def authenticate(event):
     user = users_table.get_item(Key={'email': email}).get('Item')
     if not user or user.get('user_id') != user_id:
         raise AuthError(401, 'Account no longer exists.')
-<<<<<<< HEAD
     if user.get('status') == 'suspended':
         raise AuthError(401, 'This account is suspended.')
-=======
->>>>>>> origin/main
 
     return {'user_id': user_id, 'email': email, 'role': user.get('userRole', 'student')}
 
@@ -183,11 +172,7 @@ def lambda_handler(event, context):
         return create_response(200, {'message': 'CORS preflight successful'})
 
     try:
-<<<<<<< HEAD
         # (Never log the raw event: its headers carry the caller's bearer token.)
-=======
-        print(event)
->>>>>>> origin/main
 
         if 'body' in event and event['body']:
             body = json.loads(event['body']) if isinstance(event['body'], str) else event['body']
@@ -248,7 +233,6 @@ def update_student_grade(body, caller):
         # Filter by qp_id and type
         item = next((i for i in response['Items'] if i['qp_id'] == qp_id and i['type'] == type_), None)
         if item:
-<<<<<<< HEAD
             if not can_manage(caller, item.get('assignment_id'), item.get('teacher_id')):
                 return create_response(403, {'error': "This assignment belongs to a different teacher."})
 
@@ -256,19 +240,6 @@ def update_student_grade(body, caller):
             table.update_item(
                 Key={'evaluation_id': item['evaluation_id']},
                 UpdateExpression="SET total_marks = :tm, teacher_id = if_not_exists(teacher_id, :tid)",
-=======
-            # A record that already has an owning teacher_id can only be
-            # touched by that teacher (or an admin) — see the note in
-            # get_all_student_grades() about why this is best-effort until
-            # every record in the table has been backfilled with one.
-            existing_owner = item.get('teacher_id')
-            if existing_owner and caller['role'] != 'admin' and existing_owner != caller['user_id']:
-                return create_response(403, {'error': "This assignment belongs to a different teacher."})
-
-            table.update_item(
-                Key={'evaluation_id': item['evaluation_id']},
-                UpdateExpression="SET total_marks = :tm, teacher_id = :tid",
->>>>>>> origin/main
                 ExpressionAttributeValues={':tm': total_marks, ':tid': caller['user_id']},
                 ReturnValues="ALL_NEW"
             )
@@ -307,19 +278,10 @@ def get_single_student_grade(body, caller):
         FilterExpression=Attr('type').eq('summary')& Attr('assignment_id').eq(assignment_id)
     )
 
-<<<<<<< HEAD
     # A teacher (not admin) may only see results for assignments they own.
     if caller['role'] == 'teacher':
         rows = details_response.get('Items', []) + summary_response.get('Items', [])
         if not can_manage(caller, assignment_id, first_owner(rows)):
-=======
-    # A teacher (not admin) may only see a record that's unowned or
-    # already theirs — see get_all_student_grades() for why this is
-    # best-effort rather than a hard guarantee across the whole table.
-    if caller['role'] == 'teacher':
-        owner_ids = {item.get('teacher_id') for item in details_response.get('Items', []) if item.get('teacher_id')}
-        if owner_ids and caller['user_id'] not in owner_ids:
->>>>>>> origin/main
             return create_response(403, {'error': "This student's results belong to a different teacher's class."})
 
     # Format response
@@ -354,23 +316,10 @@ def get_all_student_grades(body, caller):
     )
     grades = response.get('Items', [])
 
-<<<<<<< HEAD
     # A teacher only sees rows of assignments they own (ownerless rows are hidden).
     if caller['role'] == 'teacher':
         resolve = owner_resolver()
         grades = [g for g in grades if can_manage(caller, g.get('assignment_id') or assignment_id, g.get('teacher_id'), resolve)]
-=======
-    # Best-effort teacher-to-teacher isolation: filter out any record that
-    # already names a *different* teacher as its owner. This can't be a
-    # hard guarantee yet because these records don't all carry a
-    # teacher_id today — only ones written/touched through
-    # update_student_grade() / lambda_python_files/update_db.py's
-    # updateMarks (after this security pass) get stamped with one. Once
-    # every row has been backfilled with its owning teacher_id, this
-    # should be tightened to also exclude ownerless rows for non-admins.
-    if caller['role'] == 'teacher':
-        grades = [g for g in grades if not g.get('teacher_id') or g.get('teacher_id') == caller['user_id']]
->>>>>>> origin/main
 
     # Format response
     result = {
