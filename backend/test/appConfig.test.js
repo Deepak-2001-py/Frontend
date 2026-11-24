@@ -85,8 +85,8 @@ describe('config/app.yaml deployment switch', () => {
     const prod = validateAppConfig(doc, 'production')
     assert.deepEqual(prod.deployment.providers, { database: 'supabase', ai: 'gemini', email: 'log', secrets: 'env', grading: 'sqs' })
     assert.equal(prod.urls.api, 'https://gradeant-api.onrender.com')
-    assert.equal(prod.urls.web, 'https://gradeant.netlify.app')
-    assert.deepEqual(prod.urls.corsOrigins, ['https://gradeant.netlify.app'])
+    assert.equal(prod.urls.web, 'https://grade-ant.com')
+    assert.deepEqual(prod.urls.corsOrigins, ['https://grade-ant.com', 'https://www.grade-ant.com', 'https://grade-ant.netlify.app', 'https://gradeant.netlify.app'])
     // development and tests keep their own urls
     assert.equal(validateAppConfig(doc, 'development').urls.api, 'http://localhost:8787')
   })

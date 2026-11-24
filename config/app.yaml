@@ -237,7 +237,7 @@ deployments:
       secrets: env
       grading: sqs
     urls:                            # merged over urls.production; set your real hosts
-      web: https://gradeant.netlify.app
+      web: https://grade-ant.com     # production site (Netlify grade-ant); dev site is gradeant.netlify.app
       api: https://gradeant-api.onrender.com
       upload: ""
-      corsOrigins: [https://gradeant.netlify.app]
+      corsOrigins: [https://grade-ant.com, https://www.grade-ant.com, https://grade-ant.netlify.app, https://gradeant.netlify.app]
