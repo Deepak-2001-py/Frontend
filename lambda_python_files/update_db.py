@@ -42,7 +42,6 @@ table = dynamodb.Table('assignment_grading')  # Replace with your actual table n
 # fail with 401.
 # ----------------------------------------------------------------------
 
-<<<<<<< HEAD
 JWT_SECRET = os.environ.get('JWT_SECRET', '')  # REQUIRED: same value as the auth Lambda; no fallback
 users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
 assignments_table = dynamodb.Table(os.environ.get('ASSIGNMENTS_TABLE', 'GradeAnt_Assignments'))
@@ -83,10 +82,6 @@ def can_manage(caller, assignment_id, row_owner=None, resolve=None):
 def owned_by_other(row, caller, resolve=None):
     """True when the row exists and the caller may not edit it."""
     return bool(row) and not can_manage(caller, row.get('assignment_id'), row.get('teacher_id'), resolve)
-=======
-JWT_SECRET = os.environ.get('JWT_SECRET', '23042db269fe61ae30aeb5a3dbf4a276616f464858094dc2eac57dd5dc5ada7e')
-users_table = dynamodb.Table(os.environ.get('USER_TABLE_NAME', 'Users'))
->>>>>>> origin/main
 
 
 class AuthError(Exception):
@@ -106,11 +101,8 @@ def authenticate(event):
         raise AuthError(401, 'Missing Authorization: Bearer <token> header.')
 
     token = auth_header[len('Bearer '):].strip()
-<<<<<<< HEAD
     if not JWT_SECRET:
         raise AuthError(500, 'Server misconfigured: JWT_SECRET is not set.')
-=======
->>>>>>> origin/main
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
     except jwt.ExpiredSignatureError:
@@ -126,11 +118,8 @@ def authenticate(event):
     user = users_table.get_item(Key={'email': email}).get('Item')
     if not user or user.get('user_id') != user_id:
         raise AuthError(401, 'Account no longer exists.')
-<<<<<<< HEAD
     if user.get('status') == 'suspended':
         raise AuthError(401, 'This account is suspended.')
-=======
->>>>>>> origin/main
 
     return {'user_id': user_id, 'email': email, 'role': user.get('userRole', 'student')}
 
@@ -146,13 +135,8 @@ def lambda_handler(event, context):
         return create_response(200, {'message': 'CORS preflight successful'})
 
     try:
-<<<<<<< HEAD
         # (Never log the raw event: its headers carry the caller's bearer token.)
         print(f"Received {event.get('httpMethod') or event.get('requestContext', {}).get('http', {}).get('method')} request")
-=======
-        print(f"Received event: {json.dumps(event, indent=2)}")
-        print(event)
->>>>>>> origin/main
 
         # Handle different HTTP methods and event structures
         if 'body' in event and event['body']:
@@ -212,23 +196,12 @@ def update_student_marks_direct(event, caller):
     - Updates detail records by finding records with matching evaluation_id, question_number, and subpart
     - Handles both single summary object and array formats
 
-<<<<<<< HEAD
     Teacher/admin only; a teacher may only edit rows of assignments they
     own (see can_manage above).
     """
     if caller['role'] not in ('teacher', 'admin'):
         return create_response(403, {'error': 'Only a teacher or admin can update grades.'})
     resolve = owner_resolver()
-=======
-    Teacher/admin only. Every record touched here gets stamped with
-    teacher_id = caller['user_id'], so future requests (here and in
-    lambda_python_files/get_grades.py) can tell whose class this is —
-    see the module docstring above for why this is a forward-looking
-    fix rather than an instant guarantee across pre-existing rows.
-    """
-    if caller['role'] not in ('teacher', 'admin'):
-        return create_response(403, {'error': 'Only a teacher or admin can update grades.'})
->>>>>>> origin/main
 
     try:
         # Extract summary and details from the body
@@ -272,29 +245,15 @@ def update_student_marks_direct(event, caller):
             # Convert total_marks to Decimal for DynamoDB
             total_marks_decimal = Decimal(str(total_marks))
 
-<<<<<<< HEAD
             # Only the teacher who owns the assignment (or an admin) may edit it.
             existing = table.get_item(Key={'evaluation_id': evaluation_id}).get('Item')
             if owned_by_other(existing, caller, resolve):
-=======
-            # A record that already names a different owning teacher can
-            # only be touched by that teacher (or an admin) — stops one
-            # teacher from overwriting another teacher's class by simply
-            # sending an evaluation_id that isn't theirs.
-            existing = table.get_item(Key={'evaluation_id': evaluation_id}).get('Item')
-            existing_owner = existing.get('teacher_id') if existing else None
-            if existing_owner and caller['role'] != 'admin' and existing_owner != caller['user_id']:
->>>>>>> origin/main
                 errors.append(f"evaluation_id {evaluation_id} belongs to a different teacher.")
             else:
                 # Update summary record where type='summary' and evaluation_id matches
                 update_response = table.update_item(
                     Key={'evaluation_id': evaluation_id},
-<<<<<<< HEAD
                     UpdateExpression="SET total_marks = :tm, updated_at = :ua, teacher_id = if_not_exists(teacher_id, :tid)",
-=======
-                    UpdateExpression="SET total_marks = :tm, updated_at = :ua, teacher_id = :tid",
->>>>>>> origin/main
                     ExpressionAttributeValues={
                         ':tm': total_marks_decimal,
                         ':ua': datetime.datetime.utcnow().isoformat(),
@@ -353,21 +312,12 @@ def update_student_marks_direct(event, caller):
 
                 # Same owning-teacher check as the summary update above.
                 existing_detail = table.get_item(Key={'evaluation_id': evaluation_id}).get('Item')
-<<<<<<< HEAD
                 if owned_by_other(existing_detail, caller, resolve):
-=======
-                existing_detail_owner = existing_detail.get('teacher_id') if existing_detail else None
-                if existing_detail_owner and caller['role'] != 'admin' and existing_detail_owner != caller['user_id']:
->>>>>>> origin/main
                     errors.append(f"evaluation_id {evaluation_id} belongs to a different teacher.")
                     continue
 
                 # Build update expression
-<<<<<<< HEAD
                 update_expression = "SET marks = :m, updated_at = :ua, teacher_id = if_not_exists(teacher_id, :tid)"
-=======
-                update_expression = "SET marks = :m, updated_at = :ua, teacher_id = :tid"
->>>>>>> origin/main
                 expression_values = {
                     ':m': marks_decimal,
                     ':ua': datetime.datetime.utcnow().isoformat(),
@@ -477,12 +427,7 @@ def update_student_grade_direct(event, caller):
 
         # Same owning-teacher check as update_student_marks_direct().
         existing = table.get_item(Key={'evaluation_id': evaluation_id}).get('Item')
-<<<<<<< HEAD
         if owned_by_other(existing, caller):
-=======
-        existing_owner = existing.get('teacher_id') if existing else None
-        if existing_owner and caller['role'] != 'admin' and existing_owner != caller['user_id']:
->>>>>>> origin/main
             return create_response(403, {'error': 'This assignment belongs to a different teacher.'})
 
         # Convert total_marks to Decimal
@@ -491,11 +436,7 @@ def update_student_grade_direct(event, caller):
         # Direct update operation using the evaluation_id with condition for type='summary'
         update_response = table.update_item(
             Key={'evaluation_id': evaluation_id},
-<<<<<<< HEAD
             UpdateExpression="SET total_marks = :tm, updated_at = :ua, teacher_id = if_not_exists(teacher_id, :tid)",
-=======
-            UpdateExpression="SET total_marks = :tm, updated_at = :ua, teacher_id = :tid",
->>>>>>> origin/main
             ExpressionAttributeValues={
                 ':tm': total_marks_decimal,
                 ':ua': datetime.datetime.utcnow().isoformat(),

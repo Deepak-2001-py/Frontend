@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import react from '@vitejs/plugin-react'
@@ -28,11 +27,6 @@ function loadAppConfig(mode: string) {
   )
   return { urls: { api: urls.api, upload: urls.upload || '' }, api: doc.api, pages: doc.pages, roles }
 }
-=======
-import react from '@vitejs/plugin-react'
-import prefixer from 'postcss-prefix-selector'
-import { defineConfig } from 'vite'
->>>>>>> origin/main
 
 // The page stylesheets in src/styles/pages/ are the original per-page CSS
 // files from the static site, copied verbatim. In a single-page app every
@@ -55,23 +49,14 @@ function scopePageSelector(_prefix: string, selector: string, _prefixed: string,
   return `${scope} ${selector}`
 }
 
-<<<<<<< HEAD
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   define: {
     __APP_CONFIG__: JSON.stringify(loadAppConfig(mode)),
   },
-=======
-export default defineConfig({
-  plugins: [react()],
->>>>>>> origin/main
   css: {
     postcss: {
       plugins: [prefixer({ prefix: '.page', transform: scopePageSelector })],
     },
   },
-<<<<<<< HEAD
 }))
-=======
-})
->>>>>>> origin/main

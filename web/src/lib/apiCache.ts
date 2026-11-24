@@ -43,7 +43,6 @@ function clearAll(): void {
   clearPrefix('')
 }
 
-<<<<<<< HEAD
 /** Age in ms of a cached entry, or undefined if absent. */
 function ageOf(key: string): number | undefined {
   try {
@@ -63,13 +62,6 @@ async function withCache<T>(key: string, force: boolean, fetcher: () => Promise<
     const cached = get<T>(key)
     const age = ageOf(key)
     if (cached !== undefined && (maxAgeMs === undefined || (age !== undefined && age <= maxAgeMs))) return cached
-=======
-/** Returns the cached value unless `force` or nothing cached; `fetcher` must throw on failure. */
-async function withCache<T>(key: string, force: boolean, fetcher: () => Promise<T>): Promise<T> {
-  if (!force) {
-    const cached = get<T>(key)
-    if (cached !== undefined) return cached
->>>>>>> origin/main
   }
   const data = await fetcher()
   set(key, data)
