@@ -42,6 +42,16 @@
 }
 
 .admin-sidebar-logo .logo-mark {
+<<<<<<< HEAD
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.admin-sidebar-logo .logo-word b { color: var(--orange-400); font-weight: inherit; }
+
+=======
     width: 26px;
     height: 26px;
     border-radius: 7px;
@@ -49,6 +59,7 @@
     flex-shrink: 0;
 }
 
+>>>>>>> origin/main
 .admin-sidebar-logo .logo-word {
     color: var(--white);
     font-family: var(--font-display);
@@ -100,6 +111,37 @@
     margin: var(--space-3) 8px;
 }
 
+<<<<<<< HEAD
+/* Nav links + user card. On desktop it fills the sidebar so the footer sits at the
+   bottom; on small screens it's the collapsible panel (see RESPONSIVE). */
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+/* Menu button: only shown on small screens. */
+.admin-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--white);
+    cursor: pointer;
+}
+
+.admin-nav-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+=======
+>>>>>>> origin/main
 .admin-sidebar-footer {
     margin-top: auto;
     padding-top: var(--space-4);
@@ -519,11 +561,22 @@
     background: var(--orange-50);
     border: 1px solid var(--orange-200);
     margin: 0 auto 10px;
+<<<<<<< HEAD
+    display: grid;
+    place-items: center;
+    color: var(--orange-700);
+}
+
+.admin-workflow-step.sky .admin-workflow-icon   { background: var(--sky-50); border-color: var(--sky-300); color: var(--navy-800); }
+.admin-workflow-step.teal .admin-workflow-icon  { background: var(--teal-50); border-color: var(--teal-300); }
+.admin-workflow-step.brand .admin-workflow-icon { background: var(--gradient-brand); border: none; color: #fff; }
+=======
 }
 
 .admin-workflow-step.sky .admin-workflow-icon   { background: var(--sky-50); border-color: var(--sky-300); }
 .admin-workflow-step.teal .admin-workflow-icon  { background: var(--teal-50); border-color: var(--teal-300); }
 .admin-workflow-step.brand .admin-workflow-icon { background: var(--gradient-brand); border: none; }
+>>>>>>> origin/main
 .admin-workflow-step.dark .admin-workflow-icon  { background: var(--ink-900); border: none; }
 
 .admin-workflow-step-title {
@@ -769,6 +822,11 @@
     margin: var(--space-3) 0;
 }
 
+<<<<<<< HEAD
+/* (Section 8, the first-login page, moved to the login/signup design:
+   pages/auth/AuthLayout.tsx + styles/auth-landing.css.)
+   ================================================================= */
+=======
 /* =================================================================
    8. FIRST-LOGIN SETUP (unauthenticated, no admin sidebar)
    ================================================================= */
@@ -841,6 +899,7 @@
 
 .firstlogin-side-row .label { color: var(--text-subtle); }
 .firstlogin-side-row .value { font-weight: var(--weight-semibold); }
+>>>>>>> origin/main
 
 /* =================================================================
    9. RESPONSIVE
@@ -853,6 +912,30 @@
 
 @media (max-width: 860px) {
     .admin-shell { flex-direction: column; }
+<<<<<<< HEAD
+    /* Top bar (logo + menu button); the nav opens below it as a full-width panel. */
+    .admin-sidebar {
+        width: 100%;
+        height: auto;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: var(--space-3) var(--space-4);
+        overflow: visible;
+    }
+    .admin-sidebar-logo { padding: 0; }
+    .admin-nav-toggle { display: inline-flex; }
+    .admin-nav {
+        display: none;
+        flex-basis: 100%;
+        padding-top: var(--space-3);
+    }
+    .admin-nav.open { display: flex; }
+    .admin-sidebar-footer { margin-top: var(--space-2); }
+=======
     .admin-sidebar {
         width: 100%;
         height: auto;
@@ -862,12 +945,16 @@
         overflow-x: auto;
     }
     .admin-sidebar-footer { margin-top: 0; margin-left: auto; }
+>>>>>>> origin/main
     .admin-main { padding: var(--space-5); }
     .admin-matrix, .admin-matrix .head, .admin-matrix .feature, .admin-matrix .cell {
         font-size: 12px;
     }
+<<<<<<< HEAD
+=======
     .firstlogin-grid { flex-direction: column; }
     .firstlogin-side-col { width: 100%; }
+>>>>>>> origin/main
 }
 
 @media print {

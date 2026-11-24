@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import AlertStack from '../../components/AlertStack'
+<<<<<<< HEAD
+import { AssistantDock } from '../../components/assistant/AssistantPanel'
+=======
+>>>>>>> origin/main
 import AppShell from '../../components/AppShell'
 import PageScope from '../../components/PageScope'
 import QuestionViewer, { FeedbackToggle } from '../../components/grades/QuestionViewer'
@@ -634,6 +638,18 @@ export default function StudentDetails() {
           </div>
         </main>
       </AppShell>
+<<<<<<< HEAD
+      {query.assignment_id && (
+        <AssistantDock
+          context={{ assignment_id: query.assignment_id, student_id: query.student_id ?? undefined }}
+          subtitle={query.student_id ? `Paper · ${query.student_id}` : undefined}
+          greeting="I can explain any score on this paper, or draft feedback. What do you want to check?"
+          suggestions={['Why did this question lose marks?', 'Draft feedback for this paper', 'Show the rubric for the lowest-scoring question']}
+          placeholder="Ask about this paper…"
+        />
+      )}
+=======
+>>>>>>> origin/main
     </PageScope>
   )
 }

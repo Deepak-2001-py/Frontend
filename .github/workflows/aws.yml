@@ -78,7 +78,8 @@ jobs:
         # docker tag frontend:latest ${{ secrets.ECR_REPOSITORY }}:latest
         # docker push ${{ secrets.ECR_REPOSITORY }}:latest
         
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        # The React app (web/) — built from the repo root because it reads config/app.yaml.
+        docker build -f web/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 

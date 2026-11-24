@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+import { API, UPLOAD_BASE_URL, UPLOAD_SENDS_TOKEN } from '../config'
+import { getToken } from './session'
+=======
 import { API_BASE_URL } from '../config'
+>>>>>>> origin/main
 
 export const UPLOAD_LIMITS = {
   maxFileSizeMb: 10,
@@ -26,12 +31,24 @@ export function formatFileSize(bytes: number): string {
 /** Asks the upload Lambda for one S3 presigned PUT URL per file, in order. */
 export async function requestPresignedUrls(metadata: UploadMetadata): Promise<string[]> {
   let response: Response
+<<<<<<< HEAD
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  // The Node backend requires the user's token; the legacy upload Lambda's CORS
+  // config only allows Content-Type, so it is called without one (see config.ts).
+  const token = UPLOAD_SENDS_TOKEN ? getToken() : null
+  if (token) headers.Authorization = `Bearer ${token}`
+  try {
+    response = await fetch(`${UPLOAD_BASE_URL}${API.upload}`, {
+      method: 'POST',
+      headers,
+=======
   try {
     // No Authorization header: the /uploadpdf CORS config only ever saw
     // Content-Type from the old page, and the endpoint doesn't require it.
     response = await fetch(`${API_BASE_URL}/uploadpdf`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+>>>>>>> origin/main
       body: JSON.stringify(metadata),
     })
   } catch (err) {
@@ -64,3 +81,35 @@ export function uploadToPresignedUrl(file: File, url: string, onProgress: (perce
     xhr.send(file)
   })
 }
+<<<<<<< HEAD
+
+/** The grading Lambda finds solution keys by name: {assignmentId}_{qpId}_answer.pdf */
+export function renameSolutionFile(file: File, assignmentId: string, qpId: string): File {
+  const clean = (s: string) => s.replace(/[^a-zA-Z0-9]/g, '_')
+  const ext = file.name.split('.').pop()
+  return new File([file], `${clean(assignmentId)}_${clean(qpId)}_answer.${ext}`, {
+    type: file.type,
+    lastModified: file.lastModified,
+  })
+}
+
+/** Presigns and PUTs every file; resolves once all succeed, rejects on the first failure. */
+export async function uploadFiles(
+  metadata: Omit<UploadMetadata, 'files'>,
+  files: File[],
+  onProgress: (percent: number) => void,
+): Promise<void> {
+  const full: UploadMetadata = { ...metadata, files: files.map((f) => ({ name: f.name, type: f.type, size: f.size })) }
+  const urls = await requestPresignedUrls(full)
+  const progress = files.map(() => 0)
+  await Promise.all(
+    files.map((file, i) =>
+      uploadToPresignedUrl(file, urls[i], (p) => {
+        progress[i] = p
+        onProgress(Math.round(progress.reduce((a, b) => a + b, 0) / files.length))
+      }),
+    ),
+  )
+}
+=======
+>>>>>>> origin/main

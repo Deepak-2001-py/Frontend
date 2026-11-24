@@ -4,6 +4,10 @@ import AlertStack from '../../components/AlertStack'
 import AppShell from '../../components/AppShell'
 import PageScope from '../../components/PageScope'
 import { useAlerts } from '../../hooks/useAlerts'
+<<<<<<< HEAD
+import { API } from '../../config'
+=======
+>>>>>>> origin/main
 import { apiRequest } from '../../lib/api'
 import { apiCache } from '../../lib/apiCache'
 import { getMarksStatus, gradesRequest, type GradeResult, type GradeSummary } from '../../lib/grading'
@@ -156,7 +160,11 @@ export default function TeacherCorrection() {
     setFinalizing(true)
     try {
       // Best-effort: the operation doesn't exist on the backend yet.
+<<<<<<< HEAD
+      await apiRequest(API.marks, {
+=======
       await apiRequest('/updatedb', {
+>>>>>>> origin/main
         body: {
           operation: 'finalizeCorrection',
           qp_id: scanned.qpId,

@@ -2,6 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import PageScope from '../../components/PageScope'
+<<<<<<< HEAD
+import SidebarToggle, { useSidebarClosed } from '../../components/SidebarToggle'
+=======
+>>>>>>> origin/main
 import '../../styles/themes/aesthetic.css'
 import '../../styles/themes/admin.css'
 
@@ -44,6 +48,12 @@ export default function AdminLayout({ title, subtitle, actions, headerAside, ove
   const { session } = useAuth()
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+<<<<<<< HEAD
+  // Small screens: the nav collapses behind a menu button in the top bar.
+  const [navOpen, setNavOpen] = useState(false)
+  const [closed, setClosed] = useSidebarClosed()
+=======
+>>>>>>> origin/main
   const [alert, setAlert] = useState<{ message: string; type: AlertType } | null>(null)
   const timer = useRef<number | undefined>(undefined)
 
@@ -58,6 +68,10 @@ export default function AdminLayout({ title, subtitle, actions, headerAside, ove
   if (pathname !== lastPath) {
     setLastPath(pathname)
     setMenuOpen(false)
+<<<<<<< HEAD
+    setNavOpen(false)
+=======
+>>>>>>> origin/main
   }
   useEffect(() => {
     if (!menuOpen) return
@@ -70,12 +84,35 @@ export default function AdminLayout({ title, subtitle, actions, headerAside, ove
     <AdminAlertContext.Provider value={showAlert}>
       <PageScope name="admin" theme={['aesthetic', 'admin']} title={`Admin · ${docTitle}`}>
         <div className="admin-shell">
+<<<<<<< HEAD
+          <aside className={`admin-sidebar${closed ? ' is-closed' : ''}`}>
+            <SidebarToggle closed={closed} onChange={setClosed} />
+            <Link to="/admin/dashboard" className="admin-sidebar-logo">
+              <img className="logo-mark" src="/img/gradeant-logo.webp" alt="" width={28} height={28} />
+              <span className="logo-word">
+                Grade<b>Ant</b>
+              </span>
+              <span className="admin-badge">ADMIN</span>
+            </Link>
+            <button
+              type="button"
+              className="admin-nav-toggle"
+              aria-controls="admin-nav"
+              aria-expanded={navOpen}
+              aria-label={navOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setNavOpen((o) => !o)}
+            >
+              <span className="material-icons">{navOpen ? 'close' : 'menu'}</span>
+            </button>
+            <div id="admin-nav" className={`admin-nav${navOpen ? ' open' : ''}`}>
+=======
           <aside className="admin-sidebar">
             <Link to="/admin/dashboard" className="admin-sidebar-logo">
               <span className="logo-mark" />
               <span className="logo-word">GradeAnt</span>
               <span className="admin-badge">ADMIN</span>
             </Link>
+>>>>>>> origin/main
             {NAV.map((item) => (
               <NavLink key={item.to} to={item.to} className={({ isActive }) => `admin-nav-link${isActive ? ' active' : ''}`}>
                 <span className="material-icons">{item.icon}</span>
@@ -105,6 +142,10 @@ export default function AdminLayout({ title, subtitle, actions, headerAside, ove
                 </div>
               </div>
             </div>
+<<<<<<< HEAD
+            </div>
+=======
+>>>>>>> origin/main
           </aside>
 
           <main className="admin-main">

@@ -10,6 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+<<<<<<< HEAD
+    "motion": "^12.43.0",
+=======
+>>>>>>> origin/main
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4"
@@ -23,6 +27,11 @@
     "oxlint": "^1.81.0",
     "postcss-prefix-selector": "^2.2.1",
     "typescript": "~6.0.2",
+<<<<<<< HEAD
+    "vite": "^8.3.0",
+    "yaml": "^2.9.1"
+=======
     "vite": "^8.3.0"
+>>>>>>> origin/main
   }
 }

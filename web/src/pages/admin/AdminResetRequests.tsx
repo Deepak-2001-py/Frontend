@@ -1,4 +1,9 @@
+<<<<<<< HEAD
+import { Fragment, useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+=======
 import { Fragment, useState } from 'react'
+>>>>>>> origin/main
 import { adminApiRequest } from '../../lib/api'
 import AdminLayout, { capitalize, useAdminAlert } from './AdminLayout'
 import { AdminModal, ConfirmButton, FilterPills, timeAgo, useAdminData } from './adminShared'
@@ -23,12 +28,21 @@ interface Feature {
 }
 
 const WORKFLOW = [
+<<<<<<< HEAD
+  { title: 'Forgot password', sub: 'User submits request', tone: '', icon: 'help' },
+  { title: 'Admin notified', sub: 'Verifies user', tone: ' sky', icon: 'notifications' },
+  { title: 'Admin resets', sub: 'Temp password generated', tone: '', icon: 'key' },
+  { title: 'User logs in', sub: 'With temp password', tone: ' sky', icon: 'login' },
+  { title: 'Forced change', sub: 'System requires new pw', tone: '', icon: 'lock_reset' },
+  { title: 'Dashboard', sub: 'Access granted', tone: ' brand', icon: 'check' },
+=======
   { title: 'Forgot password', sub: 'User submits request', tone: '' },
   { title: 'Admin notified', sub: 'Verifies user', tone: ' sky' },
   { title: 'Admin resets', sub: 'Temp password generated', tone: '' },
   { title: 'User logs in', sub: 'With temp password', tone: ' teal' },
   { title: 'Forced change', sub: 'System requires new pw', tone: '' },
   { title: 'Dashboard', sub: 'Access granted', tone: ' brand' },
+>>>>>>> origin/main
 ]
 const SMALL_BTN = { padding: '6px 11px', fontSize: 12 }
 
@@ -43,6 +57,15 @@ function RequestsBody() {
   const requests = useAdminData<{ requests?: ResetRequest[]; pendingCount?: number }>('listResetRequests', { status: filter })
   const matrix = useAdminData<{ features?: Feature[] }>('getPermissionMatrix')
 
+<<<<<<< HEAD
+  // Dashboard's "Permission matrix" link lands on the matrix once it has loaded.
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (hash === '#permission-matrix' && matrix.data) document.getElementById('permission-matrix')?.scrollIntoView({ behavior: 'smooth' })
+  }, [hash, matrix.data])
+
+=======
+>>>>>>> origin/main
   async function act(operation: string, requestId: string, success?: string) {
     try {
       const result = await adminApiRequest<{ tempPassword?: string }>(operation, { requestId })
@@ -70,7 +93,15 @@ function RequestsBody() {
           <Fragment key={step.title}>
             {i > 0 && <span className="admin-workflow-arrow">→</span>}
             <div className={`admin-workflow-step${step.tone}`}>
+<<<<<<< HEAD
+              <div className="admin-workflow-icon">
+                <span className="material-icons" aria-hidden>
+                  {step.icon}
+                </span>
+              </div>
+=======
               <div className="admin-workflow-icon" />
+>>>>>>> origin/main
               <div className="admin-workflow-step-title">{step.title}</div>
               <div className="admin-workflow-step-sub">{step.sub}</div>
             </div>
@@ -161,7 +192,11 @@ function RequestsBody() {
           </div>
         </div>
 
+<<<<<<< HEAD
+        <div className="admin-panel" id="permission-matrix">
+=======
         <div className="admin-panel">
+>>>>>>> origin/main
           <div className="admin-panel-title">Permissions by role</div>
           <div className="admin-matrix">
             <div className="head">Feature</div>

@@ -1,6 +1,12 @@
+<<<<<<< HEAD
+import { API, API_BASE_URL } from '../config'
+import { apiCache } from './apiCache'
+import { clearSession, getToken } from './session'
+=======
 import { API_BASE_URL } from '../config'
 import { apiCache } from './apiCache'
 import { getToken } from './session'
+>>>>>>> origin/main
 
 export class ApiError extends Error {
   readonly status: number
@@ -29,6 +35,32 @@ export function unwrapLambda<T>(data: unknown): T {
   return data as T
 }
 
+<<<<<<< HEAD
+let expiring = false
+
+function handleExpiredSession() {
+  if (expiring) return
+  expiring = true
+  clearSession()
+  const here = window.location.pathname + window.location.search
+  window.location.assign(`/session-expired?returnTo=${encodeURIComponent(here)}`)
+}
+
+/**
+ * True when the API route looks undeployed rather than failing inside a Lambda:
+ * API Gateway's "Missing Authentication Token" / "Invalid key=value pair" 403s,
+ * which carry no CORS headers, so the browser usually reports a network error.
+ */
+export function isRouteMissing(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (/Missing Authentication Token|Invalid key=value pair/i.test(error.message) ||
+      (error instanceof TypeError && /fetch|network|load failed/i.test(error.message)))
+  )
+}
+
+=======
+>>>>>>> origin/main
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: unknown
@@ -63,6 +95,12 @@ export async function apiRequest<T = unknown>(path: string, opts: RequestOptions
 
   if (!response.ok) {
     const payload = unwrapLambda<{ message?: string; error?: string } | null>(data)
+<<<<<<< HEAD
+    // Every 401 on an authenticated call means the token is expired or invalid
+    // (login's own 401 is sent without one), so end the session cleanly.
+    if (response.status === 401 && headers.Authorization) handleExpiredSession()
+=======
+>>>>>>> origin/main
     throw new ApiError(payload?.message || payload?.error || `Request failed (${response.status})`, response.status)
   }
   return opts.raw ? (data as T) : unwrapLambda<T>(data)
@@ -95,7 +133,11 @@ export async function adminApiRequest<T = unknown>(
     if (cached !== undefined) return cached
   }
 
+<<<<<<< HEAD
+  const data = await apiRequest<T>(API.admin, { body: { operation, ...payload } })
+=======
   const data = await apiRequest<T>('/admin', { body: { operation, ...payload } })
+>>>>>>> origin/main
   if (isRead) apiCache.set(cacheKey, data)
   else apiCache.clearPrefix('admin:')
   return data
